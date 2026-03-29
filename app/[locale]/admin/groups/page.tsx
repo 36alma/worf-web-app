@@ -1,12 +1,9 @@
-import {getTranslations} from 'next-intl/server';
+import AdminGroupsManager from '@/components/admin/AdminGroupsManager';
 
-export default async function AdminGroupsPage() {
-  const t = await getTranslations('admin');
-
+export default function AdminGroupsPage() {
   return (
-    <div className="surface rounded-xl p-4 text-sm text-slate-300">
-      <h2 className="mb-2 text-lg text-slate-100">{t('sections.groups')}</h2>
-      <p>{t('groups_placeholder')}</p>
+    <div className="surface rounded-xl p-4">
+      <AdminGroupsManager />
     </div>
   );
 }

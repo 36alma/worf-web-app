@@ -1,6 +1,6 @@
 'use client';
 
-import {useEffect, useMemo, useState} from 'react';
+import {useCallback, useEffect, useMemo, useState} from 'react';
 import Link from 'next/link';
 import {useLocale, useTranslations} from 'next-intl';
 import {usePathname, useRouter} from 'next/navigation';
@@ -12,24 +12,34 @@ import {
   Menu,
   Shield,
   StickyNote,
+  UserCircle,
   Users
 } from 'lucide-react';
 import {logout} from '@/lib/api/auth';
 import {getUserGroups} from '@/lib/api/groups';
+import {getGroupPermissions} from '@/lib/api/permissions';
 import {hasPermissionRequirement, navPermissionRequirements, type NavKey} from '@/lib/permissions/access';
 import {usePermissionStore} from '@/lib/store/permissionStore';
 import {useUiStore} from '@/lib/store/uiStore';
+import type {ElementType} from 'react';
 
-const navIcons = {
+const navIcons: Record<NavKey, ElementType> = {
   dashboard: LayoutDashboard,
   groups: Users,
   tasks: ClipboardList,
   calendar: CalendarDays,
   posts: StickyNote,
-  admin: Shield
+  admin: Shield,
+  profile: UserCircle
 };
 
 const navKeys: NavKey[] = ['dashboard', 'groups', 'tasks', 'calendar', 'posts', 'admin'];
+
+const selectedGroupNavPermissions: Partial<Record<NavKey, string[]>> = {
+  tasks: ['group.task.read'],
+  calendar: ['group.calendar.read', 'group.calendar.write'],
+  posts: ['group.post.read']
+};
 
 interface SidebarGroup {
   id: string;
@@ -37,30 +47,54 @@ interface SidebarGroup {
 }
 
 const normalizeGroups = (payload: unknown): SidebarGroup[] => {
-  const raw = typeof payload === 'object' && payload !== null && 'data' in payload ? payload.data : payload;
-  const source = Array.isArray(raw)
-    ? raw
-    : raw && typeof raw === 'object' && 'groups' in raw && Array.isArray((raw as {groups?: unknown}).groups)
-      ? ((raw as {groups: unknown[]}).groups ?? [])
-      : [];
+  console.log('[Sidebar] Raw payload received:', payload);
+  
+  if (!payload) return [];
 
-  return source
-    .map((item) => {
-      if (!item || typeof item !== 'object') {
-        return null;
+  let data = payload;
+  
+  if (typeof payload === 'string') {
+    try {
+      data = JSON.parse(payload);
+    } catch {
+      return [];
+    }
+  }
+
+  const results: SidebarGroup[] = [];
+  
+  const traverse = (item: any) => {
+    if (!item || typeof item === 'function') return;
+
+    if (Array.isArray(item)) {
+      item.forEach(traverse);
+      return;
+    }
+
+    if (typeof item === 'object') {
+      const keys = Object.keys(item);
+      const idKey = keys.find(k => k.toLowerCase().endsWith('id') || k.toLowerCase() === 'id');
+      const id = idKey ? item[idKey] : null;
+      const nameKey = keys.find(k => k.toLowerCase().includes('name') || k.toLowerCase() === 'title');
+      const name = nameKey ? item[nameKey] : null;
+
+      if (id && id !== 'undefined' && id !== 'null') {
+        results.push({
+          id: String(id),
+          name: String(name || id)
+        });
+        return; 
       }
 
-      const candidate = item as Record<string, unknown>;
-      const id = String(candidate.group_id ?? candidate.groupId ?? candidate.id ?? '');
-      const name = String(candidate.group_name ?? candidate.name ?? candidate.title ?? '');
+      Object.values(item).forEach(traverse);
+    }
+  };
 
-      if (!id) {
-        return null;
-      }
+  traverse(data);
 
-      return {id, name: name || id};
-    })
-    .filter((group): group is SidebarGroup => Boolean(group));
+  const uniqueResults = results.filter((v, i, a) => a.findIndex(t => t.id === v.id) === i);
+  console.log('[Sidebar] Final normalized groups:', uniqueResults);
+  return uniqueResults;
 };
 
 export default function Sidebar() {
@@ -71,45 +105,147 @@ export default function Sidebar() {
   const locale = useLocale();
   const router = useRouter();
   const pathname = usePathname();
-  const {mobileSidebarOpen, toggleSidebar, setSidebarOpen} = useUiStore();
-  const {systemPermissions, isSystemPermissionsLoaded, clearPermissions} = usePermissionStore();
+  const {mobileSidebarOpen, toggleSidebar, setSidebarOpen, selectedGroupId, setSelectedGroupId} = useUiStore();
+  const {
+    systemPermissions,
+    isSystemPermissionsLoaded,
+    groupPermissionsById,
+    groupPermissionsLoadingById,
+    setGroupPermissions,
+    setGroupPermissionsLoading,
+    clearPermissions
+  } = usePermissionStore();
   const [groups, setGroups] = useState<SidebarGroup[]>([]);
   const [isGroupsLoaded, setIsGroupsLoaded] = useState(false);
-  const [selectedGroupId, setSelectedGroupId] = useState('');
+  const {pathGroupId, pathGroupSubSegment} = useMemo(() => {
+    const match = pathname.match(new RegExp(`^/${locale}/groups/([^/]+)(?:/([^/]+))?`));
+    return {
+      pathGroupId: match?.[1] ?? '',
+      pathGroupSubSegment: match?.[2] ?? ''
+    };
+  }, [pathname, locale]);
+
+  const loadGroups = useCallback(async () => {
+    try {
+      const response = await getUserGroups();
+      const groupList = normalizeGroups(response?.data);
+      setGroups(groupList);
+    } catch {
+      setGroups([]);
+    } finally {
+      setIsGroupsLoaded(true);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadGroups();
+  }, [loadGroups, pathname]);
+
+  useEffect(() => {
+    const onFocus = () => {
+      void loadGroups();
+    };
+
+    window.addEventListener('focus', onFocus);
+    return () => {
+      window.removeEventListener('focus', onFocus);
+    };
+  }, [loadGroups]);
+
+  useEffect(() => {
+    if (pathGroupId && pathGroupId !== selectedGroupId) {
+      setSelectedGroupId(pathGroupId);
+    }
+  }, [pathGroupId, selectedGroupId, setSelectedGroupId]);
+
+  useEffect(() => {
+    if (pathGroupId) {
+      return;
+    }
+
+    if (groups.length === 0) {
+      if (selectedGroupId !== '') {
+        setSelectedGroupId('');
+      }
+      return;
+    }
+
+    const exists = groups.some((group) => group.id === selectedGroupId);
+    if (selectedGroupId && !exists) {
+      setSelectedGroupId('');
+    }
+  }, [groups, pathGroupId, selectedGroupId, setSelectedGroupId]);
 
   useEffect(() => {
     let mounted = true;
 
-    const loadGroups = async () => {
-      try {
-        const response = await getUserGroups();
-        const groupList = normalizeGroups(response?.data);
-        if (mounted) {
-          setGroups(groupList);
-        }
-      } catch {
-        if (mounted) {
-          setGroups([]);
-        }
-      } finally {
-        if (mounted) {
-          setIsGroupsLoaded(true);
-        }
+    const loadMissingGroupPermissions = async () => {
+      const missingGroupIds = groups
+        .map((group) => group.id)
+        .filter((groupId) => !groupPermissionsById[groupId] && !groupPermissionsLoadingById[groupId]);
+
+      if (missingGroupIds.length === 0) {
+        return;
       }
+
+      await Promise.all(
+        missingGroupIds.map(async (groupId) => {
+          setGroupPermissionsLoading(groupId, true);
+          try {
+            const permissions = await getGroupPermissions(groupId);
+            if (mounted) {
+              setGroupPermissions(groupId, permissions);
+            }
+          } catch {
+            if (mounted) {
+              setGroupPermissions(groupId, {});
+            }
+          }
+        })
+      );
     };
 
-    loadGroups();
+    loadMissingGroupPermissions();
 
     return () => {
       mounted = false;
     };
-  }, []);
+  }, [
+    groups,
+    groupPermissionsById,
+    groupPermissionsLoadingById,
+    setGroupPermissions,
+    setGroupPermissionsLoading
+  ]);
 
-  useEffect(() => {
-    const match = pathname.match(new RegExp(`^/${locale}/groups/([^/]+)`));
-    const pathGroupId = match?.[1] ?? '';
-    setSelectedGroupId(pathGroupId || '');
-  }, [pathname, locale]);
+  const allGroupIds = useMemo(() => groups.map((group) => group.id), [groups]);
+  const selectedGroupPermissions = selectedGroupId ? groupPermissionsById[selectedGroupId] : null;
+  const isSelectedGroupPermissionsLoaded = selectedGroupId ? Boolean(selectedGroupPermissions) : true;
+  const areAllGroupPermissionsLoaded = useMemo(() => {
+    if (allGroupIds.length === 0) {
+      return true;
+    }
+
+    return allGroupIds.every((groupId) => Boolean(groupPermissionsById[groupId]));
+  }, [allGroupIds, groupPermissionsById]);
+
+  const hasAnyGroupPermission = useCallback(
+    (permissions: string[]) => {
+      if (allGroupIds.length === 0) {
+        return false;
+      }
+
+      return allGroupIds.some((groupId) => {
+        const groupPermissions = groupPermissionsById[groupId];
+        if (!groupPermissions) {
+          return false;
+        }
+
+        return permissions.some((permission) => groupPermissions[permission]);
+      });
+    },
+    [allGroupIds, groupPermissionsById]
+  );
 
   const canOpenGroups = useMemo(() => {
     const requirement = navPermissionRequirements.groups;
@@ -127,10 +263,41 @@ export default function Sidebar() {
   const handleGroupSelect = (groupId: string) => {
     setSelectedGroupId(groupId);
     if (!groupId) {
+      if (pathGroupSubSegment === 'calendar') {
+        router.push(`/${locale}/calendar`);
+        return;
+      }
+
+      if (pathGroupSubSegment === 'posts') {
+        router.push(`/${locale}/posts`);
+        return;
+      }
+
+      router.push(`/${locale}/groups`);
       return;
     }
 
     router.push(`/${locale}/groups/${groupId}`);
+  };
+
+  const resolveHref = (key: NavKey) => {
+    if (!selectedGroupId) {
+      return `/${locale}/${key}`;
+    }
+
+    if (key === 'groups') {
+      return `/${locale}/groups/${selectedGroupId}`;
+    }
+
+    if (key === 'calendar') {
+      return `/${locale}/groups/${selectedGroupId}/calendar`;
+    }
+
+    if (key === 'posts') {
+      return `/${locale}/groups/${selectedGroupId}/posts`;
+    }
+
+    return `/${locale}/${key}`;
   };
 
   const handleLogout = async () => {
@@ -164,7 +331,7 @@ export default function Sidebar() {
         {canOpenGroups && (
           <div className="mb-4 space-y-2">
             <label className="block text-xs font-semibold uppercase tracking-wide text-slate-400">
-              {groupsT('team_selector_label')}
+              {groupsT('team_selector_label')} ({groups.length})
             </label>
             <select
               value={selectedGroupId}
@@ -198,9 +365,29 @@ export default function Sidebar() {
 
               return hasPermissionRequirement(systemPermissions, requirement);
             })
+            .filter((key) => {
+              const requiredGroupPermissions = selectedGroupNavPermissions[key];
+              if (!requiredGroupPermissions) {
+                return true;
+              }
+
+              if (selectedGroupId) {
+                if (!isSelectedGroupPermissionsLoaded || !selectedGroupPermissions) {
+                  return false;
+                }
+
+                return requiredGroupPermissions.some((permission) => selectedGroupPermissions[permission]);
+              }
+
+              if (!areAllGroupPermissionsLoaded) {
+                return false;
+              }
+
+              return hasAnyGroupPermission(requiredGroupPermissions);
+            })
             .map((key) => {
               const Icon = navIcons[key];
-              const href = `/${locale}/${key}`;
+              const href = resolveHref(key);
               const active = pathname === href || pathname.startsWith(`${href}/`);
 
               return (

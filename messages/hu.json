@@ -154,6 +154,8 @@
         "delete_group_confirm": "Biztosan törlöd ezt a csoportot?",
         "manage_members": "Tagok kezelése",
         "manage_members_title": "Csoporttagok kezelése",
+        "members_tab": "Tagok",
+        "add_tab": "Hozzáadás",
         "group_members_current": "Jelenlegi tagok",
         "no_members": "Ebben a csoportban még nincs tag.",
         "add_member": "Tag hozzáadása",

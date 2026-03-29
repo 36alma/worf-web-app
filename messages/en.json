@@ -154,6 +154,8 @@
                   "delete_group_confirm":  "Are you sure you want to delete this group?",
                   "manage_members":  "Manage members",
                   "manage_members_title":  "Manage group members",
+                  "members_tab":  "Members",
+                  "add_tab":  "Add",
                   "group_members_current":  "Current members",
                   "no_members":  "This group has no members yet.",
                   "add_member":  "Add member",

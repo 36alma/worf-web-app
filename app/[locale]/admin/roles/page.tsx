@@ -1,12 +1,9 @@
-import {getTranslations} from 'next-intl/server';
+import AdminRolesManager from '@/components/admin/AdminRolesManager';
 
-export default async function AdminRolesPage() {
-  const t = await getTranslations('admin');
-
+export default function AdminRolesPage() {
   return (
-    <div className="surface rounded-xl p-4 text-sm text-slate-300">
-      <h2 className="mb-2 text-lg text-slate-100">{t('sections.roles')}</h2>
-      <p>{t('roles_placeholder')}</p>
+    <div className="surface rounded-xl p-4">
+      <AdminRolesManager />
     </div>
   );
 }

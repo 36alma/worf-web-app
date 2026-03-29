@@ -177,7 +177,7 @@ export default function AdminGroupsManager() {
       setSelectedUserId('');
 
       try {
-        const [membersRes, usersRes] = await Promise.all([getGroupMembers(group.id), getAdminUsers(500)]);
+        const [membersRes, usersRes] = await Promise.all([getGroupMembers(group.id), getAdminUsers(10000)]);
         setGroupMembers(toUsers(membersRes.data));
         setAllUsers(toUsers(usersRes.data));
       } catch {
@@ -289,6 +289,7 @@ export default function AdminGroupsManager() {
 
     try {
       setMemberActionLoading(true);
+      await loadMembersContext(memberModalGroup);
       await addUserToGroup(memberModalGroup.id, selectedUserId);
       toast.success(t('add_member_success'));
       await loadMembersContext(memberModalGroup);
@@ -436,6 +437,11 @@ export default function AdminGroupsManager() {
                     className="w-full rounded-md border border-[var(--border)] bg-[#0f0f18] px-3 py-2 text-sm"
                     value={selectedUserId}
                     onChange={(event) => setSelectedUserId(event.target.value)}
+                    onFocus={() => {
+                      if (memberModalGroup) {
+                        void loadMembersContext(memberModalGroup);
+                      }
+                    }}
                   >
                     <option value="">{t('select_user')}</option>
                     {availableUsers.map((user) => (

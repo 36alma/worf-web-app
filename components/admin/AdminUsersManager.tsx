@@ -3,6 +3,7 @@
 import {useCallback, useEffect, useMemo, useState} from 'react';
 import toast from 'react-hot-toast';
 import {useTranslations} from 'next-intl';
+import type {AxiosError} from 'axios';
 import {getAdminUserProfile, getAdminUsers, getAllSystemRoles, updateAdminUserProfile} from '@/lib/api/admin';
 import Button from '@/components/ui/Button';
 import DataTable from '@/components/ui/DataTable';
@@ -138,6 +139,21 @@ const toProfile = (payload: unknown, fallback: AdminUserRow): EditFormState => {
   };
 };
 
+const getApiErrorMessage = (error: unknown): string | null => {
+  const axiosError = error as AxiosError<{detail?: Array<{msg?: string}>; message?: string}>;
+  const detail = axiosError?.response?.data?.detail;
+
+  if (Array.isArray(detail) && detail.length > 0) {
+    return detail.map((item) => item?.msg).filter(Boolean).join(', ');
+  }
+
+  if (typeof axiosError?.response?.data?.message === 'string') {
+    return axiosError.response.data.message;
+  }
+
+  return null;
+};
+
 export default function AdminUsersManager() {
   const t = useTranslations('admin');
   const [loading, setLoading] = useState(true);
@@ -203,6 +219,11 @@ export default function AdminUsersManager() {
       return;
     }
 
+    if (!form.user_id) {
+      toast.error(t('save_error'));
+      return;
+    }
+
     try {
       setSaving(true);
 
@@ -222,8 +243,9 @@ export default function AdminUsersManager() {
       setOpenEdit(false);
       setForm(null);
       await load();
-    } catch {
-      toast.error(t('save_error'));
+    } catch (error) {
+      const message = getApiErrorMessage(error);
+      toast.error(message ? `${t('save_error')} (${message})` : t('save_error'));
     } finally {
       setSaving(false);
     }
@@ -245,7 +267,13 @@ export default function AdminUsersManager() {
 
       <Modal open={openEdit && Boolean(form)} title={t('edit_user_title')} onClose={() => setOpenEdit(false)}>
         {form && (
-          <div className="space-y-3">
+          <form
+            className="space-y-3"
+            onSubmit={(event) => {
+              event.preventDefault();
+              onSave();
+            }}
+          >
             <div>
               <label className="mb-1 block text-sm text-slate-300">{t('columns.username')}</label>
               <input
@@ -320,19 +348,20 @@ export default function AdminUsersManager() {
               <input
                 type="password"
                 className="w-full rounded-md border border-[var(--border)] bg-[#0f0f18] px-3 py-2"
+                autoComplete="new-password"
                 value={form.password}
                 onChange={(event) => setForm((prev) => (prev ? {...prev, password: event.target.value} : prev))}
               />
             </div>
             <div className="flex justify-end gap-2">
-              <Button variant="ghost" onClick={() => setOpenEdit(false)}>
+              <Button variant="ghost" type="button" onClick={() => setOpenEdit(false)}>
                 {t('cancel')}
               </Button>
-              <Button onClick={onSave} disabled={saving}>
+              <Button type="submit" disabled={saving}>
                 {saving ? t('saving') : t('save')}
               </Button>
             </div>
-          </div>
+          </form>
         )}
       </Modal>
     </div>

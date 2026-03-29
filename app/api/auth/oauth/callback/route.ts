@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(redirectUrl);
   }
 
-  setAuthCookies({
+  await setAuthCookies({
     access_token: accessToken,
     refresh_token: refreshToken
   });

@@ -1,4 +1,4 @@
-﻿import {request as httpRequest} from 'node:http';
+import {request as httpRequest} from 'node:http';
 import {request as httpsRequest} from 'node:https';
 import {NextRequest, NextResponse} from 'next/server';
 import {getServerAccessToken} from '@/lib/utils/cookies';
@@ -17,6 +17,30 @@ const normalizeQueryValue = (value: string): unknown => {
   }
 
   return value;
+};
+
+const getQueryPayload = (request: NextRequest): Record<string, unknown> => {
+  const queryPayload: Record<string, unknown> = {};
+
+  for (const [key, value] of request.nextUrl.searchParams.entries()) {
+    const normalizedValue = normalizeQueryValue(value);
+    const currentValue = queryPayload[key];
+
+    if (typeof currentValue === 'undefined') {
+      queryPayload[key] = normalizedValue;
+      continue;
+    }
+
+    if (Array.isArray(currentValue)) {
+      currentValue.push(normalizedValue);
+      queryPayload[key] = currentValue;
+      continue;
+    }
+
+    queryPayload[key] = [currentValue, normalizedValue];
+  }
+
+  return queryPayload;
 };
 
 function sendJsonWithBody(url: URL, method: string, payload: Record<string, any>): Promise<RawHttpResponse> {
@@ -68,23 +92,17 @@ async function handleProxy(request: NextRequest, params: {path: string[]}) {
   );
   targetUrl.search = request.nextUrl.search;
 
-  const token = getServerAccessToken();
+  const token = await getServerAccessToken();
   const input = await request.text();
 
   let parsedBody: Record<string, any> = {};
-  if (input) {
+  if (request.method === 'GET') {
+    parsedBody = getQueryPayload(request);
+  } else if (input) {
     try {
       parsedBody = JSON.parse(input) as Record<string, any>;
     } catch {
       parsedBody = {};
-    }
-  }
-
-  if (request.method === 'GET') {
-    for (const [key, value] of request.nextUrl.searchParams.entries()) {
-      if (!(key in parsedBody)) {
-        parsedBody[key] = normalizeQueryValue(value);
-      }
     }
   }
 
@@ -95,6 +113,10 @@ async function handleProxy(request: NextRequest, params: {path: string[]}) {
 
   const response = await sendJsonWithBody(targetUrl, request.method, payload);
 
+  if (response.status >= 400) {
+    console.error(`[Proxy] Backend error for ${request.method} ${joinedPath}:`, response.status, response.text);
+  }
+
   return new NextResponse(response.text, {
     status: response.status,
     headers: {
@@ -103,22 +125,27 @@ async function handleProxy(request: NextRequest, params: {path: string[]}) {
   });
 }
 
-export async function GET(request: NextRequest, context: {params: {path: string[]}}) {
-  return handleProxy(request, context.params);
+export async function GET(request: NextRequest, context: {params: Promise<{path: string[]}>}) {
+  const params = await context.params;
+  return handleProxy(request, params);
 }
 
-export async function POST(request: NextRequest, context: {params: {path: string[]}}) {
-  return handleProxy(request, context.params);
+export async function POST(request: NextRequest, context: {params: Promise<{path: string[]}>}) {
+  const params = await context.params;
+  return handleProxy(request, params);
 }
 
-export async function PUT(request: NextRequest, context: {params: {path: string[]}}) {
-  return handleProxy(request, context.params);
+export async function PUT(request: NextRequest, context: {params: Promise<{path: string[]}>}) {
+  const params = await context.params;
+  return handleProxy(request, params);
 }
 
-export async function PATCH(request: NextRequest, context: {params: {path: string[]}}) {
-  return handleProxy(request, context.params);
+export async function PATCH(request: NextRequest, context: {params: Promise<{path: string[]}>}) {
+  const params = await context.params;
+  return handleProxy(request, params);
 }
 
-export async function DELETE(request: NextRequest, context: {params: {path: string[]}}) {
-  return handleProxy(request, context.params);
+export async function DELETE(request: NextRequest, context: {params: Promise<{path: string[]}>}) {
+  const params = await context.params;
+  return handleProxy(request, params);
 }

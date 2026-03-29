@@ -1,4 +1,4 @@
-﻿{
+{
     "common": {
         "app_name": "WORF",
         "lang_hu": "🇭🇺 Magyar",
@@ -167,8 +167,8 @@
         "add_member_error": "A tag hozzáadása sikertelen.",
         "remove_member_success": "A tag eltávolítása sikeres.",
         "remove_member_error": "A tag eltávolítása sikertelen.",
-        "edit_user_title": "Felhasználó szerkesztése",
         "roles_readonly_hint": "A rendszer role-ok ezen a képernyőn csak olvashatók.",
+        "edit_user_title": "Felhasználó szerkesztése",
         "sections": {
             "users": "Felhasználók",
             "groups": "Csoportok",

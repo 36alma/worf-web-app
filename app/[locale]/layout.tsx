@@ -1,4 +1,4 @@
-﻿import {notFound} from 'next/navigation';
+import {notFound} from 'next/navigation';
 import {NextIntlClientProvider} from 'next-intl';
 import {getMessages} from 'next-intl/server';
 import {Manrope, Sora} from 'next/font/google';
@@ -14,17 +14,18 @@ export default async function LocaleLayout({
   params
 }: {
   children: React.ReactNode;
-  params: {locale: string};
+  params: Promise<{locale: string}>;
 }) {
-  if (!locales.includes(params.locale as (typeof locales)[number])) {
+  const {locale} = await params;
+  if (!locales.includes(locale as (typeof locales)[number])) {
     notFound();
   }
 
   const messages = await getMessages();
 
   return (
-    <div className={`${bodyFont.variable} ${displayFont.variable}`} lang={params.locale}>
-      <NextIntlClientProvider locale={params.locale} messages={messages}>
+    <div className={`${bodyFont.variable} ${displayFont.variable}`} lang={locale}>
+      <NextIntlClientProvider locale={locale} messages={messages}>
         <AppProviders>
           <AppShell>{children}</AppShell>
         </AppProviders>

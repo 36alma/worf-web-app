@@ -1,5 +1,6 @@
-﻿import {redirect} from 'next/navigation';
+import {redirect} from 'next/navigation';
 
-export default function LocaleIndexPage({params}: {params: {locale: string}}) {
-  redirect(`/${params.locale}/dashboard`);
+export default async function LocaleIndexPage({params}: {params: Promise<{locale: string}>}) {
+  const {locale} = await params;
+  redirect(`/${locale}/dashboard`);
 }

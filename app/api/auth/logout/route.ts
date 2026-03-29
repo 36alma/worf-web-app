@@ -5,8 +5,8 @@ import {getServerAccessToken, getServerRefreshToken} from '@/lib/utils/cookies';
 
 export async function POST(request: NextRequest) {
   const payload = await request.json().catch(() => ({}));
-  const access_token = getServerAccessToken();
-  const refresh_token = getServerRefreshToken();
+  const access_token = await getServerAccessToken();
+  const refresh_token = await getServerRefreshToken();
 
   const {status, data} = await callWorfApi('/v1/auth/logout', {
     method: 'POST',
@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
     }
   });
 
-  clearAuthCookies();
+  await clearAuthCookies();
   return jsonWithStatus(data, status);
 }
 

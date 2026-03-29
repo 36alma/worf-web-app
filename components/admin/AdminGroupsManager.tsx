@@ -9,6 +9,7 @@ import {
   createGroup,
   deleteGroup,
   getAllGroups,
+  getGroupMembers,
   modifyGroupBase,
   removeUserFromGroup
 } from '@/lib/api/groups';
@@ -181,6 +182,7 @@ export default function AdminGroupsManager() {
   const [memberModalGroup, setMemberModalGroup] = useState<GroupRow | null>(null);
   const [memberLoading, setMemberLoading] = useState(false);
   const [memberActionLoading, setMemberActionLoading] = useState(false);
+  const [groupMembers, setGroupMembers] = useState<UserRow[]>([]);
   const [allUsers, setAllUsers] = useState<UserRow[]>([]);
   const [memberTab, setMemberTab] = useState<'members' | 'add'>('members');
 
@@ -212,10 +214,19 @@ export default function AdminGroupsManager() {
       setMemberLoading(true);
 
       try {
-        const usersRes = await getAdminUsers();
+        const [membersRes, usersRes] = await Promise.all([getGroupMembers(group.id), getAdminUsers()]);
+        const members = toUsers(membersRes.data);
         const users = toUsers(usersRes.data);
+
+        const memberIds = new Set(members.map((member) => member.id));
+        const normalizedMembers = users.filter((user) => memberIds.has(user.id));
+        const missingMembers = members.filter((member) => !normalizedMembers.some((user) => user.id === member.id));
+
+        setGroupMembers([...normalizedMembers, ...missingMembers]);
         setAllUsers(users);
       } catch {
+        setGroupMembers([]);
+        setAllUsers([]);
         toast.error(t('load_members_error'));
       } finally {
         setMemberLoading(false);
@@ -313,21 +324,14 @@ export default function AdminGroupsManager() {
     }
   };
 
-  const groupMembers = useMemo(() => {
-    if (!memberModalGroup) {
-      return [];
-    }
-
-    return allUsers.filter((user) => user.group_ids.includes(memberModalGroup.id));
-  }, [allUsers, memberModalGroup]);
-
   const availableUsers = useMemo(() => {
     if (!memberModalGroup) {
       return [];
     }
 
-    return allUsers.filter((user) => !user.group_ids.includes(memberModalGroup.id));
-  }, [allUsers, memberModalGroup]);
+    const memberIds = new Set(groupMembers.map((member) => member.id));
+    return allUsers.filter((user) => !memberIds.has(user.id));
+  }, [allUsers, groupMembers, memberModalGroup]);
 
   const onAddMember = useCallback(async (userId: string) => {
     if (!memberModalGroup || !userId) {
@@ -337,6 +341,10 @@ export default function AdminGroupsManager() {
     try {
       setMemberActionLoading(true);
       await addUserToGroup(memberModalGroup.id, userId);
+      const addedUser = allUsers.find((user) => user.id === userId);
+      if (addedUser && !groupMembers.some((member) => member.id === userId)) {
+        setGroupMembers((prev) => [...prev, addedUser]);
+      }
       setAllUsers((prev) =>
         prev.map((user) =>
           user.id === userId
@@ -355,7 +363,7 @@ export default function AdminGroupsManager() {
     } finally {
       setMemberActionLoading(false);
     }
-  }, [memberModalGroup, t]);
+  }, [memberModalGroup, t, allUsers, groupMembers]);
 
   const onRemoveMember = useCallback(async (userId: string) => {
     if (!memberModalGroup) {
@@ -365,6 +373,7 @@ export default function AdminGroupsManager() {
     try {
       setMemberActionLoading(true);
       await removeUserFromGroup(memberModalGroup.id, userId);
+      setGroupMembers((prev) => prev.filter((member) => member.id !== userId));
       setAllUsers((prev) =>
         prev.map((user) =>
           user.id === userId

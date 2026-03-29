@@ -9,7 +9,6 @@ import {
   createGroup,
   deleteGroup,
   getAllGroups,
-  getGroupMembers,
   modifyGroupBase,
   removeUserFromGroup
 } from '@/lib/api/groups';
@@ -40,6 +39,7 @@ interface UserRow {
   username: string;
   email: string;
   full_name: string;
+  group_ids: string[];
 }
 
 const readData = (payload: unknown): unknown => {
@@ -90,6 +90,42 @@ const toGroupRows = (payload: unknown): GroupRow[] => {
     .filter((row): row is GroupRow => Boolean(row));
 };
 
+const toStringArray = (value: unknown): string[] => {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.map((item) => String(item)).filter(Boolean);
+};
+
+const extractGroupIds = (row: RawObject): string[] => {
+  const directIds = toStringArray(row.group_ids);
+  const singleId = String(row.group_id ?? '');
+  const groupsArray = Array.isArray(row.groups) ? row.groups : [];
+  const nestedGroupIds = groupsArray
+    .map((group) => {
+      if (!group || typeof group !== 'object') {
+        return '';
+      }
+
+      const g = group as RawObject;
+      return String(g.group_id ?? g.id ?? '');
+    })
+    .filter(Boolean);
+  const groupRoles = row.group_roles;
+  const groupRoleKeys =
+    groupRoles && typeof groupRoles === 'object' ? Object.keys(groupRoles as Record<string, unknown>) : [];
+
+  return Array.from(
+    new Set([
+      ...directIds,
+      ...(singleId ? [singleId] : []),
+      ...nestedGroupIds,
+      ...groupRoleKeys
+    ])
+  );
+};
+
 const toUsers = (payload: unknown): UserRow[] => {
   const source = readData(payload);
   const arrayValue = Array.isArray(source)
@@ -120,7 +156,8 @@ const toUsers = (payload: unknown): UserRow[] => {
         id,
         username: String(row.username ?? ''),
         email: String(row.email ?? ''),
-        full_name: String(row.full_name ?? row.fullname ?? '')
+        full_name: String(row.full_name ?? row.fullname ?? ''),
+        group_ids: extractGroupIds(row)
       };
     })
     .filter((row): row is UserRow => Boolean(row));
@@ -144,9 +181,8 @@ export default function AdminGroupsManager() {
   const [memberModalGroup, setMemberModalGroup] = useState<GroupRow | null>(null);
   const [memberLoading, setMemberLoading] = useState(false);
   const [memberActionLoading, setMemberActionLoading] = useState(false);
-  const [groupMembers, setGroupMembers] = useState<UserRow[]>([]);
   const [allUsers, setAllUsers] = useState<UserRow[]>([]);
-  const [selectedUserId, setSelectedUserId] = useState('');
+  const [memberTab, setMemberTab] = useState<'members' | 'add'>('members');
 
   const canAddMember =
     isSystemPermissionsLoaded &&
@@ -174,12 +210,11 @@ export default function AdminGroupsManager() {
   const loadMembersContext = useCallback(
     async (group: GroupRow) => {
       setMemberLoading(true);
-      setSelectedUserId('');
 
       try {
-        const [membersRes, usersRes] = await Promise.all([getGroupMembers(group.id), getAdminUsers(10000)]);
-        setGroupMembers(toUsers(membersRes.data));
-        setAllUsers(toUsers(usersRes.data));
+        const usersRes = await getAdminUsers();
+        const users = toUsers(usersRes.data);
+        setAllUsers(users);
       } catch {
         toast.error(t('load_members_error'));
       } finally {
@@ -211,6 +246,7 @@ export default function AdminGroupsManager() {
               variant="ghost"
               onClick={async () => {
                 setMemberModalGroup(row);
+                setMemberTab('members');
                 await loadMembersContext(row);
               }}
             >
@@ -277,30 +313,51 @@ export default function AdminGroupsManager() {
     }
   };
 
-  const availableUsers = useMemo(() => {
-    const memberIds = new Set(groupMembers.map((member) => member.id));
-    return allUsers.filter((user) => !memberIds.has(user.id));
-  }, [groupMembers, allUsers]);
+  const groupMembers = useMemo(() => {
+    if (!memberModalGroup) {
+      return [];
+    }
 
-  const onAddMember = async () => {
-    if (!memberModalGroup || !selectedUserId) {
+    return allUsers.filter((user) => user.group_ids.includes(memberModalGroup.id));
+  }, [allUsers, memberModalGroup]);
+
+  const availableUsers = useMemo(() => {
+    if (!memberModalGroup) {
+      return [];
+    }
+
+    return allUsers.filter((user) => !user.group_ids.includes(memberModalGroup.id));
+  }, [allUsers, memberModalGroup]);
+
+  const onAddMember = useCallback(async (userId: string) => {
+    if (!memberModalGroup || !userId) {
       return;
     }
 
     try {
       setMemberActionLoading(true);
-      await loadMembersContext(memberModalGroup);
-      await addUserToGroup(memberModalGroup.id, selectedUserId);
+      await addUserToGroup(memberModalGroup.id, userId);
+      setAllUsers((prev) =>
+        prev.map((user) =>
+          user.id === userId
+            ? {
+                ...user,
+                group_ids: user.group_ids.includes(memberModalGroup.id)
+                  ? user.group_ids
+                  : [...user.group_ids, memberModalGroup.id]
+              }
+            : user
+        )
+      );
       toast.success(t('add_member_success'));
-      await loadMembersContext(memberModalGroup);
     } catch {
       toast.error(t('add_member_error'));
     } finally {
       setMemberActionLoading(false);
     }
-  };
+  }, [memberModalGroup, t]);
 
-  const onRemoveMember = async (userId: string) => {
+  const onRemoveMember = useCallback(async (userId: string) => {
     if (!memberModalGroup) {
       return;
     }
@@ -308,14 +365,57 @@ export default function AdminGroupsManager() {
     try {
       setMemberActionLoading(true);
       await removeUserFromGroup(memberModalGroup.id, userId);
+      setAllUsers((prev) =>
+        prev.map((user) =>
+          user.id === userId
+            ? {
+                ...user,
+                group_ids: user.group_ids.filter((groupId) => groupId !== memberModalGroup.id)
+              }
+            : user
+        )
+      );
       toast.success(t('remove_member_success'));
-      await loadMembersContext(memberModalGroup);
     } catch {
       toast.error(t('remove_member_error'));
     } finally {
       setMemberActionLoading(false);
     }
-  };
+  }, [memberModalGroup, t]);
+
+  const memberColumns = useMemo(
+    () => [
+      {key: 'full_name' as const, label: t('columns.full_name')},
+      {key: 'email' as const, label: t('columns.email')},
+      {
+        key: 'id' as const,
+        label: t('columns.actions'),
+        render: (_: string, row: UserRow) => (
+          <Button variant="danger" disabled={memberActionLoading || !canRemoveMember} onClick={() => onRemoveMember(row.id)}>
+            {t('remove_member')}
+          </Button>
+        )
+      }
+    ],
+    [t, memberActionLoading, canRemoveMember, onRemoveMember]
+  );
+
+  const addColumns = useMemo(
+    () => [
+      {key: 'full_name' as const, label: t('columns.full_name')},
+      {key: 'email' as const, label: t('columns.email')},
+      {
+        key: 'id' as const,
+        label: t('columns.actions'),
+        render: (_: string, row: UserRow) => (
+          <Button disabled={memberActionLoading || !canAddMember} onClick={() => onAddMember(row.id)}>
+            {t('add_member')}
+          </Button>
+        )
+      }
+    ],
+    [t, memberActionLoading, canAddMember, onAddMember]
+  );
 
   if (loading) {
     return (
@@ -399,64 +499,36 @@ export default function AdminGroupsManager() {
           </div>
         ) : (
           <div className="space-y-4">
-            <div>
-              <p className="mb-2 text-sm font-medium text-slate-200">{t('group_members_current')}</p>
-              {groupMembers.length === 0 ? (
-                <p className="text-sm text-slate-400">{t('no_members')}</p>
-              ) : (
-                <div className="space-y-2">
-                  {groupMembers.map((member) => (
-                    <div
-                      key={member.id}
-                      className="flex items-center justify-between rounded-md border border-[var(--border)] px-3 py-2"
-                    >
-                      <div>
-                        <p className="text-sm text-slate-100">{member.full_name || member.username || member.id}</p>
-                        <p className="text-xs text-slate-400">{member.email || member.username || member.id}</p>
-                      </div>
-                      {canRemoveMember && (
-                        <Button
-                          variant="danger"
-                          disabled={memberActionLoading}
-                          onClick={() => onRemoveMember(member.id)}
-                        >
-                          {t('remove_member')}
-                        </Button>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
+            <div className="flex gap-2">
+              <Button variant={memberTab === 'members' ? 'primary' : 'ghost'} onClick={() => setMemberTab('members')}>
+                {t('members_tab')}
+              </Button>
+              <Button variant={memberTab === 'add' ? 'primary' : 'ghost'} onClick={() => setMemberTab('add')}>
+                {t('add_tab')}
+              </Button>
             </div>
 
-            {canAddMember && (
-              <div className="space-y-2 border-t border-[var(--border)] pt-3">
-                <p className="text-sm font-medium text-slate-200">{t('add_member')}</p>
-                <div className="flex gap-2">
-                  <select
-                    className="w-full rounded-md border border-[var(--border)] bg-[#0f0f18] px-3 py-2 text-sm"
-                    value={selectedUserId}
-                    onChange={(event) => setSelectedUserId(event.target.value)}
-                    onFocus={() => {
-                      if (memberModalGroup) {
-                        void loadMembersContext(memberModalGroup);
-                      }
-                    }}
-                  >
-                    <option value="">{t('select_user')}</option>
-                    {availableUsers.map((user) => (
-                      <option key={user.id} value={user.id}>
-                        {user.full_name || user.username || user.email || user.id}
-                      </option>
-                    ))}
-                  </select>
-                  <Button onClick={onAddMember} disabled={!selectedUserId || memberActionLoading}>
-                    {t('add_member')}
-                  </Button>
-                </div>
-                {availableUsers.length === 0 && <p className="text-xs text-slate-400">{t('no_available_users')}</p>}
-              </div>
-            )}
+            <div>
+              {memberTab === 'members' ? (
+                <>
+                  <p className="mb-2 text-sm font-medium text-slate-200">{t('group_members_current')}</p>
+                  {groupMembers.length === 0 ? (
+                    <p className="text-sm text-slate-400">{t('no_members')}</p>
+                  ) : (
+                    <DataTable columns={memberColumns} rows={groupMembers} />
+                  )}
+                </>
+              ) : (
+                <>
+                  <p className="mb-2 text-sm font-medium text-slate-200">{t('add_member')}</p>
+                  {availableUsers.length === 0 ? (
+                    <p className="text-sm text-slate-400">{t('no_available_users')}</p>
+                  ) : (
+                    <DataTable columns={addColumns} rows={availableUsers} />
+                  )}
+                </>
+              )}
+            </div>
           </div>
         )}
       </Modal>

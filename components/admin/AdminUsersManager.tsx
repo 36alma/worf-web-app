@@ -166,7 +166,7 @@ export default function AdminUsersManager() {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const [usersRes, rolesRes] = await Promise.all([getAdminUsers(200), getAllSystemRoles()]);
+      const [usersRes, rolesRes] = await Promise.all([getAdminUsers(), getAllSystemRoles()]);
       setRows(toUserRows(usersRes.data));
       setRoles(toRoles(rolesRes.data));
     } catch {

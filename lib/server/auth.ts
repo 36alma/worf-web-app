@@ -8,8 +8,8 @@ type Tokens = {
   multi_factor_token?: string;
 };
 
-export function setAuthCookies(tokens: Tokens) {
-  const jar = cookies();
+export async function setAuthCookies(tokens: Tokens) {
+  const jar = await cookies();
 
   if (tokens.access_token) {
     jar.set(ACCESS_COOKIE, tokens.access_token, {
@@ -35,8 +35,8 @@ export function setAuthCookies(tokens: Tokens) {
   }
 }
 
-export function clearAuthCookies() {
-  const jar = cookies();
+export async function clearAuthCookies() {
+  const jar = await cookies();
   jar.delete(ACCESS_COOKIE);
   jar.delete(REFRESH_COOKIE);
   jar.delete(MFA_COOKIE);

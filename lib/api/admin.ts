@@ -1,9 +1,6 @@
 import apiClient from './client';
 
-export const getAdminUsers = (limit = 100) =>
-  apiClient.get('/v1/user/prealluser', {
-    params: {limit}
-  });
+export const getAdminUsers = () => apiClient.get('/v1/user/prealluser');
 
 export const getAdminUserProfile = (user_id: string) =>
   apiClient.get('/v1/user/admin/editprofile', {

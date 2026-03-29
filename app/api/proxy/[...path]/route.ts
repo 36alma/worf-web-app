@@ -9,6 +9,16 @@ type RawHttpResponse = {
   contentType: string;
 };
 
+const normalizeQueryValue = (value: string): unknown => {
+  const lowered = value.toLowerCase();
+
+  if (lowered === 'none' || lowered === 'null') {
+    return null;
+  }
+
+  return value;
+};
+
 function sendJsonWithBody(url: URL, method: string, payload: Record<string, any>): Promise<RawHttpResponse> {
   const data = JSON.stringify(payload);
 
@@ -73,7 +83,7 @@ async function handleProxy(request: NextRequest, params: {path: string[]}) {
   if (request.method === 'GET') {
     for (const [key, value] of request.nextUrl.searchParams.entries()) {
       if (!(key in parsedBody)) {
-        parsedBody[key] = value;
+        parsedBody[key] = normalizeQueryValue(value);
       }
     }
   }

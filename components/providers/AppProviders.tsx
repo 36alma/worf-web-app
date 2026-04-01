@@ -2,21 +2,29 @@
 
 import {ReactNode, useEffect} from 'react';
 import {Toaster} from 'react-hot-toast';
-import apiClient from '@/lib/api/client';
+import {usePathname} from 'next/navigation';
 import {getUserPermissions} from '@/lib/api/permissions';
+import {getCurrentUserProfile} from '@/lib/api/user';
 import {useAuthStore} from '@/lib/store/authStore';
 import {usePermissionStore} from '@/lib/store/permissionStore';
 
 export default function AppProviders({children}: {children: ReactNode}) {
+  const pathname = usePathname();
   const {setUser, setLoading, logout} = useAuthStore();
   const {setSystemPermissions, clearPermissions} = usePermissionStore();
 
   useEffect(() => {
+    const isAuthRoute = pathname.includes('/auth/');
+    if (isAuthRoute) {
+      setLoading(false);
+      return;
+    }
+
     let mounted = true;
 
     const bootstrap = async () => {
       try {
-        const {data} = await apiClient.get('/v1/user/editprofile');
+        const {data} = await getCurrentUserProfile();
         if (mounted) {
           setUser(data?.data ?? data);
         }
@@ -48,7 +56,7 @@ export default function AppProviders({children}: {children: ReactNode}) {
     return () => {
       mounted = false;
     };
-  }, [setUser, setLoading, logout, setSystemPermissions, clearPermissions]);
+  }, [pathname, setUser, setLoading, logout, setSystemPermissions, clearPermissions]);
 
   return (
     <>

@@ -1,4 +1,5 @@
 import {clearAuthCookies, jsonWithStatus, setAuthCookies} from '@/lib/server/auth';
+import {getAuthClientPayload, MISSING_AUTH_CLIENT_MESSAGE} from '@/lib/server/auth-client';
 import {callWorfApi} from '@/lib/server/worf';
 import {getServerRefreshToken} from '@/lib/utils/cookies';
 
@@ -15,18 +16,15 @@ export async function POST() {
     return jsonWithStatus({message: 'Missing refresh token'}, 401);
   }
 
-  const clientId = process.env.WORF_CLIENT_ID;
-  const clientSecret = process.env.WORF_CLIENT_SECRET;
-  if (!clientId || !clientSecret) {
-    return jsonWithStatus({message: 'WORF_CLIENT_ID and WORF_CLIENT_SECRET are required'}, 500);
+  const authClientPayload = getAuthClientPayload('refresh_token');
+  if (!authClientPayload) {
+    return jsonWithStatus({message: MISSING_AUTH_CLIENT_MESSAGE}, 500);
   }
 
   const {status, data} = await callWorfApi('/v1/auth/token', {
     method: 'POST',
     body: {
-      grant_type: 'refresh_token',
-      client_id: clientId,
-      client_secret: clientSecret,
+      ...authClientPayload,
       refresh_token: refreshToken,
       scopes: parseScopes()
     }

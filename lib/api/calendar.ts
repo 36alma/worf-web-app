@@ -1,7 +1,4 @@
-﻿import apiClient from './client';
-
-export const getGlobalCalendarEvents = (data: {from?: string; to?: string}) =>
-  apiClient.post('/v1/global/calendar/event/get', data);
+import apiClient from './client';
 
 export const createGlobalCalendarEvent = (data: Record<string, unknown>) =>
   apiClient.post('/v1/global/calendar/event/create', data);

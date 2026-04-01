@@ -3,7 +3,7 @@
 import {FormEvent, useEffect, useState} from 'react';
 import {useTranslations} from 'next-intl';
 import toast from 'react-hot-toast';
-import apiClient from '@/lib/api/client';
+import {getCurrentUserProfile, updateCurrentUserProfile} from '@/lib/api/user';
 import Button from '@/components/ui/Button';
 import {useAuthStore} from '@/lib/store/authStore';
 
@@ -35,7 +35,7 @@ export default function ProfileForm() {
 
     const load = async () => {
       try {
-        const {data} = await apiClient.get('/v1/user/editprofile');
+        const {data} = await getCurrentUserProfile();
         const profile = (data?.data ?? data ?? {}) as Record<string, any>;
 
         if (!mounted) return;
@@ -96,7 +96,7 @@ export default function ProfileForm() {
         newpassword_rep: form.newpassword_rep || null
       };
 
-      const {data} = await apiClient.post('/v1/user/editprofile', payload);
+      const {data} = await updateCurrentUserProfile(payload);
       const profile = (data?.data ?? data ?? payload) as Record<string, any>;
 
       setUser({

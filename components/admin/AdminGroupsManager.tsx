@@ -242,7 +242,7 @@ export default function AdminGroupsManager() {
       {
         key: 'id' as const,
         label: t('columns.actions'),
-        render: (_: string, row: GroupRow) => (
+        render: (value: any, row: GroupRow) => (
           <div className="flex gap-2">
             <Button
               variant="ghost"
@@ -399,7 +399,7 @@ export default function AdminGroupsManager() {
       {
         key: 'id' as const,
         label: t('columns.actions'),
-        render: (_: string, row: UserRow) => (
+        render: (value: any, row: UserRow) => (
           <Button variant="danger" disabled={memberActionLoading || !canRemoveMember} onClick={() => onRemoveMember(row.id)}>
             {t('remove_member')}
           </Button>
@@ -416,7 +416,7 @@ export default function AdminGroupsManager() {
       {
         key: 'id' as const,
         label: t('columns.actions'),
-        render: (_: string, row: UserRow) => (
+        render: (value: any, row: UserRow) => (
           <Button disabled={memberActionLoading || !canAddMember} onClick={() => onAddMember(row.id)}>
             {t('add_member')}
           </Button>

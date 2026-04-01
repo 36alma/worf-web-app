@@ -188,12 +188,12 @@ export default function AdminUsersManager() {
       {
         key: 'is_active' as const,
         label: t('columns.active'),
-        render: (value: AdminUserRow['is_active']) => (value === null ? '-' : value ? t('yes') : t('no'))
+        render: (value: any) => (value === null ? '-' : value ? t('yes') : t('no'))
       },
       {
         key: 'id' as const,
         label: t('columns.actions'),
-        render: (_: string, row: AdminUserRow) => (
+        render: (value: any, row: AdminUserRow) => (
           <Button
             variant="ghost"
             onClick={async () => {

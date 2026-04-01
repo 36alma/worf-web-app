@@ -1,4 +1,4 @@
-﻿import apiClient from './client';
+import apiClient from './client';
 
 export const createGroup = (data: {name: string; description?: string}) =>
   apiClient.post('/v1/group/create', data);

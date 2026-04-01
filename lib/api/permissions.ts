@@ -21,6 +21,11 @@ export const getUserPermissions = async (): Promise<PermissionMap> => {
 };
 
 export const getGroupPermissions = async (group_id: string): Promise<PermissionMap> => {
-  const {data} = await apiClient.get('/v1/group/permission', {params: {group_id}});
-  return normalizePermissionMap(data);
+  try {
+    const {data} = await apiClient.post('/v1/group/permission', {group_id});
+    return normalizePermissionMap(data);
+  } catch {
+    const {data} = await apiClient.get('/v1/group/permission', {params: {group_id}});
+    return normalizePermissionMap(data);
+  }
 };

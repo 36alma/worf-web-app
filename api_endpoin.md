@@ -85,6 +85,268 @@ Az endpoint működése lépésenként:
 
 ## Endpoint
 
+- **Név:** Global post category create
+- **Metódus:** `POST`
+- **Útvonal:** `/v1/global/post/category/create`
+- **Leírás:** Új post kategória létrehozása.
+
+## Jogosultságok (Permissions)
+
+1. **Kötelező hálózati fejléc**
+   - `x-forwarded-for` kötelező.
+2. **Jogosultságkezelés**
+   - Kötelező permission: `post.category.create.global`.
+3. **Token kezelés**
+   - Kötelező `Bearer` token.
+
+## Használat
+
+- **Rate limit:** `50 kérés / 5 perc`
+- **Body/Model:** `CreatePostCategory`
+
+### Body paraméterek
+
+| Név | Típus | Kötelező | Leírás |
+|---|---|---|---|
+| `Bearer` | `string` | Igen | Access token. |
+| `name` | `string` | Igen | Kategória neve. |
+| `description` | `string` | Igen | Kategória leírása. |
+| `created_by` | `string (UUID)` | Nem | Létrehozó user azonosító. |
+
+---
+
+## Endpoint
+
+- **Név:** Global post category get
+- **Metódus:** `POST`
+- **Útvonal:** `/v1/global/post/category/get`
+- **Leírás:** Post kategóriák lekérdezése.
+
+## Jogosultságok (Permissions)
+
+1. **Kötelező hálózati fejléc**
+   - `x-forwarded-for` kötelező.
+2. **Jogosultságkezelés**
+   - Kötelező permission: `post.category.get.global`.
+3. **Token kezelés**
+   - Kötelező `Bearer` token.
+
+## Használat
+
+- **Rate limit:** `120 kérés / 2 perc`
+- **Body/Model:** `GetPostCategory`
+
+### Body paraméterek
+
+| Név | Típus | Kötelező | Leírás |
+|---|---|---|---|
+| `Bearer` | `string` | Igen | Access token. |
+| `post_category_id` | `string (UUID)` | Nem | Konkrét kategória azonosító. |
+| `name` | `string` | Nem | Név alapú szűrés. |
+| `description` | `string` | Nem | Leírás alapú szűrés. |
+| `created_by` | `string (UUID)` | Nem | Létrehozó alapján szűrés. |
+| `limit` | `integer` | Nem | Maximum elemszám. |
+
+---
+
+## Endpoint
+
+- **Név:** Global post category modify
+- **Metódus:** `POST`
+- **Útvonal:** `/v1/global/post/category/modify`
+- **Leírás:** Post kategória módosítása.
+
+## Jogosultságok (Permissions)
+
+1. **Kötelező hálózati fejléc**
+   - `x-forwarded-for` kötelező.
+2. **Jogosultságkezelés**
+   - Kötelező permission: `post.category.modify.global`.
+3. **Token kezelés**
+   - Kötelező `Bearer` token.
+
+## Használat
+
+- **Rate limit:** `50 kérés / 5 perc`
+- **Body/Model:** `ModifyPostCategory`
+
+### Body paraméterek
+
+| Név | Típus | Kötelező | Leírás |
+|---|---|---|---|
+| `Bearer` | `string` | Igen | Access token. |
+| `post_category_id` | `string (UUID)` | Igen | Módosítandó kategória azonosítója. |
+| `name` | `string` | Nem | Új név. |
+| `description` | `string` | Nem | Új leírás. |
+| `created_by` | `string (UUID)` | Nem | Új létrehozó azonosító. |
+
+---
+
+## Endpoint
+
+- **Név:** Global post category delete
+- **Metódus:** `POST`
+- **Útvonal:** `/v1/global/post/category/delete`
+- **Leírás:** Post kategória törlése.
+
+## Jogosultságok (Permissions)
+
+1. **Kötelező hálózati fejléc**
+   - `x-forwarded-for` kötelező.
+2. **Jogosultságkezelés**
+   - Kötelező permission: `post.category.delete.global`.
+3. **Token kezelés**
+   - Kötelező `Bearer` token.
+
+## Használat
+
+- **Rate limit:** `50 kérés / 5 perc`
+- **Body/Model:** `DeletePostCategory`
+
+### Body paraméterek
+
+| Név | Típus | Kötelező | Leírás |
+|---|---|---|---|
+| `Bearer` | `string` | Igen | Access token. |
+| `post_category_id` | `string (UUID)` | Igen | Törlendő kategória azonosítója. |
+
+---
+
+## Endpoint
+
+- **Név:** Group post category create
+- **Metódus:** `POST`
+- **Útvonal:** `/v1/group/post/category/create`
+- **Leírás:** Új post kategória létrehozása csoport jogosultsággal.
+
+## Jogosultságok (Permissions)
+
+1. **Kötelező hálózati fejléc**
+   - `x-forwarded-for` kötelező.
+2. **Jogosultságkezelés**
+   - Kötelező csoport permission: `group.post.category.create`.
+3. **Token kezelés**
+   - Kötelező `Bearer` token.
+
+## Használat
+
+- **Rate limit:** `50 kérés / 5 perc`
+- **Body/Model:** `CreatePostCategory`
+
+### Body paraméterek
+
+| Név | Típus | Kötelező | Leírás |
+|---|---|---|---|
+| `Bearer` | `string` | Igen | Access token. |
+| `group_id` | `string` | Igen | Group ID (titkosított vagy UUID) az RBAC ellenőrzéshez. |
+| `name` | `string` | Igen | Kategória neve. |
+| `description` | `string` | Igen | Kategória leírása. |
+| `created_by` | `string (UUID)` | Nem | Létrehozó user azonosító. |
+
+---
+
+## Endpoint
+
+- **Név:** Group post category get
+- **Metódus:** `POST`
+- **Útvonal:** `/v1/group/post/category/get`
+- **Leírás:** Post kategóriák lekérdezése csoport jogosultsággal.
+
+## Jogosultságok (Permissions)
+
+1. **Kötelező hálózati fejléc**
+   - `x-forwarded-for` kötelező.
+2. **Jogosultságkezelés**
+   - Kötelező csoport permission: `group.post.category.read`.
+3. **Token kezelés**
+   - Kötelező `Bearer` token.
+
+## Használat
+
+- **Rate limit:** `120 kérés / 2 perc`
+- **Body/Model:** `GetPostCategory`
+
+### Body paraméterek
+
+| Név | Típus | Kötelező | Leírás |
+|---|---|---|---|
+| `Bearer` | `string` | Igen | Access token. |
+| `group_id` | `string` | Igen | Group ID (titkosított vagy UUID) az RBAC ellenőrzéshez. |
+| `post_category_id` | `string (UUID)` | Nem | Konkrét kategória azonosító. |
+| `name` | `string` | Nem | Név alapú szűrés. |
+| `description` | `string` | Nem | Leírás alapú szűrés. |
+| `created_by` | `string (UUID)` | Nem | Létrehozó alapján szűrés. |
+| `limit` | `integer` | Nem | Maximum elemszám. |
+
+---
+
+## Endpoint
+
+- **Név:** Group post category modify
+- **Metódus:** `POST`
+- **Útvonal:** `/v1/group/post/category/modify`
+- **Leírás:** Post kategória módosítása csoport jogosultsággal.
+
+## Jogosultságok (Permissions)
+
+1. **Kötelező hálózati fejléc**
+   - `x-forwarded-for` kötelező.
+2. **Jogosultságkezelés**
+   - Kötelező csoport permission: `group.post.category.modify`.
+3. **Token kezelés**
+   - Kötelező `Bearer` token.
+
+## Használat
+
+- **Rate limit:** `50 kérés / 5 perc`
+- **Body/Model:** `ModifyPostCategory`
+
+### Body paraméterek
+
+| Név | Típus | Kötelező | Leírás |
+|---|---|---|---|
+| `Bearer` | `string` | Igen | Access token. |
+| `group_id` | `string` | Igen | Group ID (titkosított vagy UUID) az RBAC ellenőrzéshez. |
+| `post_category_id` | `string (UUID)` | Igen | Módosítandó kategória azonosítója. |
+| `name` | `string` | Nem | Új név. |
+| `description` | `string` | Nem | Új leírás. |
+| `created_by` | `string (UUID)` | Nem | Új létrehozó azonosító. |
+
+---
+
+## Endpoint
+
+- **Név:** Group post category delete
+- **Metódus:** `POST`
+- **Útvonal:** `/v1/group/post/category/delete`
+- **Leírás:** Post kategória törlése csoport jogosultsággal.
+
+## Jogosultságok (Permissions)
+
+1. **Kötelező hálózati fejléc**
+   - `x-forwarded-for` kötelező.
+2. **Jogosultságkezelés**
+   - Kötelező csoport permission: `group.post.category.delete`.
+3. **Token kezelés**
+   - Kötelező `Bearer` token.
+
+## Használat
+
+- **Rate limit:** `50 kérés / 5 perc`
+- **Body/Model:** `DeletePostCategory`
+
+### Body paraméterek
+
+| Név | Típus | Kötelező | Leírás |
+|---|---|---|---|
+| `Bearer` | `string` | Igen | Access token. |
+| `group_id` | `string` | Igen | Group ID (titkosított vagy UUID) az RBAC ellenőrzéshez. |
+| `post_category_id` | `string (UUID)` | Igen | Törlendő kategória azonosítója. |
+
+---
+
+## Endpoint
+
 - **Név:** Auth login
 - **Metódus:** `POST`
 - **Útvonal:** `/v1/auth/login`

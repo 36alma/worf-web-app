@@ -86,8 +86,9 @@ async function handleProxy(request: NextRequest, params: {path: string[]}) {
   }
 
   const joinedPath = params.path.join('/');
+  const normalizedPath = joinedPath.startsWith('v1/') ? joinedPath.slice(3) : joinedPath;
   const targetUrl = new URL(
-    `/v1/${joinedPath}`.replace('/v1/v1/', '/v1/'),
+    `/v1/${normalizedPath}`,
     apiBase.endsWith('/') ? apiBase : `${apiBase}/`
   );
   targetUrl.search = request.nextUrl.search;
@@ -96,14 +97,17 @@ async function handleProxy(request: NextRequest, params: {path: string[]}) {
   const input = await request.text();
 
   let parsedBody: Record<string, any> = {};
-  if (request.method === 'GET') {
-    parsedBody = getQueryPayload(request);
-  } else if (input) {
+  if (input) {
     try {
       parsedBody = JSON.parse(input) as Record<string, any>;
     } catch {
       parsedBody = {};
     }
+  }
+
+  if (request.method === 'GET') {
+    const queryPayload = getQueryPayload(request);
+    parsedBody = {...parsedBody, ...queryPayload};
   }
 
   const payload: Record<string, any> = {

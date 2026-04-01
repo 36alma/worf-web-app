@@ -6,15 +6,24 @@ import toast from 'react-hot-toast';
 import {getUserGroups} from '@/lib/api/groups';
 import {
   createGlobalPost,
+  createGlobalPostCategory,
   createGroupPost,
+  createGroupPostCategory,
+  deleteGlobalPostCategory,
+  deleteGroupPostCategory,
+  getGlobalPostCategories,
   getGlobalPosts,
+  getGroupPostCategories,
   getGroupPosts,
-  modifyGroupPost
+  modifyGlobalPostCategory,
+  modifyGroupPost,
+  modifyGroupPostCategory
 } from '@/lib/api/posts';
 import {getGroupPermissions} from '@/lib/api/permissions';
 import {hasPermissionRequirement} from '@/lib/permissions/access';
 import {usePermissionStore} from '@/lib/store/permissionStore';
 import Button from '@/components/ui/Button';
+import ConfirmDialog from '@/components/ui/ConfirmDialog';
 import Modal from '@/components/ui/Modal';
 
 type RawObject = Record<string, unknown>;
@@ -24,12 +33,20 @@ interface GroupItem {
   name: string;
 }
 
+interface PostCategory {
+  id: string;
+  name: string;
+  description: string;
+}
+
 interface PostItem {
   id: string;
   title: string;
   body: string;
   author: string;
   createdAt: string;
+  categoryId: string;
+  categoryName: string;
 }
 
 const readData = (payload: unknown): unknown => {
@@ -93,6 +110,31 @@ const normalizeGroups = (payload: unknown): GroupItem[] => {
     .filter((row): row is GroupItem => Boolean(row));
 };
 
+const normalizeCategories = (payload: unknown): PostCategory[] => {
+  const source = readData(payload);
+  const arrayValue = findArrayValue(source);
+
+  return arrayValue
+    .map((item) => {
+      if (!item || typeof item !== 'object') {
+        return null;
+      }
+
+      const row = item as RawObject;
+      const id = String(row.post_category_id ?? row.category_id ?? row.id ?? '');
+      if (!id) {
+        return null;
+      }
+
+      return {
+        id,
+        name: String(row.name ?? row.category_name ?? id),
+        description: String(row.description ?? '')
+      };
+    })
+    .filter((row): row is PostCategory => Boolean(row));
+};
+
 const normalizePosts = (payload: unknown): PostItem[] => {
   const source = readData(payload);
   const arrayValue = findArrayValue(source);
@@ -104,17 +146,61 @@ const normalizePosts = (payload: unknown): PostItem[] => {
       }
 
       const row = item as RawObject;
-      const id = String(row.post_id ?? row.id ?? '');
+      const nestedPost =
+        row.post && typeof row.post === 'object' ? (row.post as RawObject) : null;
+      const nestedCategory =
+        row.category && typeof row.category === 'object' ? (row.category as RawObject) : null;
+
+      const titleValue = nestedPost?.title ?? row.title ?? '';
+      const bodyValue = nestedPost?.content ?? nestedPost?.body ?? row.body ?? row.content ?? '';
+      const authorValue =
+        nestedPost?.author_name ??
+        nestedPost?.username ??
+        nestedPost?.author ??
+        nestedPost?.author_id ??
+        row.author_name ??
+        row.username ??
+        row.author ??
+        '';
+      const createdAtValue =
+        nestedPost?.created_at ??
+        nestedPost?.create_time ??
+        nestedPost?.date ??
+        row.created_at ??
+        row.create_time ??
+        row.date ??
+        '';
+      const categoryIdValue =
+        nestedCategory?.category_id ??
+        row.post_category_id ??
+        row.category_id ??
+        '';
+      const categoryNameValue =
+        nestedCategory?.category_name ??
+        nestedCategory?.name ??
+        row.post_category_name ??
+        row.category_name ??
+        '';
+
+      const id = String(
+        row.post_id ??
+          row.id ??
+          nestedPost?.post_id ??
+          nestedPost?.id ??
+          `${String(authorValue)}-${String(createdAtValue)}-${String(titleValue)}`
+      );
       if (!id) {
         return null;
       }
 
       return {
         id,
-        title: String(row.title ?? ''),
-        body: String(row.body ?? row.content ?? ''),
-        author: String(row.author_name ?? row.username ?? row.author ?? ''),
-        createdAt: String(row.created_at ?? row.create_time ?? row.date ?? '')
+        title: String(titleValue),
+        body: String(bodyValue),
+        author: String(authorValue),
+        createdAt: String(createdAtValue),
+        categoryId: String(categoryIdValue),
+        categoryName: String(categoryNameValue)
       };
     })
     .filter((row): row is PostItem => Boolean(row));
@@ -155,18 +241,34 @@ export default function PostsFeed({mode, groupId = ''}: PostsFeedProps) {
     setGroupPermissions,
     setGroupPermissionsLoading
   } = usePermissionStore();
+
   const [groups, setGroups] = useState<GroupItem[]>([]);
   const [selectedFilterGroupId, setSelectedFilterGroupId] = useState('');
   const [posts, setPosts] = useState<PostItem[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const [categories, setCategories] = useState<PostCategory[]>([]);
+  const [categoriesLoading, setCategoriesLoading] = useState(false);
+  const [selectedCategoryFilterId, setSelectedCategoryFilterId] = useState('');
+
   const [createOpen, setCreateOpen] = useState(false);
   const [createSubmitting, setCreateSubmitting] = useState(false);
   const [createTitle, setCreateTitle] = useState('');
   const [createBody, setCreateBody] = useState('');
+  const [createCategoryId, setCreateCategoryId] = useState('');
+
   const [editingPost, setEditingPost] = useState<PostItem | null>(null);
   const [editSubmitting, setEditSubmitting] = useState(false);
   const [editTitle, setEditTitle] = useState('');
   const [editBody, setEditBody] = useState('');
+  const [editCategoryId, setEditCategoryId] = useState('');
+
+  const [categoryModalOpen, setCategoryModalOpen] = useState(false);
+  const [categorySubmitting, setCategorySubmitting] = useState(false);
+  const [categoryEditingId, setCategoryEditingId] = useState('');
+  const [categoryName, setCategoryName] = useState('');
+  const [categoryDescription, setCategoryDescription] = useState('');
+  const [deletingCategoryId, setDeletingCategoryId] = useState('');
 
   const activeGroupId = mode === 'group' ? groupId : selectedFilterGroupId;
   const isGroupScope = Boolean(activeGroupId);
@@ -194,6 +296,94 @@ export default function PostsFeed({mode, groupId = ''}: PostsFeedProps) {
     [groupPermissionsById, groupPermissionsLoadingById, setGroupPermissions, setGroupPermissionsLoading]
   );
 
+  const canCreateInScope = useMemo(() => {
+    if (isGroupScope) {
+      if (!activeGroupPermissions) {
+        return false;
+      }
+
+      return hasPermissionRequirement(activeGroupPermissions, {anyOf: ['group.post.create']});
+    }
+
+    if (!isSystemPermissionsLoaded) {
+      return false;
+    }
+
+    return hasPermissionRequirement(systemPermissions, {anyOf: ['post.create.global']});
+  }, [activeGroupPermissions, isGroupScope, isSystemPermissionsLoaded, systemPermissions]);
+
+  const canEditInScope = useMemo(() => {
+    if (!isGroupScope || !activeGroupPermissions) {
+      return false;
+    }
+
+    return hasPermissionRequirement(activeGroupPermissions, {anyOf: ['group.post.modify']});
+  }, [activeGroupPermissions, isGroupScope]);
+
+  const canReadCategories = useMemo(() => {
+    if (isGroupScope) {
+      if (!activeGroupPermissions) {
+        return false;
+      }
+
+      return hasPermissionRequirement(activeGroupPermissions, {anyOf: ['group.post.category.read']});
+    }
+
+    if (!isSystemPermissionsLoaded) {
+      return false;
+    }
+
+    return hasPermissionRequirement(systemPermissions, {anyOf: ['post.category.get.global']});
+  }, [activeGroupPermissions, isGroupScope, isSystemPermissionsLoaded, systemPermissions]);
+
+  const canCreateCategory = useMemo(() => {
+    if (isGroupScope) {
+      if (!activeGroupPermissions) {
+        return false;
+      }
+
+      return hasPermissionRequirement(activeGroupPermissions, {anyOf: ['group.post.category.create']});
+    }
+
+    if (!isSystemPermissionsLoaded) {
+      return false;
+    }
+
+    return hasPermissionRequirement(systemPermissions, {anyOf: ['post.category.create.global']});
+  }, [activeGroupPermissions, isGroupScope, isSystemPermissionsLoaded, systemPermissions]);
+
+  const canModifyCategory = useMemo(() => {
+    if (isGroupScope) {
+      if (!activeGroupPermissions) {
+        return false;
+      }
+
+      return hasPermissionRequirement(activeGroupPermissions, {anyOf: ['group.post.category.modify']});
+    }
+
+    if (!isSystemPermissionsLoaded) {
+      return false;
+    }
+
+    return hasPermissionRequirement(systemPermissions, {anyOf: ['post.category.modify.global']});
+  }, [activeGroupPermissions, isGroupScope, isSystemPermissionsLoaded, systemPermissions]);
+
+  const canDeleteCategory = useMemo(() => {
+    if (isGroupScope) {
+      if (!activeGroupPermissions) {
+        return false;
+      }
+
+      return hasPermissionRequirement(activeGroupPermissions, {anyOf: ['group.post.category.delete']});
+    }
+
+    if (!isSystemPermissionsLoaded) {
+      return false;
+    }
+
+    return hasPermissionRequirement(systemPermissions, {anyOf: ['post.category.delete.global']});
+  }, [activeGroupPermissions, isGroupScope, isSystemPermissionsLoaded, systemPermissions]);
+
   const loadPosts = useCallback(async () => {
     setLoading(true);
     try {
@@ -213,9 +403,36 @@ export default function PostsFeed({mode, groupId = ''}: PostsFeedProps) {
     }
   }, [activeGroupId, ensureGroupPermissions, isGroupScope]);
 
+  const loadCategories = useCallback(async () => {
+    if (!canReadCategories) {
+      setCategories([]);
+      return;
+    }
+
+    setCategoriesLoading(true);
+    try {
+      if (isGroupScope && activeGroupId) {
+        const response = await getGroupPostCategories({group_id: activeGroupId, limit: 200});
+        setCategories(normalizeCategories(response.data));
+      } else {
+        const response = await getGlobalPostCategories({limit: 200});
+        setCategories(normalizeCategories(response.data));
+      }
+    } catch {
+      setCategories([]);
+      toast.error('Kategoriak betoltese sikertelen');
+    } finally {
+      setCategoriesLoading(false);
+    }
+  }, [activeGroupId, canReadCategories, isGroupScope]);
+
   useEffect(() => {
     void loadPosts();
   }, [loadPosts]);
+
+  useEffect(() => {
+    void loadCategories();
+  }, [loadCategories]);
 
   useEffect(() => {
     if (mode !== 'global') {
@@ -251,39 +468,55 @@ export default function PostsFeed({mode, groupId = ''}: PostsFeedProps) {
     void ensureGroupPermissions(activeGroupId);
   }, [activeGroupId, ensureGroupPermissions]);
 
-  const canCreateInScope = useMemo(() => {
-    if (isGroupScope) {
-      if (!activeGroupPermissions) {
-        return false;
-      }
-
-      return hasPermissionRequirement(activeGroupPermissions, {anyOf: ['group.post.create']});
+  useEffect(() => {
+    if (selectedCategoryFilterId && !categories.some((category) => category.id === selectedCategoryFilterId)) {
+      setSelectedCategoryFilterId('');
     }
 
-    if (!isSystemPermissionsLoaded) {
-      return false;
+    if (createCategoryId && !categories.some((category) => category.id === createCategoryId)) {
+      setCreateCategoryId('');
     }
 
-    return hasPermissionRequirement(systemPermissions, {anyOf: ['post.create.global']});
-  }, [activeGroupPermissions, isGroupScope, isSystemPermissionsLoaded, systemPermissions]);
+    if (editCategoryId && !categories.some((category) => category.id === editCategoryId)) {
+      setEditCategoryId('');
+    }
+  }, [categories, createCategoryId, editCategoryId, selectedCategoryFilterId]);
 
-  const canEditInScope = useMemo(() => {
-    if (!isGroupScope || !activeGroupPermissions) {
-      return false;
+  const categoriesById = useMemo(() => {
+    const map = new Map<string, PostCategory>();
+
+    for (const category of categories) {
+      map.set(category.id, category);
     }
 
-    return hasPermissionRequirement(activeGroupPermissions, {anyOf: ['group.post.modify']});
-  }, [activeGroupPermissions, isGroupScope]);
+    return map;
+  }, [categories]);
+
+  const filteredPosts = useMemo(() => {
+    if (!selectedCategoryFilterId) {
+      return posts;
+    }
+
+    return posts.filter((post) => post.categoryId === selectedCategoryFilterId);
+  }, [posts, selectedCategoryFilterId]);
 
   const resetCreateForm = () => {
     setCreateTitle('');
     setCreateBody('');
+    setCreateCategoryId('');
   };
 
   const resetEditForm = () => {
     setEditingPost(null);
     setEditTitle('');
     setEditBody('');
+    setEditCategoryId('');
+  };
+
+  const resetCategoryForm = () => {
+    setCategoryEditingId('');
+    setCategoryName('');
+    setCategoryDescription('');
   };
 
   const onCreateSubmit = async (event: FormEvent) => {
@@ -306,7 +539,8 @@ export default function PostsFeed({mode, groupId = ''}: PostsFeedProps) {
         await createGroupPost({
           group_id: activeGroupId,
           title: trimmedTitle,
-          body: trimmedBody
+          body: trimmedBody,
+          category_id: createCategoryId || undefined
         });
       } else {
         if (!canCreateInScope) {
@@ -316,7 +550,8 @@ export default function PostsFeed({mode, groupId = ''}: PostsFeedProps) {
 
         await createGlobalPost({
           title: trimmedTitle,
-          body: trimmedBody
+          body: trimmedBody,
+          category_id: createCategoryId || undefined
         });
       }
 
@@ -335,6 +570,7 @@ export default function PostsFeed({mode, groupId = ''}: PostsFeedProps) {
     setEditingPost(post);
     setEditTitle(post.title);
     setEditBody(post.body);
+    setEditCategoryId(post.categoryId);
   };
 
   const onEditSubmit = async (event: FormEvent) => {
@@ -356,7 +592,8 @@ export default function PostsFeed({mode, groupId = ''}: PostsFeedProps) {
         group_id: activeGroupId,
         post_id: editingPost.id,
         title: trimmedTitle,
-        body: trimmedBody
+        body: trimmedBody,
+        category_id: editCategoryId || undefined
       });
       resetEditForm();
       await loadPosts();
@@ -368,11 +605,130 @@ export default function PostsFeed({mode, groupId = ''}: PostsFeedProps) {
     }
   };
 
+  const onCategorySubmit = async (event: FormEvent) => {
+    event.preventDefault();
+
+    const trimmedName = categoryName.trim();
+    const trimmedDescription = categoryDescription.trim();
+
+    if (!trimmedName || !trimmedDescription) {
+      return;
+    }
+
+    try {
+      setCategorySubmitting(true);
+
+      if (categoryEditingId) {
+        if (!canModifyCategory) {
+          toast.error('Nincs jogod kategoria modositashoz');
+          return;
+        }
+
+        if (isGroupScope && activeGroupId) {
+          await modifyGroupPostCategory({
+            group_id: activeGroupId,
+            post_category_id: categoryEditingId,
+            name: trimmedName,
+            description: trimmedDescription
+          });
+        } else {
+          await modifyGlobalPostCategory({
+            post_category_id: categoryEditingId,
+            name: trimmedName,
+            description: trimmedDescription
+          });
+        }
+
+        toast.success('Kategoria frissitve');
+      } else {
+        if (!canCreateCategory) {
+          toast.error('Nincs jogod kategoria letrehozasra');
+          return;
+        }
+
+        if (isGroupScope && activeGroupId) {
+          await createGroupPostCategory({
+            group_id: activeGroupId,
+            name: trimmedName,
+            description: trimmedDescription
+          });
+        } else {
+          await createGlobalPostCategory({
+            name: trimmedName,
+            description: trimmedDescription
+          });
+        }
+
+        toast.success('Kategoria letrehozva');
+      }
+
+      resetCategoryForm();
+      await loadCategories();
+    } catch {
+      toast.error('Kategoria mentes sikertelen');
+    } finally {
+      setCategorySubmitting(false);
+    }
+  };
+
+  const onStartCategoryEdit = (category: PostCategory) => {
+    if (!canModifyCategory) {
+      return;
+    }
+
+    setCategoryEditingId(category.id);
+    setCategoryName(category.name);
+    setCategoryDescription(category.description);
+  };
+
+  const onDeleteCategory = async () => {
+    if (!deletingCategoryId) {
+      return;
+    }
+
+    if (!canDeleteCategory) {
+      toast.error('Nincs jogod kategoria torlesre');
+      return;
+    }
+
+    try {
+      setCategorySubmitting(true);
+
+      if (isGroupScope && activeGroupId) {
+        await deleteGroupPostCategory(activeGroupId, deletingCategoryId);
+      } else {
+        await deleteGlobalPostCategory(deletingCategoryId);
+      }
+
+      if (selectedCategoryFilterId === deletingCategoryId) {
+        setSelectedCategoryFilterId('');
+      }
+
+      if (createCategoryId === deletingCategoryId) {
+        setCreateCategoryId('');
+      }
+
+      if (editCategoryId === deletingCategoryId) {
+        setEditCategoryId('');
+      }
+
+      setDeletingCategoryId('');
+      await loadCategories();
+      toast.success('Kategoria torolve');
+    } catch {
+      toast.error('Kategoria torles sikertelen');
+    } finally {
+      setCategorySubmitting(false);
+    }
+  };
+
+  const canManageCategories = canCreateCategory || canModifyCategory || canDeleteCategory;
+
   return (
     <section className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="display-font text-2xl">{mode === 'group' ? 'Group Posts' : t('title')}</h1>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {mode === 'global' && (
             <>
               <label className="text-xs uppercase tracking-wide text-slate-400">Group filter</label>
@@ -390,6 +746,32 @@ export default function PostsFeed({mode, groupId = ''}: PostsFeedProps) {
               </select>
             </>
           )}
+
+          {canReadCategories && (
+            <>
+              <label className="text-xs uppercase tracking-wide text-slate-400">Category</label>
+              <select
+                value={selectedCategoryFilterId}
+                onChange={(event) => setSelectedCategoryFilterId(event.target.value)}
+                className="rounded-md border border-[var(--border)] bg-[#10101a] px-3 py-2 text-sm text-slate-200"
+                disabled={categoriesLoading}
+              >
+                <option value="">All categories</option>
+                {categories.map((category) => (
+                  <option key={category.id} value={category.id}>
+                    {category.name}
+                  </option>
+                ))}
+              </select>
+            </>
+          )}
+
+          {canReadCategories && canManageCategories && (
+            <Button type="button" variant="ghost" onClick={() => setCategoryModalOpen(true)}>
+              Manage Categories
+            </Button>
+          )}
+
           {canCreateInScope && (
             <Button type="button" onClick={() => setCreateOpen(true)}>
               Create Post
@@ -400,29 +782,34 @@ export default function PostsFeed({mode, groupId = ''}: PostsFeedProps) {
 
       {loading ? (
         <div className="surface rounded-xl p-4 text-sm text-slate-300">Loading posts...</div>
-      ) : posts.length === 0 ? (
+      ) : filteredPosts.length === 0 ? (
         <div className="surface rounded-xl p-4 text-sm text-slate-300">No posts yet.</div>
       ) : (
         <div className="space-y-3">
-          {posts.map((post) => (
-            <article key={post.id} className="surface card-animate rounded-xl p-4">
-              <div className="mb-3 flex items-start justify-between gap-3">
-                <div>
-                  <h3 className="display-font text-lg">{post.title || 'Untitled post'}</h3>
-                  <p className="text-xs text-slate-400">
-                    {post.author || 'Unknown author'}
-                    {post.createdAt ? ` • ${formatDate(post.createdAt, locale)}` : ''}
-                  </p>
+          {filteredPosts.map((post) => {
+            const categoryLabel = post.categoryName || categoriesById.get(post.categoryId)?.name || '';
+
+            return (
+              <article key={post.id} className="surface card-animate rounded-xl p-4">
+                <div className="mb-3 flex items-start justify-between gap-3">
+                  <div>
+                    <h3 className="display-font text-lg">{post.title || 'Untitled post'}</h3>
+                    <p className="text-xs text-slate-400">
+                      {post.author || 'Unknown author'}
+                      {post.createdAt ? ` - ${formatDate(post.createdAt, locale)}` : ''}
+                    </p>
+                    {categoryLabel && <p className="mt-1 text-xs text-cyan-300">Category: {categoryLabel}</p>}
+                  </div>
+                  {canEditInScope && (
+                    <Button type="button" variant="ghost" onClick={() => onStartEdit(post)}>
+                      Edit
+                    </Button>
+                  )}
                 </div>
-                {canEditInScope && (
-                  <Button type="button" variant="ghost" onClick={() => onStartEdit(post)}>
-                    Edit
-                  </Button>
-                )}
-              </div>
-              <p className="whitespace-pre-wrap text-sm text-slate-200">{post.body || '-'}</p>
-            </article>
-          ))}
+                <p className="whitespace-pre-wrap text-sm text-slate-200">{post.body || '-'}</p>
+              </article>
+            );
+          })}
         </div>
       )}
 
@@ -435,6 +822,20 @@ export default function PostsFeed({mode, groupId = ''}: PostsFeedProps) {
             className="w-full rounded-md border border-[var(--border)] bg-[#0f0f18] px-3 py-2"
             maxLength={120}
           />
+          {canReadCategories && (
+            <select
+              value={createCategoryId}
+              onChange={(event) => setCreateCategoryId(event.target.value)}
+              className="w-full rounded-md border border-[var(--border)] bg-[#0f0f18] px-3 py-2"
+            >
+              <option value="">No category</option>
+              {categories.map((category) => (
+                <option key={category.id} value={category.id}>
+                  {category.name}
+                </option>
+              ))}
+            </select>
+          )}
           <textarea
             value={createBody}
             onChange={(event) => setCreateBody(event.target.value)}
@@ -462,6 +863,20 @@ export default function PostsFeed({mode, groupId = ''}: PostsFeedProps) {
             className="w-full rounded-md border border-[var(--border)] bg-[#0f0f18] px-3 py-2"
             maxLength={120}
           />
+          {canReadCategories && (
+            <select
+              value={editCategoryId}
+              onChange={(event) => setEditCategoryId(event.target.value)}
+              className="w-full rounded-md border border-[var(--border)] bg-[#0f0f18] px-3 py-2"
+            >
+              <option value="">No category</option>
+              {categories.map((category) => (
+                <option key={category.id} value={category.id}>
+                  {category.name}
+                </option>
+              ))}
+            </select>
+          )}
           <textarea
             value={editBody}
             onChange={(event) => setEditBody(event.target.value)}
@@ -479,6 +894,89 @@ export default function PostsFeed({mode, groupId = ''}: PostsFeedProps) {
           </div>
         </form>
       </Modal>
+
+      <Modal
+        open={categoryModalOpen}
+        title="Post Categories"
+        onClose={() => {
+          setCategoryModalOpen(false);
+          resetCategoryForm();
+        }}
+      >
+        <form className="space-y-3" onSubmit={onCategorySubmit}>
+          <input
+            value={categoryName}
+            onChange={(event) => setCategoryName(event.target.value)}
+            placeholder="Category name"
+            className="w-full rounded-md border border-[var(--border)] bg-[#0f0f18] px-3 py-2"
+            maxLength={100}
+            disabled={categorySubmitting || (!canCreateCategory && !categoryEditingId)}
+          />
+          <textarea
+            value={categoryDescription}
+            onChange={(event) => setCategoryDescription(event.target.value)}
+            placeholder="Category description"
+            className="w-full rounded-md border border-[var(--border)] bg-[#0f0f18] px-3 py-2"
+            rows={3}
+            disabled={categorySubmitting || (!canCreateCategory && !categoryEditingId)}
+          />
+          <div className="flex justify-end gap-2">
+            {categoryEditingId && (
+              <Button type="button" variant="ghost" onClick={resetCategoryForm} disabled={categorySubmitting}>
+                Cancel edit
+              </Button>
+            )}
+            <Button
+              type="submit"
+              disabled={
+                categorySubmitting ||
+                (categoryEditingId ? !canModifyCategory : !canCreateCategory) ||
+                !categoryName.trim() ||
+                !categoryDescription.trim()
+              }
+            >
+              {categoryEditingId ? 'Save category' : 'Create category'}
+            </Button>
+          </div>
+        </form>
+
+        <div className="mt-4 space-y-2">
+          {categories.length === 0 ? (
+            <p className="text-sm text-slate-400">No categories yet.</p>
+          ) : (
+            categories.map((category) => (
+              <article key={category.id} className="rounded-md border border-[var(--border)] bg-[#11111c] p-3">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="text-sm font-medium text-slate-100">{category.name}</p>
+                    <p className="mt-1 text-xs text-slate-400">{category.description || '-'}</p>
+                  </div>
+                  <div className="flex gap-2">
+                    {canModifyCategory && (
+                      <Button type="button" variant="ghost" onClick={() => onStartCategoryEdit(category)}>
+                        Edit
+                      </Button>
+                    )}
+                    {canDeleteCategory && (
+                      <Button type="button" variant="danger" onClick={() => setDeletingCategoryId(category.id)}>
+                        Delete
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              </article>
+            ))
+          )}
+        </div>
+      </Modal>
+
+      <ConfirmDialog
+        open={Boolean(deletingCategoryId)}
+        title="Delete category"
+        message="Are you sure you want to delete this category?"
+        onCancel={() => setDeletingCategoryId('')}
+        onConfirm={onDeleteCategory}
+      />
     </section>
   );
 }

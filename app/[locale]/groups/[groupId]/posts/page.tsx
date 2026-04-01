@@ -1,6 +1,10 @@
-﻿import {getTranslations} from 'next-intl/server';
+import PostsFeed from '@/components/posts/PostsFeed';
 
-export default async function GroupPostsPage() {
-  const t = await getTranslations('groups');
-  return <div className="surface rounded-xl p-4">{t('group_posts')}</div>;
+interface GroupPostsPageProps {
+  params: Promise<{groupId: string}>;
+}
+
+export default async function GroupPostsPage({params}: GroupPostsPageProps) {
+  const {groupId} = await params;
+  return <PostsFeed mode="group" groupId={groupId} />;
 }

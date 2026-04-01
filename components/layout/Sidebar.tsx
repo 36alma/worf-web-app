@@ -159,6 +159,19 @@ export default function Sidebar() {
   }, [pathGroupId, selectedGroupId, setSelectedGroupId]);
 
   useEffect(() => {
+    if (!pathGroupId || !isGroupsLoaded) {
+      return;
+    }
+
+    const exists = groups.some((group) => group.id === pathGroupId);
+    if (!exists) {
+      setSelectedGroupId('');
+      router.replace(`/${locale}/groups`);
+      router.refresh();
+    }
+  }, [groups, isGroupsLoaded, locale, pathGroupId, router, setSelectedGroupId]);
+
+  useEffect(() => {
     if (pathGroupId) {
       return;
     }
@@ -179,73 +192,43 @@ export default function Sidebar() {
   useEffect(() => {
     let mounted = true;
 
-    const loadMissingGroupPermissions = async () => {
-      const missingGroupIds = groups
-        .map((group) => group.id)
-        .filter((groupId) => !groupPermissionsById[groupId] && !groupPermissionsLoadingById[groupId]);
-
-      if (missingGroupIds.length === 0) {
+    const loadSelectedGroupPermissions = async () => {
+      if (!selectedGroupId) {
         return;
       }
 
-      await Promise.all(
-        missingGroupIds.map(async (groupId) => {
-          setGroupPermissionsLoading(groupId, true);
-          try {
-            const permissions = await getGroupPermissions(groupId);
-            if (mounted) {
-              setGroupPermissions(groupId, permissions);
-            }
-          } catch {
-            if (mounted) {
-              setGroupPermissions(groupId, {});
-            }
-          }
-        })
-      );
+      if (groupPermissionsById[selectedGroupId] || groupPermissionsLoadingById[selectedGroupId]) {
+        return;
+      }
+
+      setGroupPermissionsLoading(selectedGroupId, true);
+      try {
+        const permissions = await getGroupPermissions(selectedGroupId);
+        if (mounted) {
+          setGroupPermissions(selectedGroupId, permissions);
+        }
+      } catch {
+        if (mounted) {
+          setGroupPermissions(selectedGroupId, {});
+        }
+      }
     };
 
-    loadMissingGroupPermissions();
+    loadSelectedGroupPermissions();
 
     return () => {
       mounted = false;
     };
   }, [
-    groups,
+    selectedGroupId,
     groupPermissionsById,
     groupPermissionsLoadingById,
     setGroupPermissions,
     setGroupPermissionsLoading
   ]);
 
-  const allGroupIds = useMemo(() => groups.map((group) => group.id), [groups]);
   const selectedGroupPermissions = selectedGroupId ? groupPermissionsById[selectedGroupId] : null;
   const isSelectedGroupPermissionsLoaded = selectedGroupId ? Boolean(selectedGroupPermissions) : true;
-  const areAllGroupPermissionsLoaded = useMemo(() => {
-    if (allGroupIds.length === 0) {
-      return true;
-    }
-
-    return allGroupIds.every((groupId) => Boolean(groupPermissionsById[groupId]));
-  }, [allGroupIds, groupPermissionsById]);
-
-  const hasAnyGroupPermission = useCallback(
-    (permissions: string[]) => {
-      if (allGroupIds.length === 0) {
-        return false;
-      }
-
-      return allGroupIds.some((groupId) => {
-        const groupPermissions = groupPermissionsById[groupId];
-        if (!groupPermissions) {
-          return false;
-        }
-
-        return permissions.some((permission) => groupPermissions[permission]);
-      });
-    },
-    [allGroupIds, groupPermissionsById]
-  );
 
   const canOpenGroups = useMemo(() => {
     const requirement = navPermissionRequirements.groups;
@@ -263,17 +246,21 @@ export default function Sidebar() {
   const handleGroupSelect = (groupId: string) => {
     setSelectedGroupId(groupId);
     if (!groupId) {
+      void loadGroups();
       if (pathGroupSubSegment === 'calendar') {
         router.push(`/${locale}/calendar`);
+        router.refresh();
         return;
       }
 
       if (pathGroupSubSegment === 'posts') {
         router.push(`/${locale}/posts`);
+        router.refresh();
         return;
       }
 
       router.push(`/${locale}/groups`);
+      router.refresh();
       return;
     }
 
@@ -379,11 +366,7 @@ export default function Sidebar() {
                 return requiredGroupPermissions.some((permission) => selectedGroupPermissions[permission]);
               }
 
-              if (!areAllGroupPermissionsLoaded) {
-                return false;
-              }
-
-              return hasAnyGroupPermission(requiredGroupPermissions);
+              return true;
             })
             .map((key) => {
               const Icon = navIcons[key];

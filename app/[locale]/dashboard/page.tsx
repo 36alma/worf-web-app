@@ -1,4 +1,5 @@
 import {getTranslations} from 'next-intl/server';
+import {callWorfApi} from '@/lib/server/worf';
 import {getServerAccessToken} from '@/lib/utils/cookies';
 
 async function getGroupCount() {
@@ -6,31 +7,16 @@ async function getGroupCount() {
   if (!token) return 0;
 
   try {
-    const apiBase = process.env.WORF_API_URL;
-    if (!apiBase) {
-      console.error('[Dashboard] WORF_API_URL is missing!');
-      return 0;
-    }
-
-    // Tisztítsuk meg az URL-t a dupla v1-től
-    const baseUrl = apiBase.endsWith('/') ? apiBase.slice(0, -1) : apiBase;
-    const targetUrl = `${baseUrl}/v1/group/getusergroups`.replace(/\/v1\/v1\//g, '/v1/');
-
-    console.log(`[Dashboard] Fetching groups from: ${targetUrl}`);
-
-    const response = await fetch(targetUrl, {
+    const {status, data: raw} = await callWorfApi('/v1/group/getusergroups', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ Bearer: token }),
-      cache: 'no-store' // Ne gyorstárazza a 0-át
+      token
     });
 
-    if (!response.ok) {
-      console.error(`[Dashboard] API error: ${response.status} ${response.statusText}`);
+    if (status < 200 || status >= 300) {
+      console.error(`[Dashboard] API error: ${status}`);
       return 0;
     }
 
-    const raw = await response.json();
     console.log('[Dashboard] Raw data:', JSON.stringify(raw).substring(0, 200) + '...');
 
     const results: any[] = [];
@@ -42,7 +28,7 @@ async function getGroupCount() {
       }
       if (typeof item === 'object') {
         const keys = Object.keys(item);
-        const idKey = keys.find(k => k.toLowerCase().endsWith('id') || k.toLowerCase() === 'id');
+        const idKey = keys.find((k) => k.toLowerCase().endsWith('id') || k.toLowerCase() === 'id');
         const id = idKey ? item[idKey] : null;
 
         if (id && id !== 'undefined' && id !== 'null') {
@@ -54,11 +40,13 @@ async function getGroupCount() {
     };
 
     traverse(raw);
-    const count = new Set(results.map(r => {
-      const keys = Object.keys(r);
-      const k = keys.find(k => k.toLowerCase().endsWith('id') || k.toLowerCase() === 'id');
-      return String(r[k!]);
-    })).size;
+    const count = new Set(
+      results.map((r) => {
+        const keys = Object.keys(r);
+        const k = keys.find((key) => key.toLowerCase().endsWith('id') || key.toLowerCase() === 'id');
+        return String(r[k!]);
+      })
+    ).size;
 
     console.log(`[Dashboard] Found ${count} unique groups.`);
     return count;

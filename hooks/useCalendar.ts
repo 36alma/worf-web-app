@@ -107,56 +107,60 @@ const mapGroups = (payload: unknown): GroupOption[] =>
     })
     .filter((row): row is GroupOption => Boolean(row));
 
-const mapCalendars = (payload: unknown, groupId: string): GroupCalendar[] =>
-  readArray(payload)
-    .map((item) => {
-      const row = toRecord(item);
-      const id = readString(row.group_calendar_id ?? row.calendar_id ?? row.id);
-      if (!id) {
-        return null;
-      }
+const mapCalendars = (payload: unknown, groupId: string): GroupCalendar[] => {
+  const result: GroupCalendar[] = [];
+  for (const item of readArray(payload)) {
+    const row = toRecord(item);
+    const id = readString(row.group_calendar_id ?? row.calendar_id ?? row.id);
+    if (!id) {
+      continue;
+    }
 
-      return {
-        id,
-        groupId: readString(row.group_id ?? groupId),
-        name: readString(row.calendar_name ?? row.name ?? id),
-        description: readString(row.calendar_description ?? row.description) || undefined,
-        raw: row
-      };
-    })
-    .filter((row): row is GroupCalendar => Boolean(row));
+    result.push({
+      id,
+      groupId: readString(row.group_id ?? groupId),
+      name: readString(row.calendar_name ?? row.name ?? id),
+      description: readString(row.calendar_description ?? row.description) || undefined,
+      raw: row
+    });
+  }
 
-const mapEvents = (payload: unknown, groupId: string, groupCalendarId: string): GroupCalendarEvent[] =>
-  readArray(payload)
-    .map((item) => {
-      const row = toRecord(item);
-      const id = readString(row.group_calendar_event_id ?? row.event_id ?? row.id);
-      if (!id) {
-        return null;
-      }
+  return result;
+};
 
-      return {
-        id,
-        groupId: readString(row.group_id ?? groupId),
-        groupCalendarId: readString(row.group_calendar_id ?? row.calendar_id ?? groupCalendarId),
-        name: readString(row.name ?? row.title ?? id),
-        kind: readString(row.kind ?? 'event'),
-        parentId: readString(row.parent_id) || undefined,
-        location: readString(row.location) || undefined,
-        allDay: readBoolean(row.all_day),
-        startAt: readString(row.start_at) || undefined,
-        endAt: readString(row.end_at) || undefined,
-        rrule: readString(row.rrule) || undefined,
-        untilAt: readString(row.until_at) || undefined,
-        countN: readNumber(row.count_n),
-        originalStartAt: readString(row.original_start_at) || undefined,
-        isCancelled: readBoolean(row.is_cancelled),
-        timezone: readString(row.timezone) || undefined,
-        isGlobal: readBoolean(row.is_global),
-        raw: row
-      };
-    })
-    .filter((row): row is GroupCalendarEvent => Boolean(row));
+const mapEvents = (payload: unknown, groupId: string, groupCalendarId: string): GroupCalendarEvent[] => {
+  const result: GroupCalendarEvent[] = [];
+  for (const item of readArray(payload)) {
+    const row = toRecord(item);
+    const id = readString(row.group_calendar_event_id ?? row.event_id ?? row.id);
+    if (!id) {
+      continue;
+    }
+
+    result.push({
+      id,
+      groupId: readString(row.group_id ?? groupId),
+      groupCalendarId: readString(row.group_calendar_id ?? row.calendar_id ?? groupCalendarId),
+      name: readString(row.name ?? row.title ?? id),
+      kind: readString(row.kind ?? 'event'),
+      parentId: readString(row.parent_id) || undefined,
+      location: readString(row.location) || undefined,
+      allDay: readBoolean(row.all_day),
+      startAt: readString(row.start_at) || undefined,
+      endAt: readString(row.end_at) || undefined,
+      rrule: readString(row.rrule) || undefined,
+      untilAt: readString(row.until_at) || undefined,
+      countN: readNumber(row.count_n),
+      originalStartAt: readString(row.original_start_at) || undefined,
+      isCancelled: readBoolean(row.is_cancelled),
+      timezone: readString(row.timezone) || undefined,
+      isGlobal: readBoolean(row.is_global),
+      raw: row
+    });
+  }
+
+  return result;
+};
 
 interface UseCalendarArgs {
   initialGroupId?: string;

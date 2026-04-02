@@ -1,6 +1,8 @@
-﻿import {ReactNode} from 'react';
+import * as Dialog from '@radix-ui/react-dialog';
+import {X} from 'lucide-react';
+import {ReactNode} from 'react';
 
-interface ModalProps {
+export interface ModalProps {
   open: boolean;
   title: string;
   onClose: () => void;
@@ -8,24 +10,26 @@ interface ModalProps {
 }
 
 export default function Modal({open, title, onClose, children}: ModalProps) {
-  if (!open) return null;
-
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm" onClick={onClose}>
-      <div
-        className="surface card-animate w-full max-w-xl rounded-xl p-5"
-        role="dialog"
-        aria-modal="true"
-        onClick={(event) => event.stopPropagation()}
-      >
-        <div className="mb-4 flex items-center justify-between">
-          <h3 className="display-font text-lg">{title}</h3>
-          <button type="button" className="text-slate-400" onClick={onClose}>
-            x
-          </button>
-        </div>
-        {children}
-      </div>
-    </div>
+    <Dialog.Root open={open} onOpenChange={(nextOpen) => !nextOpen && onClose()}>
+      <Dialog.Portal>
+        <Dialog.Overlay className="dialog-overlay fixed inset-0 z-50 bg-black/60" />
+        <Dialog.Content className="dialog-content fixed left-1/2 top-1/2 z-50 w-[min(92vw,720px)] -translate-x-1/2 -translate-y-1/2 rounded-[var(--radius-lg)] border border-[var(--border-default)] bg-[var(--bg-elevated)] p-5">
+          <div className="mb-4 flex items-center justify-between gap-3">
+            <Dialog.Title className="text-lg font-semibold text-[var(--text-primary)]">{title}</Dialog.Title>
+            <Dialog.Close asChild>
+              <button
+                type="button"
+                aria-label="Close"
+                className="inline-flex h-8 w-8 items-center justify-center rounded-[var(--radius-md)] border border-[var(--border-default)] text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]"
+              >
+                <X size={16} strokeWidth={1.75} />
+              </button>
+            </Dialog.Close>
+          </div>
+          {children}
+        </Dialog.Content>
+      </Dialog.Portal>
+    </Dialog.Root>
   );
 }

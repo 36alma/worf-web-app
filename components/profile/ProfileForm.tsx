@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import {FormEvent, useEffect, useState} from 'react';
 import {useTranslations} from 'next-intl';
@@ -115,67 +115,67 @@ export default function ProfileForm() {
   };
 
   if (loading) {
-    return <div className="surface rounded-xl p-4 text-sm text-slate-300">{t('loading')}</div>;
+    return <div className="surface rounded-[var(--radius-lg)] p-4 text-sm text-[var(--text-secondary)]">{t('loading')}</div>;
   }
 
   return (
-    <form className="surface space-y-5 rounded-xl p-4" onSubmit={onSubmit}>
+    <form className="surface space-y-5 rounded-[var(--radius-lg)] p-4" onSubmit={onSubmit}>
       <div className="space-y-4">
         <h2 className="display-font text-lg">{t('account_section')}</h2>
 
         <div>
-          <label className="mb-1 block text-sm text-slate-300">{t('username')}</label>
+          <label className="mb-1 block text-sm text-[var(--text-secondary)]">{t('username')}</label>
           <input
             value={form.username}
             onChange={(event) => setForm((prev) => ({...prev, username: event.target.value}))}
-            className="w-full rounded-md border border-[var(--border)] bg-[#0f0f18] px-3 py-2"
+            className="w-full rounded-md border border-[var(--border-default)] bg-[var(--bg-input)] px-3 py-2"
             autoComplete="username"
           />
         </div>
 
         <div>
-          <label className="mb-1 block text-sm text-slate-300">{t('email')}</label>
+          <label className="mb-1 block text-sm text-[var(--text-secondary)]">{t('email')}</label>
           <input
             type="email"
             value={form.email}
             onChange={(event) => setForm((prev) => ({...prev, email: event.target.value}))}
-            className="w-full rounded-md border border-[var(--border)] bg-[#0f0f18] px-3 py-2"
+            className="w-full rounded-md border border-[var(--border-default)] bg-[var(--bg-input)] px-3 py-2"
             autoComplete="email"
           />
         </div>
 
         <div>
-          <label className="mb-1 block text-sm text-slate-300">{t('full_name')}</label>
+          <label className="mb-1 block text-sm text-[var(--text-secondary)]">{t('full_name')}</label>
           <input
             value={form.full_name}
             onChange={(event) => setForm((prev) => ({...prev, full_name: event.target.value}))}
-            className="w-full rounded-md border border-[var(--border)] bg-[#0f0f18] px-3 py-2"
+            className="w-full rounded-md border border-[var(--border-default)] bg-[var(--bg-input)] px-3 py-2"
             autoComplete="name"
           />
         </div>
       </div>
 
-      <div className="space-y-3 border-t border-[var(--border)] pt-4">
+      <div className="space-y-3 border-t border-[var(--border-default)] pt-4">
         <h2 className="display-font text-lg">{t('password_section')}</h2>
 
         <div>
-          <label className="mb-1 block text-sm text-slate-300">{t('new_password')}</label>
+          <label className="mb-1 block text-sm text-[var(--text-secondary)]">{t('new_password')}</label>
           <input
             type="password"
             value={form.newpassword}
             onChange={(event) => setForm((prev) => ({...prev, newpassword: event.target.value}))}
-            className="w-full rounded-md border border-[var(--border)] bg-[#0f0f18] px-3 py-2"
+            className="w-full rounded-md border border-[var(--border-default)] bg-[var(--bg-input)] px-3 py-2"
             autoComplete="new-password"
           />
         </div>
 
         <div>
-          <label className="mb-1 block text-sm text-slate-300">{t('new_password_repeat')}</label>
+          <label className="mb-1 block text-sm text-[var(--text-secondary)]">{t('new_password_repeat')}</label>
           <input
             type="password"
             value={form.newpassword_rep}
             onChange={(event) => setForm((prev) => ({...prev, newpassword_rep: event.target.value}))}
-            className="w-full rounded-md border border-[var(--border)] bg-[#0f0f18] px-3 py-2"
+            className="w-full rounded-md border border-[var(--border-default)] bg-[var(--bg-input)] px-3 py-2"
             autoComplete="new-password"
           />
         </div>
@@ -187,3 +187,5 @@ export default function ProfileForm() {
     </form>
   );
 }
+
+

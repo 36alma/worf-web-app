@@ -1,13 +1,12 @@
 'use client';
 
+import Link from 'next/link';
 import {FormEvent, useCallback, useEffect, useMemo, useState} from 'react';
 import {useLocale, useTranslations} from 'next-intl';
 import toast from 'react-hot-toast';
 import {getUserGroups} from '@/lib/api/groups';
 import {
-  createGlobalPost,
   createGlobalPostCategory,
-  createGroupPost,
   createGroupPostCategory,
   deleteGlobalPostCategory,
   deleteGroupPostCategory,
@@ -16,7 +15,6 @@ import {
   getGroupPostCategories,
   getGroupPosts,
   modifyGlobalPostCategory,
-  modifyGroupPost,
   modifyGroupPostCategory
 } from '@/lib/api/posts';
 import {getGroupPermissions} from '@/lib/api/permissions';
@@ -25,6 +23,7 @@ import {usePermissionStore} from '@/lib/store/permissionStore';
 import Button from '@/components/ui/Button';
 import ConfirmDialog from '@/components/ui/ConfirmDialog';
 import Modal from '@/components/ui/Modal';
+import MarkdownRenderer from '@/components/posts/MarkdownRenderer';
 
 type RawObject = Record<string, unknown>;
 
@@ -251,18 +250,6 @@ export default function PostsFeed({mode, groupId = ''}: PostsFeedProps) {
   const [categoriesLoading, setCategoriesLoading] = useState(false);
   const [selectedCategoryFilterId, setSelectedCategoryFilterId] = useState('');
 
-  const [createOpen, setCreateOpen] = useState(false);
-  const [createSubmitting, setCreateSubmitting] = useState(false);
-  const [createTitle, setCreateTitle] = useState('');
-  const [createBody, setCreateBody] = useState('');
-  const [createCategoryId, setCreateCategoryId] = useState('');
-
-  const [editingPost, setEditingPost] = useState<PostItem | null>(null);
-  const [editSubmitting, setEditSubmitting] = useState(false);
-  const [editTitle, setEditTitle] = useState('');
-  const [editBody, setEditBody] = useState('');
-  const [editCategoryId, setEditCategoryId] = useState('');
-
   const [categoryModalOpen, setCategoryModalOpen] = useState(false);
   const [categorySubmitting, setCategorySubmitting] = useState(false);
   const [categoryEditingId, setCategoryEditingId] = useState('');
@@ -472,15 +459,7 @@ export default function PostsFeed({mode, groupId = ''}: PostsFeedProps) {
     if (selectedCategoryFilterId && !categories.some((category) => category.id === selectedCategoryFilterId)) {
       setSelectedCategoryFilterId('');
     }
-
-    if (createCategoryId && !categories.some((category) => category.id === createCategoryId)) {
-      setCreateCategoryId('');
-    }
-
-    if (editCategoryId && !categories.some((category) => category.id === editCategoryId)) {
-      setEditCategoryId('');
-    }
-  }, [categories, createCategoryId, editCategoryId, selectedCategoryFilterId]);
+  }, [categories, selectedCategoryFilterId]);
 
   const categoriesById = useMemo(() => {
     const map = new Map<string, PostCategory>();
@@ -500,109 +479,10 @@ export default function PostsFeed({mode, groupId = ''}: PostsFeedProps) {
     return posts.filter((post) => post.categoryId === selectedCategoryFilterId);
   }, [posts, selectedCategoryFilterId]);
 
-  const resetCreateForm = () => {
-    setCreateTitle('');
-    setCreateBody('');
-    setCreateCategoryId('');
-  };
-
-  const resetEditForm = () => {
-    setEditingPost(null);
-    setEditTitle('');
-    setEditBody('');
-    setEditCategoryId('');
-  };
-
   const resetCategoryForm = () => {
     setCategoryEditingId('');
     setCategoryName('');
     setCategoryDescription('');
-  };
-
-  const onCreateSubmit = async (event: FormEvent) => {
-    event.preventDefault();
-
-    const trimmedTitle = createTitle.trim();
-    const trimmedBody = createBody.trim();
-    if (!trimmedTitle || !trimmedBody) {
-      return;
-    }
-
-    try {
-      setCreateSubmitting(true);
-      if (isGroupScope && activeGroupId) {
-        if (!canCreateInScope) {
-          toast.error('Nincs jogod csoport poszt letrehozasra');
-          return;
-        }
-
-        await createGroupPost({
-          group_id: activeGroupId,
-          title: trimmedTitle,
-          body: trimmedBody,
-          category_id: createCategoryId || undefined
-        });
-      } else {
-        if (!canCreateInScope) {
-          toast.error('Nincs jogod globalis poszt letrehozasra');
-          return;
-        }
-
-        await createGlobalPost({
-          title: trimmedTitle,
-          body: trimmedBody,
-          category_id: createCategoryId || undefined
-        });
-      }
-
-      resetCreateForm();
-      setCreateOpen(false);
-      await loadPosts();
-      toast.success('Poszt letrehozva');
-    } catch {
-      toast.error('Poszt letrehozas sikertelen');
-    } finally {
-      setCreateSubmitting(false);
-    }
-  };
-
-  const onStartEdit = (post: PostItem) => {
-    setEditingPost(post);
-    setEditTitle(post.title);
-    setEditBody(post.body);
-    setEditCategoryId(post.categoryId);
-  };
-
-  const onEditSubmit = async (event: FormEvent) => {
-    event.preventDefault();
-
-    if (!editingPost || !activeGroupId || !canEditInScope) {
-      return;
-    }
-
-    const trimmedTitle = editTitle.trim();
-    const trimmedBody = editBody.trim();
-    if (!trimmedTitle || !trimmedBody) {
-      return;
-    }
-
-    try {
-      setEditSubmitting(true);
-      await modifyGroupPost({
-        group_id: activeGroupId,
-        post_id: editingPost.id,
-        title: trimmedTitle,
-        body: trimmedBody,
-        category_id: editCategoryId || undefined
-      });
-      resetEditForm();
-      await loadPosts();
-      toast.success('Poszt frissitve');
-    } catch {
-      toast.error('Poszt szerkesztese sikertelen');
-    } finally {
-      setEditSubmitting(false);
-    }
   };
 
   const onCategorySubmit = async (event: FormEvent) => {
@@ -704,14 +584,6 @@ export default function PostsFeed({mode, groupId = ''}: PostsFeedProps) {
         setSelectedCategoryFilterId('');
       }
 
-      if (createCategoryId === deletingCategoryId) {
-        setCreateCategoryId('');
-      }
-
-      if (editCategoryId === deletingCategoryId) {
-        setEditCategoryId('');
-      }
-
       setDeletingCategoryId('');
       await loadCategories();
       toast.success('Kategoria torolve');
@@ -723,6 +595,13 @@ export default function PostsFeed({mode, groupId = ''}: PostsFeedProps) {
   };
 
   const canManageCategories = canCreateCategory || canModifyCategory || canDeleteCategory;
+  const createEditorHref = useMemo(() => {
+    if (isGroupScope && activeGroupId) {
+      return `/${locale}/groups/${activeGroupId}/posts/new`;
+    }
+
+    return `/${locale}/posts/new`;
+  }, [activeGroupId, isGroupScope, locale]);
 
   return (
     <section className="space-y-4">
@@ -773,9 +652,12 @@ export default function PostsFeed({mode, groupId = ''}: PostsFeedProps) {
           )}
 
           {canCreateInScope && (
-            <Button type="button" onClick={() => setCreateOpen(true)}>
+            <Link
+              href={createEditorHref}
+              className="rounded-md bg-indigo-500 px-3 py-2 text-sm font-medium text-white transition hover:bg-indigo-400"
+            >
               Create Post
-            </Button>
+            </Link>
           )}
         </div>
       </div>
@@ -788,112 +670,35 @@ export default function PostsFeed({mode, groupId = ''}: PostsFeedProps) {
         <div className="space-y-3">
           {filteredPosts.map((post) => {
             const categoryLabel = post.categoryName || categoriesById.get(post.categoryId)?.name || '';
+            const titleLabel = post.title && post.title !== post.id ? post.title : 'Untitled post';
+            const dateLabel = post.createdAt ? formatDate(post.createdAt, locale) : '';
 
             return (
               <article key={post.id} className="surface card-animate rounded-xl p-4">
                 <div className="mb-3 flex items-start justify-between gap-3">
                   <div>
-                    <h3 className="display-font text-lg">{post.title || 'Untitled post'}</h3>
+                    <h3 className="display-font text-lg">{titleLabel}</h3>
                     <p className="text-xs text-slate-400">
                       {post.author || 'Unknown author'}
-                      {post.createdAt ? ` - ${formatDate(post.createdAt, locale)}` : ''}
+                      {dateLabel ? ` - ${dateLabel}` : ''}
                     </p>
                     {categoryLabel && <p className="mt-1 text-xs text-cyan-300">Category: {categoryLabel}</p>}
                   </div>
-                  {canEditInScope && (
-                    <Button type="button" variant="ghost" onClick={() => onStartEdit(post)}>
+                  {canEditInScope && activeGroupId && (
+                    <Link
+                      href={`/${locale}/groups/${activeGroupId}/posts/${post.id}/edit`}
+                      className="rounded-md border border-[var(--border)] bg-transparent px-3 py-2 text-sm font-medium text-slate-200 transition hover:bg-slate-800"
+                    >
                       Edit
-                    </Button>
+                    </Link>
                   )}
                 </div>
-                <p className="whitespace-pre-wrap text-sm text-slate-200">{post.body || '-'}</p>
+                <MarkdownRenderer content={post.body} className="text-sm text-slate-200" />
               </article>
             );
           })}
         </div>
       )}
-
-      <Modal open={createOpen} title="Create Post" onClose={() => setCreateOpen(false)}>
-        <form className="space-y-3" onSubmit={onCreateSubmit}>
-          <input
-            value={createTitle}
-            onChange={(event) => setCreateTitle(event.target.value)}
-            placeholder="Post title"
-            className="w-full rounded-md border border-[var(--border)] bg-[#0f0f18] px-3 py-2"
-            maxLength={120}
-          />
-          {canReadCategories && (
-            <select
-              value={createCategoryId}
-              onChange={(event) => setCreateCategoryId(event.target.value)}
-              className="w-full rounded-md border border-[var(--border)] bg-[#0f0f18] px-3 py-2"
-            >
-              <option value="">No category</option>
-              {categories.map((category) => (
-                <option key={category.id} value={category.id}>
-                  {category.name}
-                </option>
-              ))}
-            </select>
-          )}
-          <textarea
-            value={createBody}
-            onChange={(event) => setCreateBody(event.target.value)}
-            placeholder="Write your post..."
-            className="w-full rounded-md border border-[var(--border)] bg-[#0f0f18] px-3 py-2"
-            rows={5}
-          />
-          <div className="flex justify-end gap-2">
-            <Button type="button" variant="ghost" onClick={() => setCreateOpen(false)} disabled={createSubmitting}>
-              Cancel
-            </Button>
-            <Button type="submit" disabled={createSubmitting}>
-              {createSubmitting ? 'Publishing...' : 'Publish'}
-            </Button>
-          </div>
-        </form>
-      </Modal>
-
-      <Modal open={Boolean(editingPost)} title="Edit Post" onClose={resetEditForm}>
-        <form className="space-y-3" onSubmit={onEditSubmit}>
-          <input
-            value={editTitle}
-            onChange={(event) => setEditTitle(event.target.value)}
-            placeholder="Post title"
-            className="w-full rounded-md border border-[var(--border)] bg-[#0f0f18] px-3 py-2"
-            maxLength={120}
-          />
-          {canReadCategories && (
-            <select
-              value={editCategoryId}
-              onChange={(event) => setEditCategoryId(event.target.value)}
-              className="w-full rounded-md border border-[var(--border)] bg-[#0f0f18] px-3 py-2"
-            >
-              <option value="">No category</option>
-              {categories.map((category) => (
-                <option key={category.id} value={category.id}>
-                  {category.name}
-                </option>
-              ))}
-            </select>
-          )}
-          <textarea
-            value={editBody}
-            onChange={(event) => setEditBody(event.target.value)}
-            placeholder="Write your post..."
-            className="w-full rounded-md border border-[var(--border)] bg-[#0f0f18] px-3 py-2"
-            rows={5}
-          />
-          <div className="flex justify-end gap-2">
-            <Button type="button" variant="ghost" onClick={resetEditForm} disabled={editSubmitting}>
-              Cancel
-            </Button>
-            <Button type="submit" disabled={editSubmitting || !canEditInScope}>
-              {editSubmitting ? 'Saving...' : 'Save'}
-            </Button>
-          </div>
-        </form>
-      </Modal>
 
       <Modal
         open={categoryModalOpen}

@@ -1,3 +1,7 @@
-﻿export default function Skeleton({className = 'h-6 w-full'}: {className?: string}) {
-  return <div className={`animate-pulse rounded bg-slate-800/70 ${className}`} />;
+export interface SkeletonProps {
+  className?: string;
+}
+
+export default function Skeleton({className = 'h-6 w-full'}: SkeletonProps) {
+  return <div className={`skeleton-shimmer rounded-[var(--radius-md)] ${className}`} />;
 }

@@ -1,24 +1,24 @@
 ﻿'use client';
 
-import {FormEvent, useMemo, useState} from 'react';
+import { FormEvent, useMemo, useState } from 'react';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import timeGridPlugin from '@fullcalendar/timegrid';
-import type {EventDropArg} from '@fullcalendar/core';
-import {CalendarPlus, Pencil, RefreshCw, Trash2} from 'lucide-react';
+import type { EventDropArg } from '@fullcalendar/core';
+import { CalendarPlus, Pencil, RefreshCw, Trash2 } from 'lucide-react';
 import toast from 'react-hot-toast';
-import {useLocale, useTranslations} from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import Button from '@/components/ui/Button';
 import EventModal from '@/components/calendar/EventModal';
-import {useCalendar} from '@/hooks/useCalendar';
-import type {CalendarScope, GroupCalendarEvent} from '@/lib/types/calendar';
+import { useCalendar } from '@/hooks/useCalendar';
+import type { CalendarScope, GroupCalendarEvent } from '@/lib/types/calendar';
 
 interface CalendarViewProps {
   initialGroupId?: string;
 }
 
-export default function CalendarView({initialGroupId}: CalendarViewProps) {
+export default function CalendarView({ initialGroupId }: CalendarViewProps) {
   const t = useTranslations('calendar');
   const locale = useLocale();
   const [eventModalOpen, setEventModalOpen] = useState(false);
@@ -52,7 +52,7 @@ export default function CalendarView({initialGroupId}: CalendarViewProps) {
     upsertEvent,
     deleteEvent,
     moveEvent
-  } = useCalendar({initialGroupId});
+  } = useCalendar({ initialGroupId });
 
   const eventItems = useMemo(
     () =>
@@ -242,19 +242,19 @@ export default function CalendarView({initialGroupId}: CalendarViewProps) {
           </label>
 
           <div className="ml-auto flex flex-wrap gap-2">
-            <Button variant="secondary" onClick={() => void refetch()} startIcon={<RefreshCw size={16} />}>
+            <Button className="p-2" variant="secondary" onClick={() => void refetch()} startIcon={<RefreshCw size={16} />}>
               Refresh
             </Button>
-            <Button variant="secondary" onClick={() => setCalendarModalOpen(true)} startIcon={<CalendarPlus size={16} />}>
+            <Button className="p-2" variant="secondary" onClick={() => setCalendarModalOpen(true)} startIcon={<CalendarPlus size={16} />}>
               New calendar
             </Button>
-            <Button variant="secondary" onClick={handleCalendarRename} startIcon={<Pencil size={16} />}>
+            <Button className="p-2" variant="secondary" onClick={handleCalendarRename} startIcon={<Pencil size={16} />}>
               Rename calendar
             </Button>
-            <Button variant="danger" onClick={handleCalendarDelete} startIcon={<Trash2 size={16} />}>
+            <Button className="p-2" variant="danger" onClick={handleCalendarDelete} startIcon={<Trash2 size={16} />}>
               Delete calendar
             </Button>
-            <Button onClick={handleEventCreate}>New event</Button>
+            <Button className="p-2" onClick={handleEventCreate}>New event</Button>
           </div>
         </div>
 
@@ -308,7 +308,7 @@ export default function CalendarView({initialGroupId}: CalendarViewProps) {
           setEventModalOpen(false);
           setSelectedEvent(null);
         }}
-        onSubmit={async ({scope, data}) => {
+        onSubmit={async ({ scope, data }) => {
           try {
             await upsertEvent({
               scope: (selectedEvent?.isGlobal ? 'global' : scope) as CalendarScope,
@@ -326,7 +326,7 @@ export default function CalendarView({initialGroupId}: CalendarViewProps) {
 
       {eventModalMode === 'edit' && selectedEvent ? (
         <div className="flex justify-end">
-          <Button variant="danger" onClick={handleEventDelete} disabled={saving} startIcon={<Trash2 size={16} />}>
+          <Button className="p-2" variant="danger" onClick={handleEventDelete} disabled={saving} startIcon={<Trash2 size={16} />}>
             Delete event
           </Button>
         </div>
@@ -397,10 +397,10 @@ function ModalCalendar({
             />
           </div>
           <div className="flex justify-end gap-2">
-            <Button type="button" variant="ghost" onClick={onClose}>
+            <Button className="p-2" type="button" variant="ghost" onClick={onClose}>
               Cancel
             </Button>
-            <Button type="submit" disabled={saving}>
+            <Button className="p-2" type="submit" disabled={saving}>
               {saving ? 'Saving...' : 'Create'}
             </Button>
           </div>

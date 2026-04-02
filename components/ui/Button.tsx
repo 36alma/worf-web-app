@@ -1,22 +1,38 @@
-﻿import {ButtonHTMLAttributes} from 'react';
+import {ButtonHTMLAttributes, ReactNode} from 'react';
 import clsx from 'clsx';
+import {Plus} from 'lucide-react';
 
-type Props = ButtonHTMLAttributes<HTMLButtonElement> & {
+export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'secondary' | 'danger' | 'ghost';
-};
+  startIcon?: ReactNode;
+  endIcon?: ReactNode;
+}
 
-export default function Button({variant = 'primary', className, ...props}: Props) {
+export default function Button({
+  variant = 'primary',
+  className,
+  children,
+  startIcon,
+  endIcon,
+  ...props
+}: ButtonProps) {
   return (
     <button
       {...props}
       className={clsx(
-        'rounded-md px-3 py-2 text-sm font-medium transition disabled:opacity-50',
-        variant === 'primary' && 'bg-indigo-500 text-white hover:bg-indigo-400',
-        variant === 'secondary' && 'bg-cyan-500 text-slate-900 hover:bg-cyan-400',
-        variant === 'danger' && 'bg-red-500/20 text-red-200 hover:bg-red-500/30',
-        variant === 'ghost' && 'border border-[var(--border)] bg-transparent text-slate-200 hover:bg-slate-800',
+        'inline-flex h-[var(--btn-height-md)] items-center justify-center gap-2 rounded-[var(--btn-radius)] border px-[var(--btn-padding)] text-sm font-medium active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50',
+        variant === 'primary' && 'border-transparent bg-[var(--accent)] text-white hover:bg-[var(--accent-hover)]',
+        variant === 'secondary' &&
+          'border-[var(--border-default)] bg-transparent text-[var(--text-primary)] hover:border-[var(--border-hover)] hover:bg-[var(--bg-hover)]',
+        variant === 'danger' &&
+          'border-[var(--border-default)] bg-transparent text-[var(--error)] hover:border-[var(--border-hover)] hover:bg-[var(--bg-hover)]',
+        variant === 'ghost' && 'border-transparent bg-transparent text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]',
         className
       )}
-    />
+    >
+      {startIcon ?? <Plus size={16} strokeWidth={1.75} aria-hidden="true" />}
+      <span>{children}</span>
+      {endIcon}
+    </button>
   );
 }

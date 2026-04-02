@@ -62,12 +62,16 @@ export default function AppProviders({children}: {children: ReactNode}) {
     <>
       {children}
       <Toaster
-        position="top-right"
+        position="bottom-center"
+        containerClassName="toast-viewport"
         toastOptions={{
+          className: 'toast toast-root',
           style: {
-            background: '#111118',
-            color: '#f1f5f9',
-            border: '1px solid #1e1e2e'
+            background: 'var(--bg-elevated)',
+            color: 'var(--text-primary)',
+            border: '1px solid var(--border-default)',
+            borderLeft: '3px solid var(--info)',
+            borderRadius: 'var(--radius-lg)'
           }
         }}
       />

@@ -1,19 +1,47 @@
-import apiClient from './client';
+﻿import apiClient from './client';
+import type {
+  CreateGlobalCalendarEventPayload,
+  CreateGroupCalendarEventPayload,
+  CreateGroupCalendarPayload,
+  DeleteGlobalCalendarEventPayload,
+  DeleteGroupCalendarEventPayload,
+  DeleteGroupCalendarPayload,
+  GetGroupCalendarEventPayload,
+  GetGroupCalendarPayload,
+  ModifyGlobalCalendarEventPayload,
+  ModifyGroupCalendarEventPayload,
+  ModifyGroupCalendarPayload
+} from '@/lib/types/calendar';
 
-export const createGlobalCalendarEvent = (data: Record<string, unknown>) =>
+export const createGlobalCalendarEvent = (data: CreateGlobalCalendarEventPayload) =>
   apiClient.post('/v1/global/calendar/event/create', data);
 
-export const modifyGlobalCalendarEvent = (data: Record<string, unknown>) =>
+export const modifyGlobalCalendarEvent = (data: ModifyGlobalCalendarEventPayload) =>
   apiClient.post('/v1/global/calendar/event/modify', data);
 
-export const deleteGlobalCalendarEvent = (event_id: string) =>
-  apiClient.post('/v1/global/calendar/event/delete', {event_id});
+export const deleteGlobalCalendarEvent = (data: DeleteGlobalCalendarEventPayload) =>
+  apiClient.post('/v1/global/calendar/event/delete', data);
 
-export const getGroupCalendars = (group_id: string) =>
-  apiClient.post('/v1/group/calendar/get', {group_id});
+export const getGroupCalendars = (data: GetGroupCalendarPayload) =>
+  apiClient.post('/v1/group/calendar/get', data);
 
-export const createGroupCalendar = (data: {group_id: string; name: string}) =>
+export const createGroupCalendar = (data: CreateGroupCalendarPayload) =>
   apiClient.post('/v1/group/calendar/create', data);
 
-export const getGroupCalendarEvents = (data: {group_id: string; calendar_id?: string}) =>
+export const modifyGroupCalendar = (data: ModifyGroupCalendarPayload) =>
+  apiClient.post('/v1/group/calendar/modify', data);
+
+export const deleteGroupCalendar = (data: DeleteGroupCalendarPayload) =>
+  apiClient.post('/v1/group/calendar/delete', data);
+
+export const getGroupCalendarEvents = (data: GetGroupCalendarEventPayload) =>
   apiClient.post('/v1/group/calendar/event/get', data);
+
+export const createGroupCalendarEvent = (data: CreateGroupCalendarEventPayload) =>
+  apiClient.post('/v1/group/calendar/event/create', data);
+
+export const modifyGroupCalendarEvent = (data: ModifyGroupCalendarEventPayload) =>
+  apiClient.post('/v1/group/calendar/event/modify', data);
+
+export const deleteGroupCalendarEvent = (data: DeleteGroupCalendarEventPayload) =>
+  apiClient.post('/v1/group/calendar/event/delete', data);

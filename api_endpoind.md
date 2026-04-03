@@ -1370,7 +1370,7 @@ Az endpoint működése lépésenként:
 | `Bearer` | `string` | Nem | Access token a hitelesítéshez. |
 | `content-type` | `string` | Nem | Technikai tartalomtípus mező. |
 | `group_id` | `string` | Nem | Csoport azonosító. |
-| `post_id` | `array[string (UUID)]` | Igen | Az adott erőforrás azonosítója. |
+| `post_id` | `array[string]` | Igen | Titkosított post azonosítók listája. |
 
 ## Válasz szerkezet
 
@@ -1447,7 +1447,7 @@ Az endpoint működése lépésenként:
 | `Bearer` | `string` | Nem | Access token a hitelesítéshez. |
 | `content-type` | `string` | Nem | Technikai tartalomtípus mező. |
 | `group_id` | `string` | Nem | Csoport azonosító. |
-| `post_id` | `string` | Igen | Az adott erőforrás azonosítója. |
+| `post_id` | `string` | Igen | Titkosított post azonosító. |
 
 ## Válasz szerkezet
 
@@ -1462,6 +1462,91 @@ Az endpoint működése lépésenként:
 | `401` | `Authentication failed.` | Hiányzó/hibás token vagy hiányzó IP fejléc. |
 | `403` | `Permission denied.` | Jogosultság vagy csoporttagság hiánya. |
 | `404` | `Record not found.` | Nem található rekord. |
+| `422` | `Validation failed.` | Bemeneti validációs hiba. |
+| `429` | `Too Many Requests` | Rate limit túllépése. |
+| `500` | `Application error occurred.` | Váratlan szerveroldali hiba. |
+
+---
+
+## Endpoint
+
+- **Név:** Global post modify
+- **Metódus:** `POST`
+- **Útvonal:** `/v1/global/post/modify`
+- **Leírás:** Meglévő globális post részleges módosítása.
+
+## Jogosultságok (Permissions)
+
+Az endpoint sikeres hívásához az alábbi feltételeknek egyszerre kell teljesülniük:
+
+1. **Kötelező hálózati fejléc**
+   - A route implementációja jellemzően elvárja az `x-forwarded-for` fejlécet.
+
+2. **Globális jogosultság**
+   - Kötelező permission: `post.modify.global`.
+   - Más felhasználó postjának módosításához kiegészítő jogosultság kell: `post.modify.other.global`.
+
+3. **Token kezelés**
+   - A kérésmodell tokenes mezőt használhat (`Bearer` vagy auth token mezők).
+
+## Működés
+
+Az endpoint működése lépésenként:
+
+1. A rendszer beolvassa az `x-forwarded-for` fejlécet.
+2. A `post_id` titkosított értékét dekódolja.
+3. Globális jogosultság-ellenőrzés fut le.
+4. A kérésben megadott mezők (`title`, `content`, `is_global`, `category_id`, `author_id`) részlegesen frissülnek.
+5. Az üzleti logika lefut és route-függő válasz készül.
+
+## Használat
+
+### Kérés formátuma
+
+- **URL:** `/v1/global/post/modify`
+- **Metódus:** `POST`
+- **Header:**
+  - `x-forwarded-for: <client-ip>` (kötelező/ajánlott)
+  - `Content-Type: application/json`
+- **Rate limit:** `50 kérés / 5 perc`
+- **Body/Model:** `ModifyPost`
+
+## Paraméterek
+
+### Header paraméterek
+
+| Név | Típus | Kötelező | Leírás |
+|---|---|---|---|
+| `x-forwarded-for` | `string` | Igen | A kliens IP címe. |
+
+### Body paraméterek
+
+| Név | Típus | Kötelező | Leírás |
+|---|---|---|---|
+| `Bearer` | `string` | Nem | Access token a hitelesítéshez. |
+| `content-type` | `string` | Nem | Technikai tartalomtípus mező. |
+| `post_id` | `string` | Igen | Titkosított post azonosító. |
+| `title` | `string` | Nem | Új cím. |
+| `content` | `string` | Nem | Új tartalom. |
+| `is_global` | `boolean` | Nem | Globális jelző módosítása (global endpointon `false` nem engedett). |
+| `category_id` | `string` | Nem | Titkosított post kategória azonosító. |
+| `author_id` | `string` | Nem | Titkosított user azonosító. |
+
+## Válasz szerkezet
+
+| Név | Típus | Leírás |
+|---|---|---|
+| `post_id` | `string` | A módosított post titkosított azonosítója. |
+| `changes` | `array[string] \| null` | A ténylegesen módosított mezők listája, vagy `null`. |
+| `scope` | `string` | Módosítási scope: `global`. |
+
+## Tipikus hibák
+
+| HTTP kód | `detail` | Mikor fordul elő |
+|---|---|---|
+| `401` | `Authentication failed.` | Hiányzó/hibás token vagy hiányzó IP fejléc. |
+| `403` | `Permission denied.` | Jogosultság hiánya, különösen más user postjának módosításánál. |
+| `404` | `Record not found.` | A post nem található. |
 | `422` | `Validation failed.` | Bemeneti validációs hiba. |
 | `429` | `Too Many Requests` | Rate limit túllépése. |
 | `500` | `Application error occurred.` | Váratlan szerveroldali hiba. |
@@ -3111,7 +3196,7 @@ Az endpoint működése lépésenként:
 | `Bearer` | `string` | Nem | Access token a hitelesítéshez. |
 | `content-type` | `string` | Nem | Technikai tartalomtípus mező. |
 | `group_id` | `string` | Nem | Csoport azonosító. |
-| `post_id` | `array[string (UUID)]` | Igen | Az adott erőforrás azonosítója. |
+| `post_id` | `array[string]` | Igen | Titkosított post azonosítók listája. |
 
 ## Válasz szerkezet
 
@@ -3189,7 +3274,7 @@ Az endpoint működése lépésenként:
 | `Bearer` | `string` | Nem | Access token a hitelesítéshez. |
 | `content-type` | `string` | Nem | Technikai tartalomtípus mező. |
 | `group_id` | `string` | Nem | Csoport azonosító. |
-| `post_id` | `string` | Igen | Az adott erőforrás azonosítója. |
+| `post_id` | `string` | Igen | Titkosított post azonosító. |
 
 ## Válasz szerkezet
 
@@ -3204,6 +3289,93 @@ Az endpoint működése lépésenként:
 | `401` | `Authentication failed.` | Hiányzó/hibás token vagy hiányzó IP fejléc. |
 | `403` | `Permission denied.` | Jogosultság vagy csoporttagság hiánya. |
 | `404` | `Record not found.` | Nem található rekord. |
+| `422` | `Validation failed.` | Bemeneti validációs hiba. |
+| `429` | `Too Many Requests` | Rate limit túllépése. |
+| `500` | `Application error occurred.` | Váratlan szerveroldali hiba. |
+
+---
+
+## Endpoint
+
+- **Név:** Group post modify
+- **Metódus:** `POST`
+- **Útvonal:** `/v1/group/post/modify`
+- **Leírás:** Meglévő csoportos post részleges módosítása.
+
+## Jogosultságok (Permissions)
+
+Az endpoint sikeres hívásához az alábbi feltételeknek egyszerre kell teljesülniük:
+
+1. **Kötelező hálózati fejléc**
+   - A route implementációja jellemzően elvárja az `x-forwarded-for` fejlécet.
+
+2. **Csoportszintű jogosultság**
+   - Kötelező csoport permission: `group.post.modify`.
+   - Más felhasználó postjának módosításához kiegészítő csoport jogosultság kell: `group.post.modify.other`.
+   - Kötelező csoporttagság és tokenből feloldható csoportszerepkör.
+
+3. **Token kezelés**
+   - A kérésmodell tokenes mezőt használhat (`Bearer` vagy auth token mezők).
+
+## Működés
+
+Az endpoint működése lépésenként:
+
+1. A rendszer beolvassa az `x-forwarded-for` fejlécet.
+2. A `group_id` és `post_id` titkosított értékeit dekódolja.
+3. Csoportszintű jogosultság-ellenőrzés fut le.
+4. A kérésben megadott mezők (`title`, `content`, `is_global`, `group_id`, `category_id`, `author_id`) részlegesen frissülnek.
+5. Az üzleti logika lefut és route-függő válasz készül.
+
+## Használat
+
+### Kérés formátuma
+
+- **URL:** `/v1/group/post/modify`
+- **Metódus:** `POST`
+- **Header:**
+  - `x-forwarded-for: <client-ip>` (kötelező/ajánlott)
+  - `Content-Type: application/json`
+- **Rate limit:** `50 kérés / 5 perc`
+- **Body/Model:** `ModifyPost`
+
+## Paraméterek
+
+### Header paraméterek
+
+| Név | Típus | Kötelező | Leírás |
+|---|---|---|---|
+| `x-forwarded-for` | `string` | Igen | A kliens IP címe. |
+
+### Body paraméterek
+
+| Név | Típus | Kötelező | Leírás |
+|---|---|---|---|
+| `Bearer` | `string` | Nem | Access token a hitelesítéshez. |
+| `content-type` | `string` | Nem | Technikai tartalomtípus mező. |
+| `group_id` | `string` | Igen | Titkosított group azonosító (RBAC és post-csoport ellenőrzéshez). |
+| `post_id` | `string` | Igen | Titkosított post azonosító. |
+| `title` | `string` | Nem | Új cím. |
+| `content` | `string` | Nem | Új tartalom. |
+| `is_global` | `boolean` | Nem | Globális jelző módosítása (group endpointon `true` nem engedett). |
+| `category_id` | `string` | Nem | Titkosított post kategória azonosító. |
+| `author_id` | `string` | Nem | Titkosított user azonosító. |
+
+## Válasz szerkezet
+
+| Név | Típus | Leírás |
+|---|---|---|
+| `post_id` | `string` | A módosított post titkosított azonosítója. |
+| `changes` | `array[string] \| null` | A ténylegesen módosított mezők listája, vagy `null`. |
+| `scope` | `string` | Módosítási scope: `group`. |
+
+## Tipikus hibák
+
+| HTTP kód | `detail` | Mikor fordul elő |
+|---|---|---|
+| `401` | `Authentication failed.` | Hiányzó/hibás token vagy hiányzó IP fejléc. |
+| `403` | `Permission denied.` | Jogosultság/csoporttagság hiánya, vagy más user postjának módosítása megfelelő jog nélkül. |
+| `404` | `Record not found.` | A post nem található. |
 | `422` | `Validation failed.` | Bemeneti validációs hiba. |
 | `429` | `Too Many Requests` | Rate limit túllépése. |
 | `500` | `Application error occurred.` | Váratlan szerveroldali hiba. |

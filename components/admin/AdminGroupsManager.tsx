@@ -1,9 +1,9 @@
 'use client';
 
-import {FormEvent, useCallback, useEffect, useMemo, useState} from 'react';
+import { FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
 import toast from 'react-hot-toast';
-import {useTranslations} from 'next-intl';
-import {getAdminUsers} from '@/lib/api/admin';
+import { useTranslations } from 'next-intl';
+import { getAdminUsers } from '@/lib/api/admin';
 import {
   addUserToGroup,
   createGroup,
@@ -13,8 +13,8 @@ import {
   modifyGroupBase,
   removeUserFromGroup
 } from '@/lib/api/groups';
-import {hasPermissionRequirement} from '@/lib/permissions/access';
-import {usePermissionStore} from '@/lib/store/permissionStore';
+import { hasPermissionRequirement } from '@/lib/permissions/access';
+import { usePermissionStore } from '@/lib/store/permissionStore';
 import Button from '@/components/ui/Button';
 import ConfirmDialog from '@/components/ui/ConfirmDialog';
 import DataTable from '@/components/ui/DataTable';
@@ -62,8 +62,8 @@ const toGroupRows = (payload: unknown): GroupRow[] => {
     ? source
     : source && typeof source === 'object'
       ? ['groups', 'items', 'rows', 'result']
-          .map((key) => (source as RawObject)[key])
-          .find((value) => Array.isArray(value))
+        .map((key) => (source as RawObject)[key])
+        .find((value) => Array.isArray(value))
       : null;
 
   if (!Array.isArray(arrayValue)) {
@@ -133,8 +133,8 @@ const toUsers = (payload: unknown): UserRow[] => {
     ? source
     : source && typeof source === 'object'
       ? ['users', 'items', 'rows', 'result', 'members']
-          .map((key) => (source as RawObject)[key])
-          .find((value) => Array.isArray(value))
+        .map((key) => (source as RawObject)[key])
+        .find((value) => Array.isArray(value))
       : null;
 
   if (!Array.isArray(arrayValue)) {
@@ -171,7 +171,7 @@ const defaultForm: GroupFormState = {
 
 export default function AdminGroupsManager() {
   const t = useTranslations('admin');
-  const {systemPermissions, isSystemPermissionsLoaded} = usePermissionStore();
+  const { systemPermissions, isSystemPermissionsLoaded } = usePermissionStore();
   const [rows, setRows] = useState<GroupRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [openForm, setOpenForm] = useState(false);
@@ -188,10 +188,10 @@ export default function AdminGroupsManager() {
 
   const canAddMember =
     isSystemPermissionsLoaded &&
-    hasPermissionRequirement(systemPermissions, {anyOf: ['group.create.add.usertogroup']});
+    hasPermissionRequirement(systemPermissions, { anyOf: ['group.create.add.usertogroup'] });
   const canRemoveMember =
     isSystemPermissionsLoaded &&
-    hasPermissionRequirement(systemPermissions, {anyOf: ['group.delete.remove.userfromgroup']});
+    hasPermissionRequirement(systemPermissions, { anyOf: ['group.delete.remove.userfromgroup'] });
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -237,23 +237,25 @@ export default function AdminGroupsManager() {
 
   const columns = useMemo(
     () => [
-      {key: 'name' as const, label: t('columns.group_name')},
-      {key: 'description' as const, label: t('columns.description')},
+      { key: 'name' as const, label: t('columns.group_name') },
+      { key: 'description' as const, label: t('columns.description') },
       {
         key: 'id' as const,
         label: t('columns.actions'),
         render: (value: any, row: GroupRow) => (
           <div className="flex gap-2">
             <Button
+              className='p-2'
               variant="ghost"
               onClick={() => {
-                setForm({id: row.id, name: row.name, description: row.description});
+                setForm({ id: row.id, name: row.name, description: row.description });
                 setOpenForm(true);
               }}
             >
               {t('edit')}
             </Button>
             <Button
+              className='p-2'
               variant="ghost"
               onClick={async () => {
                 setMemberModalGroup(row);
@@ -263,7 +265,7 @@ export default function AdminGroupsManager() {
             >
               {t('manage_members')}
             </Button>
-            <Button variant="danger" onClick={() => setDeleteTarget(row)}>
+            <Button className='p-2' variant="danger" onClick={() => setDeleteTarget(row)}>
               {t('delete')}
             </Button>
           </div>
@@ -349,11 +351,11 @@ export default function AdminGroupsManager() {
         prev.map((user) =>
           user.id === userId
             ? {
-                ...user,
-                group_ids: user.group_ids.includes(memberModalGroup.id)
-                  ? user.group_ids
-                  : [...user.group_ids, memberModalGroup.id]
-              }
+              ...user,
+              group_ids: user.group_ids.includes(memberModalGroup.id)
+                ? user.group_ids
+                : [...user.group_ids, memberModalGroup.id]
+            }
             : user
         )
       );
@@ -378,9 +380,9 @@ export default function AdminGroupsManager() {
         prev.map((user) =>
           user.id === userId
             ? {
-                ...user,
-                group_ids: user.group_ids.filter((groupId) => groupId !== memberModalGroup.id)
-              }
+              ...user,
+              group_ids: user.group_ids.filter((groupId) => groupId !== memberModalGroup.id)
+            }
             : user
         )
       );
@@ -394,13 +396,13 @@ export default function AdminGroupsManager() {
 
   const memberColumns = useMemo(
     () => [
-      {key: 'full_name' as const, label: t('columns.full_name')},
-      {key: 'email' as const, label: t('columns.email')},
+      { key: 'full_name' as const, label: t('columns.full_name') },
+      { key: 'email' as const, label: t('columns.email') },
       {
         key: 'id' as const,
         label: t('columns.actions'),
         render: (value: any, row: UserRow) => (
-          <Button variant="danger" disabled={memberActionLoading || !canRemoveMember} onClick={() => onRemoveMember(row.id)}>
+          <Button className='p-2' variant="danger" disabled={memberActionLoading || !canRemoveMember} onClick={() => onRemoveMember(row.id)}>
             {t('remove_member')}
           </Button>
         )
@@ -411,13 +413,13 @@ export default function AdminGroupsManager() {
 
   const addColumns = useMemo(
     () => [
-      {key: 'full_name' as const, label: t('columns.full_name')},
-      {key: 'email' as const, label: t('columns.email')},
+      { key: 'full_name' as const, label: t('columns.full_name') },
+      { key: 'email' as const, label: t('columns.email') },
       {
         key: 'id' as const,
         label: t('columns.actions'),
         render: (value: any, row: UserRow) => (
-          <Button disabled={memberActionLoading || !canAddMember} onClick={() => onAddMember(row.id)}>
+          <Button className='p-2' disabled={memberActionLoading || !canAddMember} onClick={() => onAddMember(row.id)}>
             {t('add_member')}
           </Button>
         )
@@ -440,6 +442,7 @@ export default function AdminGroupsManager() {
     <div className="space-y-3">
       <div className="flex justify-end">
         <Button
+          className='p-2'
           onClick={() => {
             setForm(defaultForm);
             setOpenForm(true);
@@ -462,7 +465,7 @@ export default function AdminGroupsManager() {
             <input
               className="w-full rounded-md border border-[var(--border)] bg-[#0f0f18] px-3 py-2"
               value={form.name}
-              onChange={(event) => setForm((prev) => ({...prev, name: event.target.value}))}
+              onChange={(event) => setForm((prev) => ({ ...prev, name: event.target.value }))}
               required
             />
           </div>
@@ -471,15 +474,15 @@ export default function AdminGroupsManager() {
             <textarea
               className="w-full rounded-md border border-[var(--border)] bg-[#0f0f18] px-3 py-2"
               value={form.description}
-              onChange={(event) => setForm((prev) => ({...prev, description: event.target.value}))}
+              onChange={(event) => setForm((prev) => ({ ...prev, description: event.target.value }))}
               rows={3}
             />
           </div>
           <div className="flex justify-end gap-2">
-            <Button variant="ghost" type="button" onClick={() => setOpenForm(false)}>
+            <Button className='p-2' variant="ghost" type="button" onClick={() => setOpenForm(false)}>
               {t('cancel')}
             </Button>
-            <Button type="submit" disabled={saving}>
+            <Button className='p-2' type="submit" disabled={saving}>
               {saving ? t('saving') : t('save')}
             </Button>
           </div>
@@ -509,10 +512,10 @@ export default function AdminGroupsManager() {
         ) : (
           <div className="space-y-4">
             <div className="flex gap-2">
-              <Button variant={memberTab === 'members' ? 'primary' : 'ghost'} onClick={() => setMemberTab('members')}>
+              <Button className='p-2' variant={memberTab === 'members' ? 'primary' : 'ghost'} onClick={() => setMemberTab('members')}>
                 {t('members_tab')}
               </Button>
-              <Button variant={memberTab === 'add' ? 'primary' : 'ghost'} onClick={() => setMemberTab('add')}>
+              <Button className='p-2' variant={memberTab === 'add' ? 'primary' : 'ghost'} onClick={() => setMemberTab('add')}>
                 {t('add_tab')}
               </Button>
             </div>

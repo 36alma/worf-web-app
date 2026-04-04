@@ -501,7 +501,9 @@ export default function MarkdownEditor({value, onChange, placeholder = '', rows 
   const editor = useEditor({
     immediatelyRender: false,
     extensions: [
-      StarterKit,
+      StarterKit.configure({
+        link: false
+      }),
       Placeholder.configure({placeholder}),
       Link.configure({
         autolink: true,

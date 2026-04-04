@@ -340,6 +340,11 @@
       "comments": "{count} hozzászólás",
       "postCount": "{count} poszt"
     },
+    "contentHints": {
+      "hasCode": "Tartalmaz kódot",
+      "hasImage": "Tartalmaz képet",
+      "readMore": "Tovább olvasom"
+    },
     "categories": {
       "modalTitle": "Poszt kategóriák",
       "namePlaceholder": "Kategória neve",
@@ -586,5 +591,38 @@
       "columnOperations": "Oszlop muveletek",
       "cellOperations": "Cella muveletek"
     }
+  },
+  "errors": {
+    "403": {
+      "title": "Hozzaferes megtagadva",
+      "message": "Nincs jogosultsagod megtekinteni ezt az oldalt. Ha ugy gondolod, hogy ez hiba, vedd fel velunk a kapcsolatot."
+    },
+    "404": {
+      "title": "Az oldal nem talalhato",
+      "message": "A keresett oldal nem letezik, vagy athelyeztek. Ellenorizd a webcimet, vagy terj vissza a fooldalra."
+    },
+    "500": {
+      "title": "Szerverhiba tortent",
+      "message": "Valami nem vart hiba tortent a szerveren. Probald meg ujra, vagy terj vissza kesobb."
+    },
+    "503": {
+      "title": "A szolgaltatas nem erheto el",
+      "message": "A WORF atmenetileg nem erheto el. N?h?ny perc mulva probald ujra."
+    },
+    "generic": {
+      "title": "Valami hiba tortent",
+      "message": "Nem vart hiba lepett fel. Kerjuk, probald meg ujra."
+    },
+    "actions": {
+      "goBack": "Vissza",
+      "goHome": "Fooldal",
+      "refresh": "Ujratoltes"
+    },
+    "help": {
+      "prefix": "Ha a problema tovabbra is fennall, lepj kapcsolatba velunk:",
+      "contact": "Kapcsolat"
+    }
   }
 }
+
+

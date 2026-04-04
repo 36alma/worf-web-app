@@ -1,10 +1,10 @@
 'use client';
 
-import {useCallback, useEffect, useMemo, useState} from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import toast from 'react-hot-toast';
-import {useTranslations} from 'next-intl';
-import type {AxiosError} from 'axios';
-import {getAdminUserProfile, getAdminUsers, getAllSystemRoles, updateAdminUserProfile} from '@/lib/api/admin';
+import { useTranslations } from 'next-intl';
+import type { AxiosError } from 'axios';
+import { getAdminUserProfile, getAdminUsers, getAllSystemRoles, updateAdminUserProfile } from '@/lib/api/admin';
 import Button from '@/components/ui/Button';
 import DataTable from '@/components/ui/DataTable';
 import Modal from '@/components/ui/Modal';
@@ -58,8 +58,8 @@ const toUserRows = (payload: unknown): AdminUserRow[] => {
     ? source
     : source && typeof source === 'object'
       ? ['users', 'items', 'rows', 'result']
-          .map((key) => (source as RawObject)[key])
-          .find((value) => Array.isArray(value))
+        .map((key) => (source as RawObject)[key])
+        .find((value) => Array.isArray(value))
       : null;
 
   if (!Array.isArray(arrayValue)) {
@@ -97,8 +97,8 @@ const toRoles = (payload: unknown): RoleItem[] => {
     ? source
     : source && typeof source === 'object'
       ? ['roles', 'items', 'rows', 'result']
-          .map((key) => (source as RawObject)[key])
-          .find((value) => Array.isArray(value))
+        .map((key) => (source as RawObject)[key])
+        .find((value) => Array.isArray(value))
       : null;
 
   if (!Array.isArray(arrayValue)) {
@@ -117,7 +117,7 @@ const toRoles = (payload: unknown): RoleItem[] => {
         return null;
       }
 
-      return {id, name: String(role.name ?? role.role_name ?? id)};
+      return { id, name: String(role.name ?? role.role_name ?? id) };
     })
     .filter((item): item is RoleItem => Boolean(item));
 };
@@ -140,7 +140,7 @@ const toProfile = (payload: unknown, fallback: AdminUserRow): EditFormState => {
 };
 
 const getApiErrorMessage = (error: unknown): string | null => {
-  const axiosError = error as AxiosError<{detail?: Array<{msg?: string}>; message?: string}>;
+  const axiosError = error as AxiosError<{ detail?: Array<{ msg?: string }>; message?: string }>;
   const detail = axiosError?.response?.data?.detail;
 
   if (Array.isArray(detail) && detail.length > 0) {
@@ -182,9 +182,9 @@ export default function AdminUsersManager() {
 
   const columns = useMemo(
     () => [
-      {key: 'username' as const, label: t('columns.username')},
-      {key: 'email' as const, label: t('columns.email')},
-      {key: 'full_name' as const, label: t('columns.full_name')},
+      { key: 'username' as const, label: t('columns.username') },
+      { key: 'email' as const, label: t('columns.email') },
+      { key: 'full_name' as const, label: t('columns.full_name') },
       {
         key: 'is_active' as const,
         label: t('columns.active'),
@@ -279,7 +279,7 @@ export default function AdminUsersManager() {
               <input
                 className="w-full rounded-md border border-[var(--border)] bg-[#0f0f18] px-3 py-2"
                 value={form.username}
-                onChange={(event) => setForm((prev) => (prev ? {...prev, username: event.target.value} : prev))}
+                onChange={(event) => setForm((prev) => (prev ? { ...prev, username: event.target.value } : prev))}
               />
             </div>
             <div>
@@ -287,7 +287,7 @@ export default function AdminUsersManager() {
               <input
                 className="w-full rounded-md border border-[var(--border)] bg-[#0f0f18] px-3 py-2"
                 value={form.email}
-                onChange={(event) => setForm((prev) => (prev ? {...prev, email: event.target.value} : prev))}
+                onChange={(event) => setForm((prev) => (prev ? { ...prev, email: event.target.value } : prev))}
               />
             </div>
             <div>
@@ -295,7 +295,7 @@ export default function AdminUsersManager() {
               <input
                 className="w-full rounded-md border border-[var(--border)] bg-[#0f0f18] px-3 py-2"
                 value={form.full_name}
-                onChange={(event) => setForm((prev) => (prev ? {...prev, full_name: event.target.value} : prev))}
+                onChange={(event) => setForm((prev) => (prev ? { ...prev, full_name: event.target.value } : prev))}
               />
             </div>
             <div>
@@ -303,7 +303,7 @@ export default function AdminUsersManager() {
               <select
                 className="w-full rounded-md border border-[var(--border)] bg-[#0f0f18] px-3 py-2"
                 value={form.role_id}
-                onChange={(event) => setForm((prev) => (prev ? {...prev, role_id: event.target.value} : prev))}
+                onChange={(event) => setForm((prev) => (prev ? { ...prev, role_id: event.target.value } : prev))}
               >
                 <option value="">{t('none')}</option>
                 {roles.map((role) => (
@@ -318,7 +318,7 @@ export default function AdminUsersManager() {
                 <input
                   type="checkbox"
                   checked={form.is_active}
-                  onChange={(event) => setForm((prev) => (prev ? {...prev, is_active: event.target.checked} : prev))}
+                  onChange={(event) => setForm((prev) => (prev ? { ...prev, is_active: event.target.checked } : prev))}
                 />
                 {t('columns.active')}
               </label>
@@ -327,7 +327,7 @@ export default function AdminUsersManager() {
                   type="checkbox"
                   checked={form.email_verified}
                   onChange={(event) =>
-                    setForm((prev) => (prev ? {...prev, email_verified: event.target.checked} : prev))
+                    setForm((prev) => (prev ? { ...prev, email_verified: event.target.checked } : prev))
                   }
                 />
                 {t('columns.email_verified')}
@@ -337,7 +337,7 @@ export default function AdminUsersManager() {
                   type="checkbox"
                   checked={form.is_2fa_enable}
                   onChange={(event) =>
-                    setForm((prev) => (prev ? {...prev, is_2fa_enable: event.target.checked} : prev))
+                    setForm((prev) => (prev ? { ...prev, is_2fa_enable: event.target.checked } : prev))
                   }
                 />
                 {t('columns.two_fa')}
@@ -350,14 +350,14 @@ export default function AdminUsersManager() {
                 className="w-full rounded-md border border-[var(--border)] bg-[#0f0f18] px-3 py-2"
                 autoComplete="new-password"
                 value={form.password}
-                onChange={(event) => setForm((prev) => (prev ? {...prev, password: event.target.value} : prev))}
+                onChange={(event) => setForm((prev) => (prev ? { ...prev, password: event.target.value } : prev))}
               />
             </div>
             <div className="flex justify-end gap-2">
-              <Button variant="ghost" type="button" onClick={() => setOpenEdit(false)}>
+              <Button className='p-2' variant="ghost" type="button" onClick={() => setOpenEdit(false)}>
                 {t('cancel')}
               </Button>
-              <Button type="submit" disabled={saving}>
+              <Button className='p-2' type="submit" disabled={saving}>
                 {saving ? t('saving') : t('save')}
               </Button>
             </div>

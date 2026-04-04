@@ -340,6 +340,11 @@
       "comments": "{count} comments",
       "postCount": "{count} posts"
     },
+    "contentHints": {
+      "hasCode": "Contains code",
+      "hasImage": "Contains image",
+      "readMore": "Read more"
+    },
     "categories": {
       "modalTitle": "Post categories",
       "namePlaceholder": "Category name",
@@ -585,6 +590,37 @@
       "rowOperations": "Row operations",
       "columnOperations": "Column operations",
       "cellOperations": "Cell operations"
+    }
+  },
+  "errors": {
+    "403": {
+      "title": "Access denied",
+      "message": "You don't have permission to view this page. If you think this is a mistake, contact support."
+    },
+    "404": {
+      "title": "Page not found",
+      "message": "The page you're looking for doesn't exist or has been moved. Check the URL or return to the homepage."
+    },
+    "500": {
+      "title": "Server error",
+      "message": "Something unexpected happened on our side. Please try again or come back later."
+    },
+    "503": {
+      "title": "Service unavailable",
+      "message": "WORF is temporarily unavailable. Please try again in a few minutes."
+    },
+    "generic": {
+      "title": "Something went wrong",
+      "message": "An unexpected error occurred. Please try again."
+    },
+    "actions": {
+      "goBack": "Go back",
+      "goHome": "Home",
+      "refresh": "Refresh"
+    },
+    "help": {
+      "prefix": "If the problem persists, contact us:",
+      "contact": "Support"
     }
   }
 }

@@ -5,6 +5,7 @@ import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import timeGridPlugin from '@fullcalendar/timegrid';
+import allLocales from '@fullcalendar/core/locales-all';
 import type { EventDropArg } from '@fullcalendar/core';
 import { CalendarPlus, Pencil, RefreshCw, Trash2 } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -18,9 +19,13 @@ interface CalendarViewProps {
   initialGroupId?: string;
 }
 
+const weekdayKeys = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'] as const;
+
 export default function CalendarView({ initialGroupId }: CalendarViewProps) {
   const t = useTranslations('calendar');
   const locale = useLocale();
+  const isHungarian = locale.startsWith('hu');
+
   const [eventModalOpen, setEventModalOpen] = useState(false);
   const [eventModalMode, setEventModalMode] = useState<'create' | 'edit'>('create');
   const [selectedEvent, setSelectedEvent] = useState<GroupCalendarEvent | null>(null);
@@ -93,12 +98,12 @@ export default function CalendarView({ initialGroupId }: CalendarViewProps) {
 
     try {
       await createCalendar(calendarName.trim(), calendarDescription.trim() || undefined);
-      toast.success('Calendar created');
+      toast.success(t('success.calendarCreated'));
       setCalendarModalOpen(false);
       setCalendarName('');
       setCalendarDescription('');
     } catch (reason) {
-      toast.error(reason instanceof Error ? reason.message : 'Calendar create failed');
+      toast.error(reason instanceof Error ? reason.message : t('error.calendarCreate'));
     }
   };
 
@@ -107,16 +112,16 @@ export default function CalendarView({ initialGroupId }: CalendarViewProps) {
       return;
     }
 
-    const nextName = window.prompt('New calendar name', selectedCalendar.name)?.trim();
+    const nextName = window.prompt(t('calendar.renamePrompt'), selectedCalendar.name)?.trim();
     if (!nextName) {
       return;
     }
 
     try {
       await updateCalendar(calendarId, nextName, selectedCalendar.description);
-      toast.success('Calendar updated');
+      toast.success(t('success.calendarUpdated'));
     } catch (reason) {
-      toast.error(reason instanceof Error ? reason.message : 'Calendar update failed');
+      toast.error(reason instanceof Error ? reason.message : t('error.calendarUpdate'));
     }
   };
 
@@ -125,16 +130,16 @@ export default function CalendarView({ initialGroupId }: CalendarViewProps) {
       return;
     }
 
-    const shouldDelete = window.confirm('Delete selected calendar?');
+    const shouldDelete = window.confirm(t('calendar.deleteConfirm'));
     if (!shouldDelete) {
       return;
     }
 
     try {
       await deleteCalendar(calendarId);
-      toast.success('Calendar deleted');
+      toast.success(t('success.calendarDeleted'));
     } catch (reason) {
-      toast.error(reason instanceof Error ? reason.message : 'Calendar delete failed');
+      toast.error(reason instanceof Error ? reason.message : t('error.calendarDelete'));
     }
   };
 
@@ -155,10 +160,10 @@ export default function CalendarView({ initialGroupId }: CalendarViewProps) {
 
     try {
       await moveEvent(source, nextStart, nextEnd);
-      toast.success('Event moved');
+      toast.success(t('success.moved'));
     } catch (reason) {
       arg.revert();
-      toast.error(reason instanceof Error ? reason.message : 'Move failed');
+      toast.error(reason instanceof Error ? reason.message : t('error.move'));
     }
   };
 
@@ -167,7 +172,7 @@ export default function CalendarView({ initialGroupId }: CalendarViewProps) {
       return;
     }
 
-    const shouldDelete = window.confirm('Delete this event?');
+    const shouldDelete = window.confirm(t('deleteDialog.single'));
     if (!shouldDelete) {
       return;
     }
@@ -176,9 +181,9 @@ export default function CalendarView({ initialGroupId }: CalendarViewProps) {
       await deleteEvent(selectedEvent);
       setEventModalOpen(false);
       setSelectedEvent(null);
-      toast.success('Event deleted');
+      toast.success(t('success.deleted'));
     } catch (reason) {
-      toast.error(reason instanceof Error ? reason.message : 'Delete failed');
+      toast.error(reason instanceof Error ? reason.message : t('error.delete'));
     }
   };
 
@@ -187,14 +192,14 @@ export default function CalendarView({ initialGroupId }: CalendarViewProps) {
       <div className="surface rounded-xl p-4">
         <div className="flex flex-wrap items-end gap-3">
           <div className="grid min-w-52 gap-1">
-            <label className="text-xs text-slate-400">Group</label>
+            <label className="text-xs text-slate-400">{t('toolbar.group')}</label>
             <select
               value={groupId}
               onChange={(evt) => setGroupId(evt.target.value)}
               className="rounded-md border border-[var(--border-default)] bg-[var(--bg-elevated)] px-3 py-2 text-sm"
               disabled={Boolean(initialGroupId)}
             >
-              <option value="">Select group</option>
+              <option value="">{t('toolbar.selectGroup')}</option>
               {groups.map((group) => (
                 <option key={group.id} value={group.id}>
                   {group.name}
@@ -204,13 +209,13 @@ export default function CalendarView({ initialGroupId }: CalendarViewProps) {
           </div>
 
           <div className="grid min-w-52 gap-1">
-            <label className="text-xs text-slate-400">Calendar</label>
+            <label className="text-xs text-slate-400">{t('toolbar.calendar')}</label>
             <select
               value={calendarId}
               onChange={(evt) => setCalendarId(evt.target.value)}
               className="rounded-md border border-[var(--border-default)] bg-[var(--bg-elevated)] px-3 py-2 text-sm"
             >
-              <option value="">Select calendar</option>
+              <option value="">{t('toolbar.selectCalendar')}</option>
               {calendars.map((calendar) => (
                 <option key={calendar.id} value={calendar.id}>
                   {calendar.name}
@@ -220,15 +225,15 @@ export default function CalendarView({ initialGroupId }: CalendarViewProps) {
           </div>
 
           <div className="grid min-w-40 gap-1">
-            <label className="text-xs text-slate-400">Scope filter</label>
+            <label className="text-xs text-slate-400">{t('toolbar.scopeFilter')}</label>
             <select
               value={scopeFilter}
               onChange={(evt) => setScopeFilter(evt.target.value as 'all' | 'group' | 'global')}
               className="rounded-md border border-[var(--border-default)] bg-[var(--bg-elevated)] px-3 py-2 text-sm"
             >
-              <option value="all">All</option>
-              <option value="group">Group</option>
-              <option value="global">Global</option>
+              <option value="all">{t('toolbar.scopeOptions.all')}</option>
+              <option value="group">{t('toolbar.scopeOptions.group')}</option>
+              <option value="global">{t('toolbar.scopeOptions.global')}</option>
             </select>
           </div>
 
@@ -238,37 +243,48 @@ export default function CalendarView({ initialGroupId }: CalendarViewProps) {
               checked={includeCancelled}
               onChange={(evt) => setIncludeCancelled(evt.target.checked)}
             />
-            Include cancelled
+            {t('toolbar.includeCancelled')}
           </label>
 
           <div className="ml-auto flex flex-wrap gap-2">
             <Button className="p-2" variant="secondary" onClick={() => void refetch()} startIcon={<RefreshCw size={16} />}>
-              Refresh
+              {t('toolbar.refresh')}
             </Button>
             <Button className="p-2" variant="secondary" onClick={() => setCalendarModalOpen(true)} startIcon={<CalendarPlus size={16} />}>
-              New calendar
+              {t('toolbar.newCalendar')}
             </Button>
             <Button className="p-2" variant="secondary" onClick={handleCalendarRename} startIcon={<Pencil size={16} />}>
-              Rename calendar
+              {t('toolbar.renameCalendar')}
             </Button>
             <Button className="p-2" variant="danger" onClick={handleCalendarDelete} startIcon={<Trash2 size={16} />}>
-              Delete calendar
+              {t('toolbar.deleteCalendar')}
             </Button>
-            <Button className="p-2" onClick={handleEventCreate}>New event</Button>
+            <Button className="p-2" onClick={handleEventCreate}>{t('toolbar.newEvent')}</Button>
           </div>
         </div>
 
-        {error ? <p className="mt-3 text-sm text-red-400">{error}</p> : null}
+        {error ? <p className="mt-3 text-sm text-red-400">{error || t('error.load')}</p> : null}
       </div>
 
       <div className="surface rounded-xl p-4">
         <FullCalendar
           locale={locale}
+          locales={allLocales}
           plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
           initialView="dayGridMonth"
           height="auto"
           editable
           selectable
+          firstDay={1}
+          eventTimeFormat={
+            isHungarian
+              ? { hour: '2-digit', minute: '2-digit', hour12: false }
+              : { hour: 'numeric', minute: '2-digit', hour12: true }
+          }
+          dayHeaderContent={(arg) => {
+            const key = weekdayKeys[arg.date.getDay()];
+            return t(`weekdays.short.${key}`);
+          }}
           events={eventItems}
           dateClick={(arg) => {
             setClickedDate(arg.date);
@@ -290,10 +306,10 @@ export default function CalendarView({ initialGroupId }: CalendarViewProps) {
             right: 'dayGridMonth,timeGridWeek,timeGridDay'
           }}
           buttonText={{
-            today: t('today'),
-            month: t('month'),
-            week: t('week'),
-            day: t('day')
+            today: t('nav.today'),
+            month: t('nav.month'),
+            week: t('nav.week'),
+            day: t('nav.day')
           }}
         />
       </div>
@@ -315,11 +331,11 @@ export default function CalendarView({ initialGroupId }: CalendarViewProps) {
               eventId: selectedEvent?.id,
               data
             });
-            toast.success(eventModalMode === 'create' ? 'Event created' : 'Event updated');
+            toast.success(eventModalMode === 'create' ? t('success.created') : t('success.updated'));
             setEventModalOpen(false);
             setSelectedEvent(null);
           } catch (reason) {
-            toast.error(reason instanceof Error ? reason.message : 'Save failed');
+            toast.error(reason instanceof Error ? reason.message : t('error.update'));
           }
         }}
       />
@@ -327,7 +343,7 @@ export default function CalendarView({ initialGroupId }: CalendarViewProps) {
       {eventModalMode === 'edit' && selectedEvent ? (
         <div className="flex justify-end">
           <Button className="p-2" variant="danger" onClick={handleEventDelete} disabled={saving} startIcon={<Trash2 size={16} />}>
-            Delete event
+            {t('actions.delete')}
           </Button>
         </div>
       ) : null}
@@ -343,7 +359,7 @@ export default function CalendarView({ initialGroupId }: CalendarViewProps) {
         onSubmit={handleCalendarCreate}
       />
 
-      {loading ? <div className="text-sm text-slate-400">Loading...</div> : null}
+      {loading ? <div className="text-sm text-slate-400">{t('loading')}</div> : null}
     </div>
   );
 }
@@ -369,6 +385,8 @@ function ModalCalendar({
   onClose,
   onSubmit
 }: ModalCalendarProps) {
+  const t = useTranslations('calendar');
+
   if (!open) {
     return null;
   }
@@ -376,32 +394,34 @@ function ModalCalendar({
   return (
     <div className="fixed inset-0 z-50 grid place-items-center bg-black/60 p-4">
       <div className="w-full max-w-lg rounded-xl border border-[var(--border-default)] bg-[var(--bg-elevated)] p-5">
-        <h2 className="mb-4 text-lg font-semibold text-[var(--text-primary)]">New calendar</h2>
+        <h2 className="mb-4 text-lg font-semibold text-[var(--text-primary)]">{t('toolbar.newCalendar')}</h2>
         <form className="grid gap-3" onSubmit={(event) => void onSubmit(event)}>
           <div className="grid gap-1">
-            <label className="text-sm text-slate-300">Calendar name</label>
+            <label className="text-sm text-slate-300">{t('toolbar.calendar')}</label>
             <input
               className="w-full rounded-md border border-[var(--border-default)] bg-[#0f0f18] px-3 py-2"
               value={name}
               onChange={(event) => onNameChange(event.target.value)}
+              placeholder={t('calendar.namePlaceholder')}
               required
             />
           </div>
           <div className="grid gap-1">
-            <label className="text-sm text-slate-300">Description</label>
+            <label className="text-sm text-slate-300">{t('form.description')}</label>
             <textarea
               className="w-full rounded-md border border-[var(--border-default)] bg-[#0f0f18] px-3 py-2"
               rows={3}
               value={description}
               onChange={(event) => onDescriptionChange(event.target.value)}
+              placeholder={t('form.descriptionPlaceholder')}
             />
           </div>
           <div className="flex justify-end gap-2">
             <Button className="p-2" type="button" variant="ghost" onClick={onClose}>
-              Cancel
+              {t('actions.cancel')}
             </Button>
             <Button className="p-2" type="submit" disabled={saving}>
-              {saving ? 'Saving...' : 'Create'}
+              {saving ? t('actions.save') : t('calendar.new')}
             </Button>
           </div>
         </form>

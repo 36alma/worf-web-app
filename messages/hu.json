@@ -104,11 +104,197 @@
     "status_review": "Felülvizsgálat"
   },
   "calendar": {
-    "title": "Naptár",
-    "today": "Ma",
-    "month": "Hónap",
-    "week": "Hét",
-    "day": "Nap"
+    "page": {
+      "title": "Naptár",
+      "breadcrumb": "Naptár"
+    },
+    "toolbar": {
+      "group": "Csoport",
+      "calendar": "Naptár",
+      "selectGroup": "Válassz csoportot",
+      "selectCalendar": "Válassz naptárt",
+      "newCalendar": "Új naptár",
+      "renameCalendar": "Naptár átnevezése",
+      "deleteCalendar": "Naptár törlése",
+      "newEvent": "Új esemény",
+      "scopeFilter": "Hatókör szűrő",
+      "scopeOptions": {
+        "all": "Összes",
+        "group": "Csoport",
+        "global": "Globális"
+      },
+      "includeCancelled": "Visszavont események mutatása",
+      "refresh": "Frissítés"
+    },
+    "nav": {
+      "prev": "Előző",
+      "next": "Következő",
+      "today": "Ma",
+      "month": "Hónap",
+      "week": "Hét",
+      "day": "Nap"
+    },
+    "weekdays": {
+      "short": {
+        "mon": "Hé",
+        "tue": "Ke",
+        "wed": "Sze",
+        "thu": "Csü",
+        "fri": "Pé",
+        "sat": "Szo",
+        "sun": "Va"
+      },
+      "long": {
+        "mon": "Hétfő",
+        "tue": "Kedd",
+        "wed": "Szerda",
+        "thu": "Csütörtök",
+        "fri": "Péntek",
+        "sat": "Szombat",
+        "sun": "Vasárnap"
+      }
+    },
+    "event": {
+      "new": "Új esemény",
+      "edit": "Esemény szerkesztése",
+      "detail": "Esemény részletei",
+      "noEvents": "Nincs esemény ezen a napon",
+      "moreEvents": "+{count} további",
+      "allDay": "Egész napos",
+      "recurring": "Ismétlődő esemény"
+    },
+    "form": {
+      "title": "Új esemény",
+      "editTitle": "Esemény szerkesztése",
+      "scope": "Hatókör",
+      "scopeOptions": {
+        "group": "Csoport",
+        "personal": "Személyes",
+        "team": "Csapat",
+        "global": "Globális"
+      },
+      "name": "Esemény neve",
+      "namePlaceholder": "Pl. Csapatmegbeszélés",
+      "kind": "Típus",
+      "kindPlaceholder": "esemény",
+      "kindOptions": {
+        "event": "Esemény",
+        "meeting": "Megbeszélés",
+        "reminder": "Emlékeztető",
+        "task": "Feladat",
+        "birthday": "Születésnap",
+        "holiday": "Ünnepnap"
+      },
+      "location": "Helyszín",
+      "locationPlaceholder": "Pl. Tárgyaló 1 / Zoom link",
+      "start": "Kezdés",
+      "end": "Befejezés",
+      "timezone": "Időzóna",
+      "timezonePlaceholder": "Pl. Europe/Budapest",
+      "count": "Ismétlések száma",
+      "countPlaceholder": "Pl. 10",
+      "until": "Ismétlés vége",
+      "originalStart": "Eredeti kezdés",
+      "rrule": "Ismétlési szabály",
+      "rrulePlaceholder": "Pl. FREQ=WEEKLY;BYDAY=MO",
+      "rruleHelp": "iCal RRULE formátum",
+      "parentId": "Szülő esemény azonosítója",
+      "parentIdPlaceholder": "Azonosító",
+      "allDay": "Egész napos esemény",
+      "cancelled": "Visszavonva / Törölt",
+      "color": "Szín",
+      "description": "Leírás",
+      "descriptionPlaceholder": "Esemény részletei...",
+      "attendees": "Résztvevők",
+      "reminders": "Emlékeztetők",
+      "reminderOptions": {
+        "5min": "5 perccel előtte",
+        "10min": "10 perccel előtte",
+        "15min": "15 perccel előtte",
+        "30min": "30 perccel előtte",
+        "1hour": "1 órával előtte",
+        "1day": "1 nappal előtte"
+      },
+      "recurrence": "Ismétlődés",
+      "recurrenceOptions": {
+        "none": "Nem ismétlődik",
+        "daily": "Naponta",
+        "weekly": "Hetente",
+        "biweekly": "Kéthetente",
+        "monthly": "Havonta",
+        "yearly": "Évente",
+        "custom": "Egyéni"
+      },
+      "visibility": "Láthatóság",
+      "visibilityOptions": {
+        "public": "Nyilvános",
+        "private": "Privát",
+        "teamOnly": "Csak csapatnak"
+      }
+    },
+    "actions": {
+      "create": "Esemény létrehozása",
+      "save": "Mentés",
+      "cancel": "Mégse",
+      "delete": "Esemény törlése",
+      "edit": "Szerkesztés",
+      "close": "Bezárás",
+      "view": "Megtekintés",
+      "respond": {
+        "accept": "Elfogadás",
+        "decline": "Elutasítás",
+        "tentative": "Bizonytalan"
+      }
+    },
+    "calendar": {
+      "new": "Új naptár",
+      "rename": "Átnevezés",
+      "renamePrompt": "Új naptárnév",
+      "delete": "Törlés",
+      "deleteConfirm": "Biztosan törlöd ezt a naptárat? Ez a művelet nem visszavonható.",
+      "namePlaceholder": "Naptár neve"
+    },
+    "deleteDialog": {
+      "title": "Esemény törlése",
+      "single": "Csak ezt az eseményt törlöd",
+      "allRecurring": "Az összes ismétlődő eseményt törlöd",
+      "confirm": "Törlés",
+      "cancel": "Mégse"
+    },
+    "empty": {
+      "title": "Nincsenek események",
+      "description": "Ezen az időszakon nincs egyetlen esemény sem.",
+      "create": "Első esemény létrehozása"
+    },
+    "loading": "Események betöltése...",
+    "error": {
+      "load": "Nem sikerült betölteni az eseményeket",
+      "create": "Az esemény létrehozása sikertelen",
+      "update": "Az esemény módosítása sikertelen",
+      "delete": "Az esemény törlése sikertelen",
+      "move": "Az esemény áthelyezése sikertelen",
+      "retry": "Újrapróbálás",
+      "calendarCreate": "A naptár létrehozása sikertelen",
+      "calendarUpdate": "A naptár módosítása sikertelen",
+      "calendarDelete": "A naptár törlése sikertelen"
+    },
+    "success": {
+      "created": "Esemény létrehozva",
+      "updated": "Esemény módosítva",
+      "deleted": "Esemény törölve",
+      "moved": "Esemény áthelyezve",
+      "calendarCreated": "Naptár létrehozva",
+      "calendarUpdated": "Naptár módosítva",
+      "calendarDeleted": "Naptár törölve"
+    },
+    "dateFormat": {
+      "full": "yyyy. MMMM d., EEEE",
+      "short": "yyyy. MM. dd.",
+      "monthYear": "yyyy. MMMM",
+      "time": "HH:mm",
+      "dateTime": "yyyy. MM. dd. HH:mm",
+      "dayMonth": "MMM d."
+    }
   },
   "posts": {
     "title": "Posztok",
@@ -132,6 +318,7 @@
       "scheduled": "Ütemezve"
     },
     "actions": {
+      "back": "Vissza",
       "menu": "Poszt műveletek",
       "view": "Megtekintés",
       "edit": "Szerkesztés",
@@ -185,6 +372,57 @@
     "pinned": "Kitűzött poszt",
     "deletePostTitle": "Poszt törlése",
     "deletePostMessage": "Biztosan törlöd ezt a posztot?",
+    "detail": {
+      "title": "Poszt részletei",
+      "subtitle": "Olvasd el a poszt teljes tartalmát.",
+      "global": "Globális",
+      "group": "Csoport",
+      "created": "Létrehozva",
+      "updated": "Frissítve",
+      "notFound": "A poszt nem található",
+      "loading": "Betöltés...",
+      "loadError": "Nem sikerült betölteni a posztot"
+    },
+    "edit": {
+      "pageTitle": "Poszt szerkesztése",
+      "loading": "Poszt betöltése...",
+      "loadError": "Nem sikerült betölteni a posztot",
+      "saving": "Mentés...",
+      "saved": "Mentve",
+      "unsavedChanges": "Nem mentett változások",
+      "saveSuccess": "Poszt sikeresen mentve",
+      "saveError": "Mentés sikertelen",
+      "preview": "Előnézet",
+      "saveDraft": "Piszkozat mentése",
+      "updatePost": "Frissítés",
+      "publishPost": "Publikálás",
+      "unsavedTitle": "Elmentetlen változások",
+      "unsavedDescription": "Vannak elmentetlen módosításaid. Ha most elhagyod az oldalt, ezek elvesznek.",
+      "stayHere": "Maradok",
+      "leaveWithout": "Elmegyek mentés nélkül"
+    },
+    "form": {
+      "basics": "Alapadatok",
+      "postTitle": "Poszt címe",
+      "postTitlePlaceholder": "Írd be a poszt címét...",
+      "category": "Kategória",
+      "noCategory": "Nincs kategória",
+      "status": "Állapot",
+      "content": "Tartalom"
+    },
+    "reader": {
+      "title": "Poszt részletek",
+      "subtitle": "A poszt teljes tartalma minden formázással.",
+      "scope_global": "Globális",
+      "scope_group": "Csoport",
+      "back": "Vissza",
+      "edit": "Szerkesztés",
+      "loading": "Poszt betöltése...",
+      "not_found": "A poszt nem található.",
+      "created_at": "Létrehozva: {value}",
+      "updated_at": "Frissítve: {value}",
+      "toast_load_error": "A poszt betöltése sikertelen."
+    },
     "editor": {
       "create_title": "Új poszt létrehozása",
       "edit_title": "Poszt szerkesztése",

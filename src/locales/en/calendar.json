@@ -1,0 +1,193 @@
+﻿{
+  "page": {
+    "title": "Calendar",
+    "breadcrumb": "Calendar"
+  },
+  "toolbar": {
+    "group": "Group",
+    "calendar": "Calendar",
+    "selectGroup": "Select group",
+    "selectCalendar": "Select calendar",
+    "newCalendar": "New calendar",
+    "renameCalendar": "Rename calendar",
+    "deleteCalendar": "Delete calendar",
+    "newEvent": "New event",
+    "scopeFilter": "Scope filter",
+    "scopeOptions": {
+      "all": "All",
+      "group": "Group",
+      "global": "Global"
+    },
+    "includeCancelled": "Include cancelled",
+    "refresh": "Refresh"
+  },
+  "nav": {
+    "prev": "Previous",
+    "next": "Next",
+    "today": "Today",
+    "month": "Month",
+    "week": "Week",
+    "day": "Day"
+  },
+  "weekdays": {
+    "short": {
+      "mon": "Mo",
+      "tue": "Tu",
+      "wed": "We",
+      "thu": "Th",
+      "fri": "Fr",
+      "sat": "Sa",
+      "sun": "Su"
+    },
+    "long": {
+      "mon": "Monday",
+      "tue": "Tuesday",
+      "wed": "Wednesday",
+      "thu": "Thursday",
+      "fri": "Friday",
+      "sat": "Saturday",
+      "sun": "Sunday"
+    }
+  },
+  "event": {
+    "new": "New event",
+    "edit": "Edit event",
+    "detail": "Event details",
+    "noEvents": "No events on this day",
+    "moreEvents": "+{count} more",
+    "allDay": "All day",
+    "recurring": "Recurring event"
+  },
+  "form": {
+    "title": "New event",
+    "editTitle": "Edit event",
+    "scope": "Scope",
+    "scopeOptions": {
+      "group": "Group",
+      "personal": "Personal",
+      "team": "Team",
+      "global": "Global"
+    },
+    "name": "Event name",
+    "namePlaceholder": "E.g. Team meeting",
+    "kind": "Kind",
+    "kindPlaceholder": "event",
+    "kindOptions": {
+      "event": "Event",
+      "meeting": "Meeting",
+      "reminder": "Reminder",
+      "task": "Task",
+      "birthday": "Birthday",
+      "holiday": "Holiday"
+    },
+    "location": "Location",
+    "locationPlaceholder": "E.g. Meeting Room 1 / Zoom link",
+    "start": "Start",
+    "end": "End",
+    "timezone": "Timezone",
+    "timezonePlaceholder": "E.g. Europe/Budapest",
+    "count": "Repeat count",
+    "countPlaceholder": "E.g. 10",
+    "until": "Repeat until",
+    "originalStart": "Original start",
+    "rrule": "Recurrence rule",
+    "rrulePlaceholder": "E.g. FREQ=WEEKLY;BYDAY=MO",
+    "rruleHelp": "iCal RRULE format",
+    "parentId": "Parent event ID",
+    "parentIdPlaceholder": "ID",
+    "allDay": "All day event",
+    "cancelled": "Cancelled",
+    "color": "Color",
+    "description": "Description",
+    "descriptionPlaceholder": "Event details...",
+    "attendees": "Attendees",
+    "reminders": "Reminders",
+    "reminderOptions": {
+      "5min": "5 minutes before",
+      "10min": "10 minutes before",
+      "15min": "15 minutes before",
+      "30min": "30 minutes before",
+      "1hour": "1 hour before",
+      "1day": "1 day before"
+    },
+    "recurrence": "Recurrence",
+    "recurrenceOptions": {
+      "none": "Does not repeat",
+      "daily": "Daily",
+      "weekly": "Weekly",
+      "biweekly": "Every 2 weeks",
+      "monthly": "Monthly",
+      "yearly": "Yearly",
+      "custom": "Custom"
+    },
+    "visibility": "Visibility",
+    "visibilityOptions": {
+      "public": "Public",
+      "private": "Private",
+      "teamOnly": "Team only"
+    }
+  },
+  "actions": {
+    "create": "Create event",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete event",
+    "edit": "Edit",
+    "close": "Close",
+    "view": "View",
+    "respond": {
+      "accept": "Accept",
+      "decline": "Decline",
+      "tentative": "Maybe"
+    }
+  },
+  "calendar": {
+    "new": "New calendar",
+    "rename": "Rename",
+    "renamePrompt": "New calendar name",
+    "delete": "Delete",
+    "deleteConfirm": "Are you sure you want to delete this calendar? This cannot be undone.",
+    "namePlaceholder": "Calendar name"
+  },
+  "deleteDialog": {
+    "title": "Delete event",
+    "single": "Delete only this event",
+    "allRecurring": "Delete all recurring events",
+    "confirm": "Delete",
+    "cancel": "Cancel"
+  },
+  "empty": {
+    "title": "No events",
+    "description": "There are no events in this period.",
+    "create": "Create first event"
+  },
+  "loading": "Loading events...",
+  "error": {
+    "load": "Failed to load events",
+    "create": "Failed to create event",
+    "update": "Failed to update event",
+    "delete": "Failed to delete event",
+    "move": "Failed to move event",
+    "retry": "Try again",
+    "calendarCreate": "Failed to create calendar",
+    "calendarUpdate": "Failed to update calendar",
+    "calendarDelete": "Failed to delete calendar"
+  },
+  "success": {
+    "created": "Event created",
+    "updated": "Event updated",
+    "deleted": "Event deleted",
+    "moved": "Event moved",
+    "calendarCreated": "Calendar created",
+    "calendarUpdated": "Calendar updated",
+    "calendarDeleted": "Calendar deleted"
+  },
+  "dateFormat": {
+    "full": "EEEE, MMMM d, yyyy",
+    "short": "MM/dd/yyyy",
+    "monthYear": "MMMM yyyy",
+    "time": "h:mm a",
+    "dateTime": "MM/dd/yyyy h:mm a",
+    "dayMonth": "MMM d"
+  }
+}

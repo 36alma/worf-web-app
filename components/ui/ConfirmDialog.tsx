@@ -1,6 +1,6 @@
 import * as AlertDialog from '@radix-ui/react-alert-dialog';
-import {AlertTriangle} from 'lucide-react';
-import {useTranslations} from 'next-intl';
+import { AlertTriangle } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import Button from './Button';
 
 export interface ConfirmDialogProps {
@@ -9,9 +9,11 @@ export interface ConfirmDialogProps {
   message: string;
   onCancel: () => void;
   onConfirm: () => void;
+  cancelLabel?: string;
+  confirmLabel?: string;
 }
 
-export default function ConfirmDialog({open, title, message, onCancel, onConfirm}: ConfirmDialogProps) {
+export default function ConfirmDialog({ open, title, message, onCancel, onConfirm, cancelLabel, confirmLabel }: ConfirmDialogProps) {
   const t = useTranslations('common');
 
   return (
@@ -26,13 +28,13 @@ export default function ConfirmDialog({open, title, message, onCancel, onConfirm
           <AlertDialog.Description className="mb-4 text-sm text-[var(--text-secondary)]">{message}</AlertDialog.Description>
           <div className="flex justify-end gap-2">
             <AlertDialog.Cancel asChild>
-              <Button variant="secondary" onClick={onCancel} startIcon={<AlertTriangle size={16} strokeWidth={1.75} />}>
-                {t('cancel')}
+              <Button className='p-2' variant="secondary" onClick={onCancel} startIcon={<AlertTriangle size={16} strokeWidth={1.75} />}>
+                {cancelLabel ?? t('cancel')}
               </Button>
             </AlertDialog.Cancel>
             <AlertDialog.Action asChild>
-              <Button variant="danger" onClick={onConfirm}>
-                {t('confirm')}
+              <Button className='p-2' variant="danger" onClick={onConfirm}>
+                {confirmLabel ?? t('confirm')}
               </Button>
             </AlertDialog.Action>
           </div>

@@ -348,6 +348,7 @@ export default function Sidebar() {
         <Dialog.Portal>
           <Dialog.Overlay className="sidebar-overlay fixed inset-0 z-40 bg-black/55 lg:hidden" />
           <Dialog.Content className="sidebar-sheet dialog-content fixed bottom-0 left-0 top-0 z-50 w-[min(88vw,var(--sidebar-width))] border-r border-[var(--border-subtle)] bg-[var(--bg-sidebar)] lg:hidden">
+            <Dialog.Title className="sr-only">Sidebar navigation</Dialog.Title>
             <SidebarContent isMobile />
           </Dialog.Content>
         </Dialog.Portal>

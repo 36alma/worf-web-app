@@ -14,10 +14,12 @@ import {
   Check,
   ChevronDown,
   Clock,
+  Code,
   Copy,
   Eye,
   FileText,
   Globe,
+  ImageIcon,
   Layers,
   MessageSquare,
   MoreHorizontal,
@@ -48,6 +50,7 @@ import {
 import { getGroupPermissions } from '@/lib/api/permissions';
 import { hasPermissionRequirement } from '@/lib/permissions/access';
 import { usePermissionStore } from '@/lib/store/permissionStore';
+import { getFormattedExcerpt } from '@/lib/utils/postUtils';
 import Button from '@/components/ui/Button';
 import ConfirmDialog from '@/components/ui/ConfirmDialog';
 import Modal from '@/components/ui/Modal';
@@ -242,26 +245,6 @@ const normalizePosts = (payload: unknown): PostItem[] => {
       };
     })
     .filter((row): row is PostItem => Boolean(row));
-};
-
-const stripMarkdown = (content: string): string =>
-  content
-    .replace(/```[\s\S]*?```/g, ' ')
-    .replace(/`[^`]+`/g, ' ')
-    .replace(/!\[[^\]]*\]\([^)]*\)/g, ' ')
-    .replace(/\[[^\]]*\]\([^)]*\)/g, ' ')
-    .replace(/^#{1,6}\s+/gm, '')
-    .replace(/[>*_~\-|]/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim();
-
-const buildExcerpt = (content: string, maxLength = 150): string => {
-  const clean = stripMarkdown(content);
-  if (clean.length <= maxLength) {
-    return clean;
-  }
-
-  return `${clean.slice(0, maxLength).trimEnd()}...`;
 };
 
 const looksLikeTechnicalId = (value: string): boolean => {
@@ -918,7 +901,7 @@ export default function PostsFeed({ mode, groupId = '' }: PostsFeedProps) {
               const authorName = post.author.trim() ? post.author : t('unknownAuthor');
               const relativeTime = formatRelativeTime(post.createdAt, locale, t('timeUnknown'));
               const scopeLabel = isGroupScope ? t('filters.teamFeed') : t('filters.globalFeed');
-              const excerpt = buildExcerpt(post.body);
+              const excerpt = getFormattedExcerpt(post.body, 150);
               const pinned = Boolean(pinnedPostIds[post.id]);
 
               const onCardKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
@@ -1001,7 +984,23 @@ export default function PostsFeed({ mode, groupId = '' }: PostsFeedProps) {
 
                   <div className="post-card-body" role="link" tabIndex={0} onKeyDown={onCardKeyDown} onClick={() => openPost(post.id)}>
                     <h3 className="post-card-title">{titleLabel}</h3>
-                    {excerpt && <p className="post-card-excerpt">{excerpt}</p>}
+                    {excerpt.text && <p className="post-card-excerpt">{excerpt.text}</p>}
+                    {(excerpt.hasCode || excerpt.hasImage) && (
+                      <div className="post-card-content-hints">
+                        {excerpt.hasCode && (
+                          <span className="content-hint">
+                            <Code size={11} />
+                            {t('contentHints.hasCode')}
+                          </span>
+                        )}
+                        {excerpt.hasImage && (
+                          <span className="content-hint">
+                            <ImageIcon size={11} />
+                            {t('contentHints.hasImage')}
+                          </span>
+                        )}
+                      </div>
+                    )}
                   </div>
 
                   <div className="post-card-footer">

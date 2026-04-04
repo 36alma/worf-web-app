@@ -26,10 +26,11 @@ export const getGlobalPosts = ({page_number = 1, load_post_number = 50}: PostPan
 
 export const getGlobalPost = (post_id: string) => apiClient.post('/v1/global/post/get', {post_id});
 
-export const createGlobalPost = (data: {title: string; body: string; category_id?: string}) =>
+export const createGlobalPost = (data: {title: string; body: string; category_id?: string; status?: string}) =>
   apiClient.post('/v1/global/post/create', {
     title: data.title,
     content: data.body,
+    ...(data.status ? {status: data.status} : {}),
     ...(data.category_id ? {category_id: data.category_id} : {})
   });
 
@@ -42,11 +43,12 @@ export const getGroupPosts = ({group_id, page_number = 1, load_post_number = 50}
 export const getGroupPost = (group_id: string, post_id: string) =>
   apiClient.post('/v1/group/post/get', {group_id, post_id});
 
-export const createGroupPost = (data: {group_id: string; title: string; body: string; category_id?: string}) =>
+export const createGroupPost = (data: {group_id: string; title: string; body: string; category_id?: string; status?: string}) =>
   apiClient.post('/v1/group/post/create', {
     group_id: data.group_id,
     title: data.title,
     content: data.body,
+    ...(data.status ? {status: data.status} : {}),
     ...(data.category_id ? {category_id: data.category_id} : {})
   });
 
@@ -59,8 +61,20 @@ export const modifyGroupPost = (data: {
   title?: string;
   body?: string;
   category_id?: string;
+  is_global?: boolean;
+  author_id?: string;
+  status?: string;
 }) => {
-  const payload: {group_id: string; post_id: string; title?: string; content?: string; category_id?: string} = {
+  const payload: {
+    group_id: string;
+    post_id: string;
+    title?: string;
+    content?: string;
+    category_id?: string;
+    is_global?: boolean;
+    author_id?: string;
+    status?: string;
+  } = {
     group_id: data.group_id,
     post_id: data.post_id
   };
@@ -77,7 +91,67 @@ export const modifyGroupPost = (data: {
     payload.category_id = data.category_id;
   }
 
+  if (typeof data.is_global === 'boolean') {
+    payload.is_global = data.is_global;
+  }
+
+  if (typeof data.author_id === 'string' && data.author_id) {
+    payload.author_id = data.author_id;
+  }
+
+  if (typeof data.status === 'string' && data.status) {
+    payload.status = data.status;
+  }
+
   return apiClient.post('/v1/group/post/modify', payload);
+};
+
+export const modifyGlobalPost = (data: {
+  post_id: string;
+  title?: string;
+  body?: string;
+  category_id?: string;
+  is_global?: boolean;
+  author_id?: string;
+  status?: string;
+}) => {
+  const payload: {
+    post_id: string;
+    title?: string;
+    content?: string;
+    category_id?: string;
+    is_global?: boolean;
+    author_id?: string;
+    status?: string;
+  } = {
+    post_id: data.post_id
+  };
+
+  if (typeof data.title === 'string') {
+    payload.title = data.title;
+  }
+
+  if (typeof data.body === 'string') {
+    payload.content = data.body;
+  }
+
+  if (typeof data.category_id === 'string' && data.category_id) {
+    payload.category_id = data.category_id;
+  }
+
+  if (typeof data.is_global === 'boolean') {
+    payload.is_global = data.is_global;
+  }
+
+  if (typeof data.author_id === 'string' && data.author_id) {
+    payload.author_id = data.author_id;
+  }
+
+  if (typeof data.status === 'string' && data.status) {
+    payload.status = data.status;
+  }
+
+  return apiClient.post('/v1/global/post/modify', payload);
 };
 
 export const getGlobalPostCategories = (data: PostCategoryQueryPayload = {}) =>

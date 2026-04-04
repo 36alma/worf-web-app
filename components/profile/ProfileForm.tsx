@@ -1,11 +1,11 @@
 'use client';
 
-import {FormEvent, useEffect, useState} from 'react';
-import {useTranslations} from 'next-intl';
+import { FormEvent, useEffect, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import toast from 'react-hot-toast';
-import {getCurrentUserProfile, updateCurrentUserProfile} from '@/lib/api/user';
+import { getCurrentUserProfile, updateCurrentUserProfile } from '@/lib/api/user';
 import Button from '@/components/ui/Button';
-import {useAuthStore} from '@/lib/store/authStore';
+import { useAuthStore } from '@/lib/store/authStore';
 
 type TotpType = 'totp' | 'email';
 
@@ -19,7 +19,7 @@ type ProfileFormState = {
 
 export default function ProfileForm() {
   const t = useTranslations('profile');
-  const {setUser} = useAuthStore();
+  const { setUser } = useAuthStore();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState<ProfileFormState>({
@@ -35,7 +35,7 @@ export default function ProfileForm() {
 
     const load = async () => {
       try {
-        const {data} = await getCurrentUserProfile();
+        const { data } = await getCurrentUserProfile();
         const profile = (data?.data ?? data ?? {}) as Record<string, any>;
 
         if (!mounted) return;
@@ -96,7 +96,7 @@ export default function ProfileForm() {
         newpassword_rep: form.newpassword_rep || null
       };
 
-      const {data} = await updateCurrentUserProfile(payload);
+      const { data } = await updateCurrentUserProfile(payload);
       const profile = (data?.data ?? data ?? payload) as Record<string, any>;
 
       setUser({
@@ -105,7 +105,7 @@ export default function ProfileForm() {
         fullname: String(profile.full_name ?? profile.fullname ?? payload.full_name ?? '')
       });
 
-      setForm((prev) => ({...prev, newpassword: '', newpassword_rep: ''}));
+      setForm((prev) => ({ ...prev, newpassword: '', newpassword_rep: '' }));
       toast.success(t('save_success'));
     } catch {
       toast.error(t('save_error'));
@@ -121,13 +121,13 @@ export default function ProfileForm() {
   return (
     <form className="surface space-y-5 rounded-[var(--radius-lg)] p-4" onSubmit={onSubmit}>
       <div className="space-y-4">
-        <h2 className="display-font text-lg">{t('account_section')}</h2>
+        <h2 className="display-font text-[var(--text-primary)] text-lg">{t('account_section')}</h2>
 
         <div>
           <label className="mb-1 block text-sm text-[var(--text-secondary)]">{t('username')}</label>
           <input
             value={form.username}
-            onChange={(event) => setForm((prev) => ({...prev, username: event.target.value}))}
+            onChange={(event) => setForm((prev) => ({ ...prev, username: event.target.value }))}
             className="w-full rounded-md border border-[var(--border-default)] bg-[var(--bg-input)] px-3 py-2"
             autoComplete="username"
           />
@@ -138,7 +138,7 @@ export default function ProfileForm() {
           <input
             type="email"
             value={form.email}
-            onChange={(event) => setForm((prev) => ({...prev, email: event.target.value}))}
+            onChange={(event) => setForm((prev) => ({ ...prev, email: event.target.value }))}
             className="w-full rounded-md border border-[var(--border-default)] bg-[var(--bg-input)] px-3 py-2"
             autoComplete="email"
           />
@@ -148,7 +148,7 @@ export default function ProfileForm() {
           <label className="mb-1 block text-sm text-[var(--text-secondary)]">{t('full_name')}</label>
           <input
             value={form.full_name}
-            onChange={(event) => setForm((prev) => ({...prev, full_name: event.target.value}))}
+            onChange={(event) => setForm((prev) => ({ ...prev, full_name: event.target.value }))}
             className="w-full rounded-md border border-[var(--border-default)] bg-[var(--bg-input)] px-3 py-2"
             autoComplete="name"
           />
@@ -156,14 +156,14 @@ export default function ProfileForm() {
       </div>
 
       <div className="space-y-3 border-t border-[var(--border-default)] pt-4">
-        <h2 className="display-font text-lg">{t('password_section')}</h2>
+        <h2 className="display-font text-[var(--text-primary)] text-lg">{t('password_section')}</h2>
 
         <div>
           <label className="mb-1 block text-sm text-[var(--text-secondary)]">{t('new_password')}</label>
           <input
             type="password"
             value={form.newpassword}
-            onChange={(event) => setForm((prev) => ({...prev, newpassword: event.target.value}))}
+            onChange={(event) => setForm((prev) => ({ ...prev, newpassword: event.target.value }))}
             className="w-full rounded-md border border-[var(--border-default)] bg-[var(--bg-input)] px-3 py-2"
             autoComplete="new-password"
           />
@@ -174,7 +174,7 @@ export default function ProfileForm() {
           <input
             type="password"
             value={form.newpassword_rep}
-            onChange={(event) => setForm((prev) => ({...prev, newpassword_rep: event.target.value}))}
+            onChange={(event) => setForm((prev) => ({ ...prev, newpassword_rep: event.target.value }))}
             className="w-full rounded-md border border-[var(--border-default)] bg-[var(--bg-input)] px-3 py-2"
             autoComplete="new-password"
           />

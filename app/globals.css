@@ -1001,6 +1001,132 @@ textarea::placeholder {
   padding-top: 1rem;
 }
 
+.post-read-article {
+  border: 1px solid var(--border-default);
+}
+
+.post-detail-content {
+  color: var(--text-primary);
+  font-size: 15px;
+  line-height: 1.7;
+  max-width: 760px;
+}
+
+.post-detail-content h1 {
+  font-size: 28px;
+  font-weight: 700;
+}
+
+.post-detail-content h2 {
+  font-size: 22px;
+  font-weight: 600;
+}
+
+.post-detail-content p {
+  margin: 0 0 1em;
+}
+
+.post-detail-content ul,
+.post-detail-content ol {
+  padding-left: 1.5em;
+  margin: 0.5em 0;
+}
+
+.post-detail-content li {
+  margin: 0.25em 0;
+}
+
+.post-detail-content pre {
+  background: var(--bg-input);
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+  padding: 16px;
+  overflow-x: auto;
+}
+
+.post-detail-content code {
+  background: var(--bg-input);
+  border: 1px solid var(--border-default);
+  border-radius: 4px;
+  padding: 2px 6px;
+}
+
+.post-detail-content pre code {
+  background: transparent;
+  border: none;
+  padding: 0;
+}
+
+.post-detail-content blockquote {
+  border-left: 3px solid var(--border-default);
+  margin: 1em 0;
+  padding: 0.5em 1em;
+  color: var(--text-secondary);
+}
+
+.post-detail-content a {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.post-detail-content table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 1em 0;
+}
+
+.post-detail-content th,
+.post-detail-content td {
+  border: 1px solid var(--border-default);
+  padding: 8px 12px;
+  text-align: left;
+}
+
+.post-detail-content th {
+  background: var(--bg-elevated);
+  font-weight: 600;
+}
+
+.post-skeleton {
+  border-radius: 8px;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.03));
+  background-size: 220% 100%;
+  animation: postSkeletonPulse 1.6s ease-in-out infinite;
+}
+
+.post-skeleton-title {
+  height: 34px;
+  width: min(500px, 90%);
+  margin-bottom: 14px;
+}
+
+.post-skeleton-meta {
+  height: 26px;
+  width: min(620px, 96%);
+  margin-bottom: 16px;
+}
+
+.post-skeleton-line {
+  height: 16px;
+  width: 100%;
+  margin-bottom: 10px;
+}
+
+.post-skeleton-line.short {
+  width: 72%;
+}
+
+@keyframes postSkeletonPulse {
+  0% {
+    background-position: 200% 0;
+  }
+
+  100% {
+    background-position: -200% 0;
+  }
+}
+
 /* Posts list page */
 .posts-page {
   display: flex;
@@ -1755,6 +1881,9 @@ textarea::placeholder {
 
 /* Hide support bubbles / Next dev badge */
 .intercom-launcher,
+[id*='launcher'],
+[class*='widget'],
+iframe[src*='intercom'],
 [class*='support-widget'],
 [class*='chat-bubble'],
 [class*='floating'],

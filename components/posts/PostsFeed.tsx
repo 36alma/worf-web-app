@@ -178,46 +178,54 @@ const normalizePosts = (payload: unknown): PostItem[] => {
         row.post && typeof row.post === 'object' ? (row.post as RawObject) : null;
       const nestedCategory =
         row.category && typeof row.category === 'object' ? (row.category as RawObject) : null;
+      const nestedAuthor =
+        row.author && typeof row.author === 'object' ? (row.author as RawObject) : null;
 
       const titleValue = nestedPost?.title ?? row.title ?? '';
       const bodyValue = nestedPost?.content ?? nestedPost?.body ?? row.body ?? row.content ?? '';
       const authorValue =
+        nestedAuthor?.name ??
+        nestedAuthor?.username ??
+        (nestedPost?.author && typeof nestedPost.author === 'object'
+          ? (nestedPost.author as RawObject).name
+          : nestedPost?.author) ??
+        row.author_name ??
+        (row.author && typeof row.author === 'object' ? (row.author as RawObject).name : row.author) ??
         nestedPost?.author_name ??
         nestedPost?.username ??
-        nestedPost?.author ??
-        nestedPost?.author_id ??
-        row.author_name ??
         row.username ??
-        row.author ??
+        nestedPost?.author_id ??
         '';
       const createdAtValue =
         nestedPost?.created_at ??
+        nestedPost?.updated_at ??
         nestedPost?.create_time ??
         nestedPost?.date ??
         row.created_at ??
+        row.updated_at ??
         row.create_time ??
         row.date ??
         '';
       const categoryIdValue =
         nestedCategory?.category_id ??
+        (nestedPost?.category && typeof nestedPost.category === 'object'
+          ? (nestedPost.category as RawObject).category_id
+          : undefined) ??
         row.post_category_id ??
         row.category_id ??
         '';
       const categoryNameValue =
         nestedCategory?.category_name ??
         nestedCategory?.name ??
+        (nestedPost?.category && typeof nestedPost.category === 'object'
+          ? ((nestedPost.category as RawObject).category_name ?? (nestedPost.category as RawObject).name)
+          : undefined) ??
         row.post_category_name ??
         row.category_name ??
         '';
       const statusValue = String(nestedPost?.status ?? row.status ?? row.post_status ?? 'published').toLowerCase();
 
-      const id = String(
-        row.post_id ??
-        row.id ??
-        nestedPost?.post_id ??
-        nestedPost?.id ??
-        `${String(authorValue)}-${String(createdAtValue)}-${String(titleValue)}`
-      );
+      const id = String(row.post_id ?? row.id ?? nestedPost?.post_id ?? nestedPost?.id ?? '');
       if (!id) {
         return null;
       }
@@ -757,16 +765,30 @@ export default function PostsFeed({ mode, groupId = '' }: PostsFeedProps) {
   }, [categories, selectedCategoryFilterId, t]);
 
   const openPost = (postId: string) => {
+    const encodedPostId = encodeURIComponent(postId);
+
     if (isGroupScope && activeGroupId) {
-      router.push(`/${locale}/groups/${activeGroupId}/posts/${postId}/edit`);
+      router.push(`/${locale}/groups/${activeGroupId}/posts/${encodedPostId}`);
       return;
     }
 
-    toast(t('toasts.globalViewUnavailable'));
+    router.push(`/${locale}/posts/${encodedPostId}`);
+  };
+
+  const openPostEditor = (postId: string) => {
+    const encodedPostId = encodeURIComponent(postId);
+
+    if (isGroupScope && activeGroupId) {
+      router.push(`/${locale}/groups/${activeGroupId}/posts/${encodedPostId}/edit`);
+      return;
+    }
+
+    router.push(`/${locale}/posts/${encodedPostId}/edit`);
   };
 
   const copyPostLink = async (postId: string) => {
-    const path = isGroupScope && activeGroupId ? `/${locale}/groups/${activeGroupId}/posts/${postId}/edit` : `/${locale}/posts`;
+    const encodedPostId = encodeURIComponent(postId);
+    const path = isGroupScope && activeGroupId ? `/${locale}/groups/${activeGroupId}/posts/${encodedPostId}` : `/${locale}/posts/${encodedPostId}`;
     const url = typeof window !== 'undefined' ? `${window.location.origin}${path}` : path;
 
     try {
@@ -954,7 +976,7 @@ export default function PostsFeed({ mode, groupId = '' }: PostsFeedProps) {
                               <Eye size={14} />
                               <span>{t('actions.view')}</span>
                             </DropdownMenu.Item>
-                            <DropdownMenu.Item className="posts-dropdown-item" onClick={() => openPost(post.id)} disabled={!canEditInScope}>
+                            <DropdownMenu.Item className="posts-dropdown-item" onClick={() => openPostEditor(post.id)} disabled={!canEditInScope}>
                               <Pencil size={14} />
                               <span>{t('actions.edit')}</span>
                             </DropdownMenu.Item>

@@ -26,6 +26,7 @@ export default function Header({className}: HeaderProps) {
   const navT = useTranslations('nav');
   const commonT = useTranslations('common');
   const authT = useTranslations('auth');
+  const postsT = useTranslations('posts');
   const {user} = useAuthStore();
   const {clearPermissions} = usePermissionStore();
   const {toggleSidebar} = useUiStore();
@@ -42,18 +43,19 @@ export default function Header({className}: HeaderProps) {
     const current = segments.at(-1) ?? 'dashboard';
     const parent = segments.at(-2) ?? '';
 
-    const parentLabel = parent === 'posts' ? 'Posztok' : navKeys.find((key) => key === parent) ? navT(parent as NavKey) : '';
+    const parentLabel = parent === 'posts' ? postsT('title') : navKeys.find((key) => key === parent) ? navT(parent as NavKey) : '';
 
     let currentLabel = navKeys.find((key) => key === current) ? navT(current as NavKey) : current;
-    if (current === 'new' && parent === 'posts') currentLabel = 'Új poszt';
-    if (current === 'edit' && parent === 'posts') currentLabel = 'Poszt szerkesztése';
+    if (current === 'new' && parent === 'posts') currentLabel = postsT('createPost');
+    if (current === 'edit' && parent === 'posts') currentLabel = postsT('edit.pageTitle');
+    if (parent === 'posts' && current !== 'new' && current !== 'edit') currentLabel = postsT('detail.title');
 
     return {parentLabel, currentLabel};
-  }, [pathname, navT]);
+  }, [pathname, navT, postsT]);
 
   return (
     <header className={`topbar ${className ?? ''}`}>
-      <button type="button" onClick={toggleSidebar} className="topbar-hamburger" aria-label="Menü megnyitása">
+      <button type="button" onClick={toggleSidebar} className="topbar-hamburger" aria-label="Open menu">
         <Menu size={20} strokeWidth={1.75} />
       </button>
 
@@ -64,7 +66,7 @@ export default function Header({className}: HeaderProps) {
 
       <nav className="topbar-breadcrumb" aria-label="Breadcrumb">
         <Link href={`/${locale}/dashboard`} className="hover:text-[var(--text-primary)]">
-          Dashboard
+          {navT('dashboard')}
         </Link>
         {breadcrumb.parentLabel ? (
           <>
@@ -82,7 +84,7 @@ export default function Header({className}: HeaderProps) {
 
       <DropdownMenu.Root>
         <DropdownMenu.Trigger asChild>
-          <button type="button" className="topbar-avatar" aria-label="Profil menü">
+          <button type="button" className="topbar-avatar" aria-label="Profile menu">
             <Avatar.Root className="avatar-sm">
               <Avatar.Image src={user?.avatar} alt={user?.fullname ?? user?.username ?? 'User'} className="h-full w-full object-cover" />
               <Avatar.Fallback className="avatar-fallback">
@@ -116,3 +118,4 @@ export default function Header({className}: HeaderProps) {
     </header>
   );
 }
+

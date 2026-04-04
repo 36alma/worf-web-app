@@ -3,7 +3,6 @@ import {notFound} from 'next/navigation';
 import {defaultLocale, locales} from './config';
 
 export default getRequestConfig(async (params) => {
-  console.log('GET_REQUEST_CONFIG_PARAMS:', Object.keys(params), params);
   const locale = (params as any).locale ?? (await (params as any).requestLocale);
   const resolvedLocale = locale ?? defaultLocale;
 

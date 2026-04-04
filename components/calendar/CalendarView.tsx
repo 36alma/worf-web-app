@@ -266,7 +266,7 @@ export default function CalendarView({ initialGroupId }: CalendarViewProps) {
         {error ? <p className="mt-3 text-sm text-red-400">{error || t('error.load')}</p> : null}
       </div>
 
-      <div className="surface rounded-xl p-4">
+      <div className="surface worf-calendar rounded-xl p-4">
         <FullCalendar
           locale={locale}
           locales={allLocales}

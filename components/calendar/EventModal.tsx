@@ -1,9 +1,10 @@
 ﻿'use client';
 
-import {FormEvent, useEffect, useMemo, useState} from 'react';
+import { FormEvent, useEffect, useMemo, useState } from 'react';
+import { useLocale, useTranslations } from 'next-intl';
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
-import type {CalendarScope, EventMutationFields, GroupCalendarEvent} from '@/lib/types/calendar';
+import type { CalendarScope, EventMutationFields, GroupCalendarEvent } from '@/lib/types/calendar';
 
 interface EventFormSubmit {
   scope: CalendarScope;
@@ -61,6 +62,8 @@ export default function EventModal({
   submitting = false
 }: EventModalProps) {
   const isEdit = mode === 'edit';
+  const t = useTranslations('calendar');
+  const locale = useLocale();
 
   const [scope, setScope] = useState<CalendarScope>('group');
   const [kind, setKind] = useState('event');
@@ -118,12 +121,12 @@ export default function EventModal({
     setIsCancelled(false);
   }, [defaultStart, event, open]);
 
-  const title = useMemo(() => (isEdit ? 'Edit event' : 'New event'), [isEdit]);
+  const title = useMemo(() => (isEdit ? t('form.editTitle') : t('form.title')), [isEdit, t]);
 
   const handleSubmit = async (submitEvent: FormEvent) => {
     submitEvent.preventDefault();
 
-    const payload: EventMutationFields & {kind: string; name: string} = {
+    const payload: EventMutationFields & { kind: string; name: string } = {
       kind,
       name,
       parent_id: parentId || undefined,
@@ -140,69 +143,79 @@ export default function EventModal({
       is_global: scope === 'global'
     };
 
-    await onSubmit({scope, data: payload});
+    await onSubmit({ scope, data: payload });
   };
 
   return (
     <Modal open={open} title={title} onClose={onClose}>
       <form className="grid gap-3" onSubmit={handleSubmit}>
         <div className="grid gap-1">
-          <label className="text-sm text-slate-300">Scope</label>
+          <label className="text-sm text-slate-300">{t('form.scope')}</label>
           <select
             className="w-full rounded-md border border-[var(--border)] bg-[#0f0f18] px-3 py-2"
             value={scope}
             onChange={(evt) => setScope(evt.target.value as CalendarScope)}
             disabled={isEdit}
           >
-            <option value="group">Group</option>
-            <option value="global">Global</option>
+            <option value="group">{t('form.scopeOptions.group')}</option>
+            <option value="global">{t('form.scopeOptions.global')}</option>
           </select>
         </div>
 
         <div className="grid grid-cols-2 gap-3">
           <div className="grid gap-1">
-            <label className="text-sm text-slate-300">Name</label>
+            <label className="text-sm text-slate-300">{t('form.name')}</label>
             <input
               className="w-full rounded-md border border-[var(--border)] bg-[#0f0f18] px-3 py-2"
               value={name}
               onChange={(evt) => setName(evt.target.value)}
+              placeholder={t('form.namePlaceholder')}
               required
             />
           </div>
           <div className="grid gap-1">
-            <label className="text-sm text-slate-300">Kind</label>
-            <input
+            <label className="text-sm text-slate-300">{t('form.kind')}</label>
+            <select
               className="w-full rounded-md border border-[var(--border)] bg-[#0f0f18] px-3 py-2"
               value={kind}
               onChange={(evt) => setKind(evt.target.value)}
-              required
-            />
+            >
+              <option value="event">{t('form.kindOptions.event')}</option>
+              <option value="meeting">{t('form.kindOptions.meeting')}</option>
+              <option value="reminder">{t('form.kindOptions.reminder')}</option>
+              <option value="task">{t('form.kindOptions.task')}</option>
+              <option value="birthday">{t('form.kindOptions.birthday')}</option>
+              <option value="holiday">{t('form.kindOptions.holiday')}</option>
+            </select>
           </div>
         </div>
 
         <div className="grid gap-1">
-          <label className="text-sm text-slate-300">Location</label>
+          <label className="text-sm text-slate-300">{t('form.location')}</label>
           <input
             className="w-full rounded-md border border-[var(--border)] bg-[#0f0f18] px-3 py-2"
             value={location}
             onChange={(evt) => setLocation(evt.target.value)}
+            placeholder={t('form.locationPlaceholder')}
           />
         </div>
 
         <div className="grid grid-cols-2 gap-3">
           <div className="grid gap-1">
-            <label className="text-sm text-slate-300">Start</label>
+            <label className="text-sm text-slate-300">{t('form.start')}</label>
             <input
               type="datetime-local"
+              lang={locale}
               className="w-full rounded-md border border-[var(--border)] bg-[#0f0f18] px-3 py-2"
               value={startAt}
               onChange={(evt) => setStartAt(evt.target.value)}
             />
           </div>
           <div className="grid gap-1">
-            <label className="text-sm text-slate-300">End</label>
+            <label className="text-sm text-slate-300">{t('form.end')}</label>
             <input
               type="datetime-local"
+              lang={locale}
               className="w-full rounded-md border border-[var(--border)] bg-[#0f0f18] px-3 py-2"
               value={endAt}
               onChange={(evt) => setEndAt(evt.target.value)}
@@ -212,39 +225,43 @@ export default function EventModal({
 
         <div className="grid grid-cols-2 gap-3">
           <div className="grid gap-1">
-            <label className="text-sm text-slate-300">Timezone</label>
+            <label className="text-sm text-slate-300">{t('form.timezone')}</label>
             <input
               className="w-full rounded-md border border-[var(--border)] bg-[#0f0f18] px-3 py-2"
               value={timezone}
               onChange={(evt) => setTimezone(evt.target.value)}
+              placeholder={t('form.timezonePlaceholder')}
             />
           </div>
           <div className="grid gap-1">
-            <label className="text-sm text-slate-300">Count</label>
+            <label className="text-sm text-slate-300">{t('form.count')}</label>
             <input
               type="number"
               className="w-full rounded-md border border-[var(--border)] bg-[#0f0f18] px-3 py-2"
               value={countN}
               onChange={(evt) => setCountN(evt.target.value)}
               min={0}
+              placeholder={t('form.countPlaceholder')}
             />
           </div>
         </div>
 
         <div className="grid grid-cols-2 gap-3">
           <div className="grid gap-1">
-            <label className="text-sm text-slate-300">Until</label>
+            <label className="text-sm text-slate-300">{t('form.until')}</label>
             <input
               type="datetime-local"
+              lang={locale}
               className="w-full rounded-md border border-[var(--border)] bg-[#0f0f18] px-3 py-2"
               value={untilAt}
               onChange={(evt) => setUntilAt(evt.target.value)}
             />
           </div>
           <div className="grid gap-1">
-            <label className="text-sm text-slate-300">Original start</label>
+            <label className="text-sm text-slate-300">{t('form.originalStart')}</label>
             <input
               type="datetime-local"
+              lang={locale}
               className="w-full rounded-md border border-[var(--border)] bg-[#0f0f18] px-3 py-2"
               value={originalStartAt}
               onChange={(evt) => setOriginalStartAt(evt.target.value)}
@@ -254,40 +271,42 @@ export default function EventModal({
 
         <div className="grid grid-cols-2 gap-3">
           <div className="grid gap-1">
-            <label className="text-sm text-slate-300">RRule</label>
+            <label className="text-sm text-slate-300">{t('form.rrule')}</label>
             <input
               className="w-full rounded-md border border-[var(--border)] bg-[#0f0f18] px-3 py-2"
               value={rrule}
               onChange={(evt) => setRrule(evt.target.value)}
-              placeholder="FREQ=WEEKLY;BYDAY=MO"
+              placeholder={t('form.rrulePlaceholder')}
             />
+            <span className="text-xs text-slate-400">{t('form.rruleHelp')}</span>
           </div>
           <div className="grid gap-1">
-            <label className="text-sm text-slate-300">Parent id</label>
+            <label className="text-sm text-slate-300">{t('form.parentId')}</label>
             <input
               className="w-full rounded-md border border-[var(--border)] bg-[#0f0f18] px-3 py-2"
               value={parentId}
               onChange={(evt) => setParentId(evt.target.value)}
+              placeholder={t('form.parentIdPlaceholder')}
             />
           </div>
         </div>
 
         <label className="inline-flex items-center gap-2 text-sm text-slate-300">
           <input type="checkbox" checked={allDay} onChange={(evt) => setAllDay(evt.target.checked)} />
-          All day
+          {t('form.allDay')}
         </label>
 
         <label className="inline-flex items-center gap-2 text-sm text-slate-300">
           <input type="checkbox" checked={isCancelled} onChange={(evt) => setIsCancelled(evt.target.checked)} />
-          Cancelled
+          {t('form.cancelled')}
         </label>
 
         <div className="flex justify-end gap-2 pt-2">
-          <Button type="button" variant="ghost" onClick={onClose}>
-            Cancel
+          <Button type="button" variant="ghost" onClick={onClose} className="p-2">
+            {t('actions.cancel')}
           </Button>
-          <Button type="submit" disabled={submitting}>
-            {submitting ? 'Saving...' : isEdit ? 'Save changes' : 'Create event'}
+          <Button type="submit" disabled={submitting} className="p-2">
+            {isEdit ? t('actions.save') : t('actions.create')}
           </Button>
         </div>
       </form>

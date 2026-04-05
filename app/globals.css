@@ -25,6 +25,7 @@ html[data-theme='dark'] {
   --text-disabled: #383838;
 
   --accent: #ff6b2c;
+  --accent-dark: #ff6b2c14;
   --accent-hover: #ff7d45;
   --accent-subtle: rgba(255, 107, 44, 0.08);
   --accent-border: rgba(255, 107, 44, 0.25);
@@ -281,6 +282,7 @@ textarea::placeholder {
 }
 
 .worf-calendar .fc .fc-button {
+  margin: 4px;
   background: #1c1c1c !important;
   border: 1px solid #222222 !important;
   color: #888888 !important;
@@ -929,7 +931,7 @@ textarea::placeholder {
   overflow-wrap: anywhere;
 }
 
-.markdown-body > * + * {
+.markdown-body>*+* {
   margin-top: 0.9rem;
 }
 
@@ -981,7 +983,7 @@ textarea::placeholder {
   padding-left: 1.3rem;
 }
 
-.markdown-body li + li {
+.markdown-body li+li {
   margin-top: 0.3rem;
 }
 

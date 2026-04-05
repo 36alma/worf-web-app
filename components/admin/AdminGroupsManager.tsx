@@ -9,7 +9,7 @@ import {
   createGroup,
   deleteGroup,
   getAllGroups,
-  getGroupMembers,
+  getAdminGroupMembers,
   modifyGroupBase,
   removeUserFromGroup
 } from '@/lib/api/groups';
@@ -102,6 +102,7 @@ const toStringArray = (value: unknown): string[] => {
 const extractGroupIds = (row: RawObject): string[] => {
   const directIds = toStringArray(row.group_ids);
   const singleId = String(row.group_id ?? '');
+  const groupRoleId = String(row.group_role_id ?? '');
   const groupsArray = Array.isArray(row.groups) ? row.groups : [];
   const nestedGroupIds = groupsArray
     .map((group) => {
@@ -121,6 +122,7 @@ const extractGroupIds = (row: RawObject): string[] => {
     new Set([
       ...directIds,
       ...(singleId ? [singleId] : []),
+      ...(groupRoleId && groupRoleId !== 'null' ? [groupRoleId] : []),
       ...nestedGroupIds,
       ...groupRoleKeys
     ])
@@ -148,16 +150,16 @@ const toUsers = (payload: unknown): UserRow[] => {
       }
 
       const row = item as RawObject;
-      const id = String(row.user_id ?? row.id ?? '');
+      const id = String(row.user_id ?? row.id ?? row.email ?? row.username ?? row.name ?? '');
       if (!id) {
         return null;
       }
 
       return {
         id,
-        username: String(row.username ?? ''),
+        username: String(row.username ?? row.name ?? row.email ?? ''),
         email: String(row.email ?? ''),
-        full_name: String(row.full_name ?? row.fullname ?? ''),
+        full_name: String(row.full_name ?? row.fullname ?? row.name ?? ''),
         group_ids: extractGroupIds(row)
       };
     })
@@ -214,7 +216,7 @@ export default function AdminGroupsManager() {
       setMemberLoading(true);
 
       try {
-        const [membersRes, usersRes] = await Promise.all([getGroupMembers(group.id), getAdminUsers()]);
+        const [membersRes, usersRes] = await Promise.all([getAdminGroupMembers(group.id), getAdminUsers()]);
         const members = toUsers(membersRes.data);
         const users = toUsers(usersRes.data);
 

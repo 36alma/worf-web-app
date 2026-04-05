@@ -84,8 +84,8 @@ export default function AdminLayoutClient({ children }: { children: ReactNode })
               key={key}
               href={href}
               className={`rounded-md border px-3 py-2 text-sm transition ${active
-                ? 'border-indigo-400/60 bg-indigo-500/20 text-indigo-200'
-                : 'border-[var(--border)] text-slate-300 hover:bg-slate-800'
+                ? 'border-indigo-400/60 bg-[var(--accent-subtle)] text-indigo-200'
+                : 'border-[var(--border)] text-slate-300 hover:bg-[var(--accent-dark)]'
                 }`}
             >
               {t(`sections.${key}`)}

@@ -15,14 +15,7 @@ import {
 import {sortableKeyboardCoordinates} from '@dnd-kit/sortable';
 import TaskColumn from './TaskColumn';
 import TaskCard from './TaskCard';
-import {Task} from './types';
-
-const STATUS_COLUMNS = ['TODO', 'IN_PROGRESS', 'DONE'];
-const STATUS_LABELS: Record<string, string> = {
-  TODO: 'To Do',
-  IN_PROGRESS: 'In Progress',
-  DONE: 'Done'
-};
+import {Task, STATUSES, STATUS_LABELS} from './types';
 
 export interface KanbanViewProps {
   tasks: Task[];
@@ -53,7 +46,7 @@ export default function KanbanView({
   }, [tasks]);
 
   const activeTask = useMemo(
-    () => localTasks.find((t) => t.task_id === activeId),
+    () => localTasks.find((t) => t.id === activeId),
     [activeId, localTasks]
   );
 
@@ -83,15 +76,15 @@ export default function KanbanView({
 
     const isActiveTask = active.data.current?.type === 'Task';
     const isOverTask = over.data.current?.type === 'Task';
-    const isOverColumn = STATUS_COLUMNS.includes(overId);
+    const isOverColumn = (STATUSES as readonly string[]).includes(overId);
 
     if (isActiveTask) {
       setLocalTasks((tasks) => {
-        const activeIndex = tasks.findIndex((t) => t.task_id === activeId);
+        const activeIndex = tasks.findIndex((t) => t.id === activeId);
         let overIndex = -1;
 
         if (isOverTask) {
-          overIndex = tasks.findIndex((t) => t.task_id === overId);
+          overIndex = tasks.findIndex((t) => t.id === overId);
           // Same column reorder
           if (tasks[activeIndex].status === tasks[overIndex].status) {
              // For simple visual reorder
@@ -127,8 +120,8 @@ export default function KanbanView({
       return;
     }
 
-    const task = localTasks.find(t => t.task_id === active.id);
-    const destinationCol = STATUS_COLUMNS.includes(over.id as string) 
+    const task = localTasks.find(t => t.id === active.id);
+    const destinationCol = (STATUSES as readonly string[]).includes(over.id as string) 
       ? over.id as string 
       : over.data.current?.task?.status;
 
@@ -138,7 +131,7 @@ export default function KanbanView({
     }
 
     // Call upstream
-    await onTaskMove(task.task_id, destinationCol);
+    await onTaskMove(task.id, destinationCol);
   };
 
   const dropAnimationConfig = {
@@ -148,7 +141,7 @@ export default function KanbanView({
   };
 
   return (
-    <div className="flex flex-1 items-start gap-6 overflow-x-auto pb-4 custom-scrollbar">
+    <div className="flex flex-1 items-start gap-4 overflow-x-auto pb-4 custom-scrollbar">
       <DndContext
         sensors={sensors}
         collisionDetection={closestCorners}
@@ -156,7 +149,7 @@ export default function KanbanView({
         onDragOver={handleDragOver}
         onDragEnd={handleDragEnd}
       >
-        {STATUS_COLUMNS.map((status) => {
+        {STATUSES.map((status) => {
           const colTasks = localTasks.filter((t) => t.status === status);
           return (
             <TaskColumn

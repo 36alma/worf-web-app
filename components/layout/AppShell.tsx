@@ -2,10 +2,10 @@
 
 import {ReactNode, useEffect} from 'react';
 import {useLocale} from 'next-intl';
-import {usePathname, useRouter} from 'next/navigation';
+import {useParams, usePathname, useRouter} from 'next/navigation';
 import {getGroupPermissions} from '@/lib/api/permissions';
+import {normalizeGroupId} from '@/lib/utils/groupId';
 import {
-  groupRoutePermissionRequirements,
   hasPermissionRequirement,
   systemRoutePermissionRequirements
 } from '@/lib/permissions/access';
@@ -19,6 +19,7 @@ export interface AppShellProps {
 
 export default function AppShell({children}: AppShellProps) {
   const pathname = usePathname();
+  const params = useParams<{groupId?: string}>();
   const locale = useLocale();
   const router = useRouter();
   const isAuthRoute = pathname.includes('/auth/');
@@ -26,30 +27,43 @@ export default function AppShell({children}: AppShellProps) {
     systemPermissions,
     isSystemPermissionsLoaded,
     groupPermissionsById,
-    groupPermissionsLoadingById,
+    groupPermissionsStatusById,
     setGroupPermissions,
-    setGroupPermissionsLoading
+    setGroupPermissionsLoading,
+    setGroupPermissionsError
   } = usePermissionStore();
 
   const segments = pathname.split('/').filter(Boolean).slice(1);
   const topLevelSegment = segments[0] ?? '';
-  const groupId = topLevelSegment === 'groups' ? segments[1] ?? '' : '';
-  const groupSubSegment = topLevelSegment === 'groups' ? segments[2] ?? '' : '';
+  const groupId = topLevelSegment === 'groups' && typeof params.groupId === 'string' ? normalizeGroupId(params.groupId) : '';
 
   const systemRequirement = systemRoutePermissionRequirements[topLevelSegment] ?? null;
-  const groupRequirement = groupRoutePermissionRequirements[groupSubSegment] ?? null;
-  const groupPermissions = groupId ? groupPermissionsById[groupId] : null;
 
+  // ── System-level route guard ───────────────────────────────────────
+  // Only redirects for system-level permission failures (e.g., admin).
+  // GROUP_ONLY routes (calendar, tasks) without a groupId → dashboard.
   useEffect(() => {
     if (isAuthRoute || !isSystemPermissionsLoaded) return;
-    if (systemRequirement && !hasPermissionRequirement(systemPermissions, systemRequirement)) {
+    if (systemRequirement === 'GROUP_ONLY' && !groupId) {
+      router.replace(`/${locale}/dashboard`);
+      return;
+    }
+    if (
+      systemRequirement &&
+      systemRequirement !== 'GROUP_ONLY' &&
+      !hasPermissionRequirement(systemPermissions, systemRequirement)
+    ) {
       router.replace(`/${locale}/dashboard`);
     }
-  }, [isAuthRoute, isSystemPermissionsLoaded, systemRequirement, systemPermissions, router, locale]);
+  }, [isAuthRoute, isSystemPermissionsLoaded, systemRequirement, systemPermissions, router, locale, groupId]);
 
+  // ── Bootstrap group permissions into the store ─────────────────────
+  // This feeds the Sidebar's permission-based nav filtering.
+  // It does NOT trigger any redirects on failure.
   useEffect(() => {
     if (isAuthRoute || !groupId) return;
-    if (groupPermissionsById[groupId] || groupPermissionsLoadingById[groupId]) return;
+    const status = groupPermissionsStatusById[groupId];
+    if (status === 'loading' || status === 'loaded' || status === 'error') return;
 
     let mounted = true;
 
@@ -62,7 +76,7 @@ export default function AppShell({children}: AppShellProps) {
         }
       } catch {
         if (mounted) {
-          setGroupPermissions(groupId, {});
+          setGroupPermissionsError(groupId);
         }
       }
     };
@@ -75,19 +89,23 @@ export default function AppShell({children}: AppShellProps) {
   }, [
     isAuthRoute,
     groupId,
-    groupPermissionsById,
-    groupPermissionsLoadingById,
+    groupPermissionsStatusById,
     setGroupPermissions,
+    setGroupPermissionsError,
     setGroupPermissionsLoading
   ]);
 
-  useEffect(() => {
-    if (isAuthRoute || !groupId) return;
-    if (!groupPermissions) return;
-    if (groupRequirement && !hasPermissionRequirement(groupPermissions, groupRequirement)) {
-      router.replace(`/${locale}/groups/${groupId}`);
-    }
-  }, [isAuthRoute, groupId, groupPermissions, groupRequirement, router, locale]);
+  // ── NOTE: NO group sub-route redirect ──────────────────────────────
+  // Previously, this component would redirect to /groups/{groupId} when
+  // a group sub-route permission (e.g., calendar, tasks) was denied.
+  // This caused redirect loops because:
+  //   1. AppShell redirects to /groups/{id}
+  //   2. Sidebar checks if group exists, may redirect to /groups
+  //   3. Page re-renders, AppShell fires again → loop
+  //
+  // The fix: each page (calendar/page.tsx, tasks/page.tsx) handles its
+  // own permission check via GroupPermissionContext and returns null
+  // (Silent Policy) when access is denied. No redirect needed.
 
   if (isAuthRoute) {
     return <main id="main-content" className="min-h-screen p-4 md:p-8">{children}</main>;
@@ -95,13 +113,10 @@ export default function AppShell({children}: AppShellProps) {
 
   const mustWaitForSystemPermission = Boolean(systemRequirement) && !isSystemPermissionsLoaded;
   const isBlockedBySystemPermission =
-    Boolean(systemRequirement) &&
+    systemRequirement !== null &&
+    systemRequirement !== 'GROUP_ONLY' &&
     isSystemPermissionsLoaded &&
     !hasPermissionRequirement(systemPermissions, systemRequirement);
-  const mustWaitForGroupPermission = Boolean(groupRequirement && groupId && !groupPermissions);
-  const isBlockedByGroupPermission =
-    Boolean(groupRequirement && groupPermissions) &&
-    !hasPermissionRequirement(groupPermissions as Record<string, boolean>, groupRequirement);
 
   return (
     <div className="min-h-screen bg-[var(--bg-root)]">
@@ -111,7 +126,7 @@ export default function AppShell({children}: AppShellProps) {
         id="main-content"
         className="main-content page-content"
       >
-        {mustWaitForSystemPermission || isBlockedBySystemPermission || mustWaitForGroupPermission || isBlockedByGroupPermission ? null : children}
+        {mustWaitForSystemPermission || isBlockedBySystemPermission ? null : children}
       </main>
     </div>
   );

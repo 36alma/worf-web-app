@@ -16,6 +16,8 @@
     "tasks": "Tasks",
     "calendar": "Calendar",
     "posts": "Posts",
+    "roles": "Roles",
+    "permissions": "Permissions",
     "admin": "Admin",
     "profile": "Profile"
   },
@@ -499,6 +501,9 @@
     "yes": "Yes",
     "no": "No",
     "none": "None",
+    "filter": {
+      "noRole": "No role"
+    },
     "create_group": "Create group",
     "create_group_title": "Create group",
     "edit_group_title": "Edit group",
@@ -506,6 +511,11 @@
     "delete_group_confirm": "Are you sure you want to delete this group?",
     "manage_members": "Manage members",
     "manage_members_title": "Manage group members",
+    "manage_roles": "Manage roles",
+    "manage_roles_title": "Manage group roles and permissions",
+    "groups": "Groups",
+    "back_to_groups": "Back to groups",
+    "group_not_found": "Group not found",
     "members_tab": "Members",
     "add_tab": "Add",
     "group_members_current": "Current members",
@@ -514,11 +524,19 @@
     "remove_member": "Remove",
     "select_user": "Select user",
     "no_available_users": "No users available to add.",
+    "members_page": "Page {page}",
+    "members_total": "Total: {total}",
+    "members_prev": "Previous",
+    "members_next": "Next",
     "load_members_error": "Failed to load group members.",
     "add_member_success": "Member added successfully.",
     "add_member_error": "Failed to add member.",
     "remove_member_success": "Member removed successfully.",
     "remove_member_error": "Failed to remove member.",
+    "set_role": "Set role",
+    "set_role_title": "Set member role",
+    "set_role_success": "Role assigned successfully.",
+    "set_role_error": "Failed to assign role.",
     "edit_user_title": "Edit user",
     "roles_readonly_hint": "System roles are read-only on this screen.",
     "sections": {
@@ -539,6 +557,111 @@
       "group_name": "Group name",
       "description": "Description",
       "actions": "Actions"
+    },
+    "groupRoles": {
+      "title": "Manage Group Roles",
+      "subtitle": "Create and manage roles for this group, then assign permissions to each role.",
+      "rolesList": {
+        "heading": "Roles",
+        "countLabel": "{count} role{count, plural, one {} other {s}}",
+        "newRoleButton": "New Role",
+        "noRoles": "No roles yet. Click \"New Role\" to create one.",
+        "permissionsCount": "{count} permissions"
+      },
+      "form": {
+        "createTitle": "Create New Role",
+        "editTitle": "Edit Role",
+        "reviewTitle": "Review Role",
+        "nameLabel": "Role Name *",
+        "namePlaceholder": "e.g., Editor, Moderator, Viewer",
+        "nameError": "Role name is required",
+        "descriptionLabel": "Description",
+        "descriptionPlaceholder": "What is this role for?",
+        "createButton": "Create Role",
+        "saveButton": "Save Changes",
+        "updateButton": "Update Role",
+        "editButton": "Edit Role",
+        "deleteButton": "Delete",
+        "cancelButton": "Cancel"
+      },
+      "permissions": {
+        "heading": "Permissions",
+        "selectRoleHint": "Select a role from the left panel to manage its permissions",
+        "noPermissions": "No permissions available",
+        "searchPlaceholder": "Search...",
+        "selectedCount": "{selected} / {total} selected",
+        "categorySelectAll": "Select all in this category",
+        "categoryDeselectAll": "Deselect all in this category",
+        "saveButton": "Save Permissions",
+        "permissions": {
+          "Roles": "Roles",
+          "Calendar": "Calendar",
+          "Posts": "Posts",
+          "Tasks": "Tasks",
+          "Users & Groups": "Users & Groups",
+          "Other": "Other"
+        }
+      },
+      "deleteConfirm": {
+        "title": "Delete Role",
+        "message": "Are you sure you want to delete \"{name}\"? This action cannot be undone.",
+        "confirm": "Delete",
+        "cancel": "Cancel"
+      },
+      "messages": {
+        "roleCreated": "Role created successfully",
+        "roleUpdated": "Role updated successfully",
+        "roleDeleted": "Role deleted successfully",
+        "permissionsSaved": "Permissions updated successfully",
+        "loadError": "Failed to load data",
+        "saveError": "Failed to save",
+        "deleteError": "Failed to delete"
+      }
+    },
+    "userGroupRoles": {
+      "title": "User Group Roles",
+      "subtitle": "View and manage the roles and permissions of group members.",
+      "actions": {
+        "edit": "Edit"
+      },
+      "table": {
+        "name": "Name",
+        "role": "Role",
+        "permissions": "Permissions",
+        "noRole": "No role"
+      },
+      "card": {
+        "role": "Role",
+        "permissions": "Permissions",
+        "noRole": "No role"
+      },
+      "search": {
+        "placeholder": "Search by name, email, or username..."
+      },
+      "filter": {
+        "role": "Filter",
+        "allRoles": "All roles",
+        "noRole": "No role"
+      },
+      "sort": {
+        "by": "Sort by",
+        "name": "Name",
+        "role": "Role",
+        "permissions": "Permissions count"
+      },
+      "results": {
+        "count": "{count} / {total} users"
+      },
+      "empty": {
+        "noUsers": "No users in this group",
+        "noResults": "No results found"
+      },
+      "messages": {
+        "loadError": "Failed to load data",
+        "roleAssigned": "Role assigned successfully",
+        "userUpdated": "User updated successfully",
+        "saveError": "Failed to save"
+      }
     }
   },
   "editor": {

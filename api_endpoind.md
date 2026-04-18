@@ -85,6 +85,88 @@ Az endpoint működése lépésenként:
 
 ## Endpoint
 
+- **Név:** Group admin get users not in group
+- **Metódus:** `POST`
+- **Útvonal:** `/v1/group/admin/getusers/notingroup`
+- **Leírás:** A kiválasztott csoportba még be nem lépett userek lekérdezése lapozással.
+
+## Jogosultságok (Permissions)
+
+Az endpoint sikeres hívásához az alábbi feltételeknek egyszerre kell teljesülniük:
+
+1. **Kötelező hálózati fejléc**
+   - A route implementációja elvárja az `x-forwarded-for` fejlécet.
+
+2. **Globális jogosultság**
+   - Kötelező permission: `group.get.users.notingroup.admin.panel`.
+
+3. **Token kezelés**
+   - A kérésmodell `Bearer` tokent használ.
+
+## Működés
+
+Az endpoint működése lépésenként:
+
+1. A rendszer beolvassa az `x-forwarded-for` fejlécet.
+2. A request mezőit validálja (`group_id`, `page_number`, `load_user_number`).
+3. Globális jogosultság-ellenőrzés fut le.
+4. A rendszer lekérdezi azokat a usereket, akik **nem** tagjai a megadott csoportnak.
+5. A válasz paginált formában érkezik (`total`, `page_number`, `load_user_number`, `users`).
+
+## Használat
+
+### Kérés formátuma
+
+- **URL:** `/v1/group/admin/getusers/notingroup`
+- **Metódus:** `POST`
+- **Header:**
+  - `x-forwarded-for: <client-ip>` (kötelező)
+  - `Content-Type: application/json`
+- **Rate limit:** `120 kérés / 2 perc`
+- **Body/Model:** `GetGroupMissingUsersAdmin`
+
+## Paraméterek
+
+### Header paraméterek
+
+| Név | Típus | Kötelező | Leírás |
+|---|---|---|---|
+| `x-forwarded-for` | `string` | Igen | A kliens IP címe. |
+
+### Body paraméterek
+
+| Név | Típus | Kötelező | Leírás |
+|---|---|---|---|
+| `Bearer` | `string` | Igen | Access token a hitelesítéshez. |
+| `group_id` | `string` | Igen | Csoport azonosító (titkosított vagy UUID). |
+| `page_number` | `integer` | Nem | Oldalszám, minimum `1`, alapértelmezett: `1`. |
+| `load_user_number` | `integer` | Nem | Oldalméret, minimum `1`, maximum `200`, alapértelmezett: `20`. |
+
+## Válasz szerkezet
+
+| Név | Típus | Leírás |
+|---|---|---|
+| `group_id` | `string` | A lekérdezett csoport azonosítója. |
+| `page_number` | `integer` | Aktuális oldalszám. |
+| `load_user_number` | `integer` | Oldalméret. |
+| `total` | `integer` | Összes találat száma (csoporton kívüli userek). |
+| `users` | `array<object>` | Felhasználó lista (`user_id`, `name`, `email`, `is_active`). |
+
+## Tipikus hibák
+
+| HTTP kód | `detail` | Mikor fordul elő |
+|---|---|---|
+| `401` | `Authentication failed.` | Hiányzó/hibás token vagy hiányzó IP fejléc. |
+| `403` | `Permission denied.` | Hiányzik a `group.get.users.notingroup.admin.panel` jogosultság. |
+| `404` | `Group not found.` / `Record not found.` | A megadott csoport nem található. |
+| `422` | `Validation failed.` | Bemeneti validációs hiba (pl. hibás `page_number`). |
+| `429` | `Too Many Requests` | Rate limit túllépése. |
+| `500` | `Application error occurred.` | Váratlan szerveroldali hiba. |
+
+---
+
+## Endpoint
+
 - **Név:** Global post category create
 - **Metódus:** `POST`
 - **Útvonal:** `/v1/global/post/category/create`
@@ -1030,7 +1112,6 @@ Az endpoint működése lépésenként:
 | `Bearer` | `string` | Nem | Access token a hitelesítéshez. |
 | `content-type` | `string` | Nem | Technikai tartalomtípus mező. |
 | `group_id` | `string` | Igen | Csoport azonosító. |
-| `group_role_id` | `string` | Nem | Az adott erőforrás azonosítója. |
 | `group_calendar_id` | `string` | Igen | Az adott erőforrás azonosítója. |
 | `kind` | `string` | Igen | Kérésparaméter. |
 | `name` | `string` | Igen | Kérésparaméter. |
@@ -1196,7 +1277,6 @@ Az endpoint működése lépésenként:
 | `Bearer` | `string` | Nem | Access token a hitelesítéshez. |
 | `content-type` | `string` | Nem | Technikai tartalomtípus mező. |
 | `group_id` | `string` | Igen | Csoport azonosító. |
-| `group_role_id` | `string` | Nem | Az adott erőforrás azonosítója. |
 | `group_calendar_id` | `string` | Igen | Az adott erőforrás azonosítója. |
 | `group_calendar_event_id` | `string` | Igen | Az adott erőforrás azonosítója. |
 | `calendar_id` | `string` | Nem | Az adott erőforrás azonosítója. |
@@ -1453,7 +1533,18 @@ Az endpoint működése lépésenként:
 
 | Név | Típus | Leírás |
 |---|---|---|
-| `data` | `object`/`array` | Lekérdezett adatok. |
+| `id` | `string (UUID)` | Task azonosító. |
+| `issue_key` | `string` | Task kulcs. |
+| `summary` | `string` | Rövid összefoglaló. |
+| `description` | `string/null` | Részletes leírás. |
+| `task_type` | `string` | Task típus (`STORY`, `TASK`, `BUG`, `EPIC`, `SUBTASK`). |
+| `status` | `string` | Task státusz (`TODO`, `IN_PROGRESS`, `IN_REVIEW`, `DONE`, `BLOCKED`). |
+| `priority` | `string` | Prioritás. |
+| `parent_task_id` | `string (UUID)/null` | Szülő task azonosító (ha alfeladat). |
+| `subtasks_total` | `integer` | A taskhoz tartozó közvetlen alfeladatok száma. |
+| `subtasks_completed` | `integer` | A lezárt (vagy `completed_at`-tal rendelkező) alfeladatok száma. |
+| `created_at` | `string (ISO-8601 datetime)` | Létrehozási idő. |
+| `updated_at` | `string (ISO-8601 datetime)` | Utolsó módosítás ideje. |
 
 ## Tipikus hibák
 
@@ -1616,7 +1707,16 @@ Az endpoint működése lépésenként:
 
 | Név | Típus | Leírás |
 |---|---|---|
-| `items` | `array` | Lapozott listaelemek. |
+| `tasks` | `array[object]` | A lekért task lista. |
+| `total_tasks` | `integer` | A feltételnek megfelelő taskok teljes száma. |
+| `total_pages` | `integer` | Összes oldalszám. |
+| `current_page` | `integer` | Aktuális oldalszám. |
+| `tasks[].id` | `string (UUID)` | Task azonosító. |
+| `tasks[].summary` | `string` | Rövid összefoglaló. |
+| `tasks[].status` | `string` | Task státusz. |
+| `tasks[].parent_task_id` | `string (UUID)/null` | Szülő task azonosító. |
+| `tasks[].subtasks_total` | `integer` | A taskhoz tartozó közvetlen alfeladatok száma. |
+| `tasks[].subtasks_completed` | `integer` | A lezárt (vagy `completed_at`-tal rendelkező) alfeladatok száma. |
 
 ## Tipikus hibák
 
@@ -2029,7 +2129,18 @@ Az endpoint működése lépésenként:
 
 | Név | Típus | Leírás |
 |---|---|---|
-| `data` | `object`/`array` | Lekérdezett adatok. |
+| `id` | `string (UUID)` | Task azonosító. |
+| `issue_key` | `string` | Task kulcs. |
+| `summary` | `string` | Rövid összefoglaló. |
+| `description` | `string/null` | Részletes leírás. |
+| `task_type` | `string` | Task típus (`STORY`, `TASK`, `BUG`, `EPIC`, `SUBTASK`). |
+| `status` | `string` | Task státusz (`TODO`, `IN_PROGRESS`, `IN_REVIEW`, `DONE`, `BLOCKED`). |
+| `priority` | `string` | Prioritás. |
+| `parent_task_id` | `string (UUID)/null` | Szülő task azonosító (ha alfeladat). |
+| `subtasks_total` | `integer` | A taskhoz tartozó közvetlen alfeladatok száma. |
+| `subtasks_completed` | `integer` | A lezárt (vagy `completed_at`-tal rendelkező) alfeladatok száma. |
+| `created_at` | `string (ISO-8601 datetime)` | Létrehozási idő. |
+| `updated_at` | `string (ISO-8601 datetime)` | Utolsó módosítás ideje. |
 
 ## Tipikus hibák
 
@@ -2962,7 +3073,6 @@ Az endpoint működése lépésenként:
 | `Bearer` | `string` | Nem | Access token a hitelesítéshez. |
 | `content-type` | `string` | Nem | Technikai tartalomtípus mező. |
 | `group_id` | `string` | Igen | Csoport azonosító. |
-| `group_role_id` | `string` | Nem | Az adott erőforrás azonosítója. |
 
 ## Válasz szerkezet
 
@@ -3446,7 +3556,16 @@ Az endpoint működése lépésenként:
 
 | Név | Típus | Leírás |
 |---|---|---|
-| `items` | `array` | Lapozott listaelemek. |
+| `tasks` | `array[object]` | A lekért task lista. |
+| `total_tasks` | `integer` | A feltételnek megfelelő taskok teljes száma. |
+| `total_pages` | `integer` | Összes oldalszám. |
+| `current_page` | `integer` | Aktuális oldalszám. |
+| `tasks[].id` | `string (UUID)` | Task azonosító. |
+| `tasks[].summary` | `string` | Rövid összefoglaló. |
+| `tasks[].status` | `string` | Task státusz. |
+| `tasks[].parent_task_id` | `string (UUID)/null` | Szülő task azonosító. |
+| `tasks[].subtasks_total` | `integer` | A taskhoz tartozó közvetlen alfeladatok száma. |
+| `tasks[].subtasks_completed` | `integer` | A lezárt (vagy `completed_at`-tal rendelkező) alfeladatok száma. |
 
 ## Tipikus hibák
 
@@ -3780,7 +3899,7 @@ Az endpoint működése lépésenként:
 - **Név:** Group role permission set fixed
 - **Metódus:** `POST`
 - **Útvonal:** `/v1/group/role/permission/set/fixed`
-- **Leírás:** Erőforrás(ok) lekérdezése.
+- **Leírás:** Csoportszerepkör fix jogosultságainak beállítása.
 
 ## Jogosultságok (Permissions)
 
@@ -3851,6 +3970,442 @@ Az endpoint működése lépésenként:
 | `422` | `Validation failed.` | Bemeneti validációs hiba. |
 | `429` | `Too Many Requests` | Rate limit túllépése. |
 | `500` | `Application error occurred.` | Váratlan szerveroldali hiba. |
+
+---
+
+## Endpoint
+
+- **Név:** Group admin role create
+- **Metódus:** `POST`
+- **Útvonal:** `/v1/group/admin/role/create`
+- **Leírás:** Admin jogosultsággal csoportszerepkör létrehozása.
+
+## Jogosultságok (Permissions)
+
+Az endpoint sikeres hívásához az alábbi feltételeknek egyszerre kell teljesülniük:
+
+1. **Kötelező hálózati fejléc**
+   - A route implementációja jellemzően elvárja az `x-forwarded-for` fejlécet.
+
+2. **Globális jogosultság**
+   - Kötelező permission: `group.admin.role.management`.
+
+## Használat
+
+### Kérés formátuma
+
+- **URL:** `/v1/group/admin/role/create`
+- **Metódus:** `POST`
+- **Header:**
+  - `x-forwarded-for: <client-ip>` (kötelező/ajánlott)
+  - `Content-Type: application/json`
+- **Rate limit:** `30 kérés / 5 perc`
+- **Body/Model:** `CreateGroupRole`
+
+## Paraméterek
+
+### Body paraméterek
+
+| Név | Típus | Kötelező | Leírás |
+|---|---|---|---|
+| `Bearer` | `string` | Nem | Access token a hitelesítéshez. |
+| `group_id` | `string` | Igen | Csoport azonosító. |
+| `group_role_name` | `string` | Igen | Új csoportszerepkör neve. |
+| `group_role_description` | `string` | Nem | Új csoportszerepkör leírása. |
+
+## Válasz szerkezet
+
+| Név | Típus | Leírás |
+|---|---|---|
+| `id` / `group_role_id` | `string` | Létrehozott szerepkör azonosítója. |
+
+---
+
+## Endpoint
+
+- **Név:** Group admin role get
+- **Metódus:** `POST`
+- **Útvonal:** `/v1/group/admin/role/get`
+- **Leírás:** Admin jogosultsággal csoportszerepkör(ök) lekérdezése.
+
+## Jogosultságok (Permissions)
+
+Az endpoint sikeres hívásához az alábbi feltételeknek egyszerre kell teljesülniük:
+
+1. **Kötelező hálózati fejléc**
+   - A route implementációja jellemzően elvárja az `x-forwarded-for` fejlécet.
+
+2. **Globális jogosultság**
+   - Kötelező permission: `group.admin.role.management`.
+
+## Használat
+
+### Kérés formátuma
+
+- **URL:** `/v1/group/admin/role/get`
+- **Metódus:** `POST`
+- **Header:**
+  - `x-forwarded-for: <client-ip>` (kötelező/ajánlott)
+  - `Content-Type: application/json`
+- **Rate limit:** `80 kérés / 2 perc`
+- **Body/Model:** `GetGroupRole`
+
+## Paraméterek
+
+### Body paraméterek
+
+| Név | Típus | Kötelező | Leírás |
+|---|---|---|---|
+| `Bearer` | `string` | Nem | Access token a hitelesítéshez. |
+| `group_id` | `string` | Igen | Csoport azonosító. |
+
+## Válasz szerkezet
+
+| Név | Típus | Leírás |
+|---|---|---|
+| `group_roles` | `array` | A csoporthoz tartozó szerepkörök listája. |
+
+---
+
+## Endpoint
+
+- **Név:** Group admin role modify
+- **Metódus:** `POST`
+- **Útvonal:** `/v1/group/admin/role/modify`
+- **Leírás:** Admin jogosultsággal csoportszerepkör módosítása.
+
+## Jogosultságok (Permissions)
+
+Az endpoint sikeres hívásához az alábbi feltételeknek egyszerre kell teljesülniük:
+
+1. **Kötelező hálózati fejléc**
+   - A route implementációja jellemzően elvárja az `x-forwarded-for` fejlécet.
+
+2. **Globális jogosultság**
+   - Kötelező permission: `group.admin.role.management`.
+
+## Használat
+
+### Kérés formátuma
+
+- **URL:** `/v1/group/admin/role/modify`
+- **Metódus:** `POST`
+- **Header:**
+  - `x-forwarded-for: <client-ip>` (kötelező/ajánlott)
+  - `Content-Type: application/json`
+- **Rate limit:** `30 kérés / 5 perc`
+- **Body/Model:** `ModifyGroupRole`
+
+## Paraméterek
+
+### Body paraméterek
+
+| Név | Típus | Kötelező | Leírás |
+|---|---|---|---|
+| `Bearer` | `string` | Nem | Access token a hitelesítéshez. |
+| `group_id` | `string` | Igen | Csoport azonosító. |
+| `group_role_id` | `string` | Igen | Módosítandó szerepkör azonosítója. |
+| `group_role_name` | `string` | Nem | Új szerepkör név. |
+| `group_role_description` | `string` | Nem | Új szerepkör leírás. |
+
+## Válasz szerkezet
+
+| Név | Típus | Leírás |
+|---|---|---|
+| `message` | `string`/`object` | Módosítás eredménye. |
+
+---
+
+## Endpoint
+
+- **Név:** Group admin role delete
+- **Metódus:** `POST`
+- **Útvonal:** `/v1/group/admin/role/delete`
+- **Leírás:** Admin jogosultsággal csoportszerepkör törlése.
+
+## Jogosultságok (Permissions)
+
+Az endpoint sikeres hívásához az alábbi feltételeknek egyszerre kell teljesülniük:
+
+1. **Kötelező hálózati fejléc**
+   - A route implementációja jellemzően elvárja az `x-forwarded-for` fejlécet.
+
+2. **Globális jogosultság**
+   - Kötelező permission: `group.admin.role.management`.
+
+## Használat
+
+### Kérés formátuma
+
+- **URL:** `/v1/group/admin/role/delete`
+- **Metódus:** `POST`
+- **Header:**
+  - `x-forwarded-for: <client-ip>` (kötelező/ajánlott)
+  - `Content-Type: application/json`
+- **Rate limit:** `20 kérés / 5 perc`
+- **Body/Model:** `DeleteGroupRole`
+
+## Paraméterek
+
+### Body paraméterek
+
+| Név | Típus | Kötelező | Leírás |
+|---|---|---|---|
+| `Bearer` | `string` | Nem | Access token a hitelesítéshez. |
+| `group_id` | `string` | Igen | Csoport azonosító. |
+| `group_role_id` | `string` | Igen | Törlendő szerepkör azonosítója. |
+
+## Válasz szerkezet
+
+| Név | Típus | Leírás |
+|---|---|---|
+| `deleted` | `boolean`/`object` | Törlési eredmény. |
+
+---
+
+## Endpoint
+
+- **Név:** Group admin permission get all
+- **Metódus:** `POST`
+- **Útvonal:** `/v1/group/admin/permission/get/all`
+- **Leírás:** Admin jogosultsággal csoport permission lista lekérdezése.
+
+## Jogosultságok (Permissions)
+
+Az endpoint sikeres hívásához az alábbi feltételeknek egyszerre kell teljesülniük:
+
+1. **Kötelező hálózati fejléc**
+   - A route implementációja jellemzően elvárja az `x-forwarded-for` fejlécet.
+
+2. **Globális jogosultság**
+   - Kötelező permission: `group.admin.role.management`.
+
+## Használat
+
+### Kérés formátuma
+
+- **URL:** `/v1/group/admin/permission/get/all`
+- **Metódus:** `POST`
+- **Header:**
+  - `x-forwarded-for: <client-ip>` (kötelező/ajánlott)
+  - `Content-Type: application/json`
+- **Rate limit:** `90 kérés / 2 perc`
+- **Body/Model:** `GetAllGroupPermission`
+
+## Paraméterek
+
+### Body paraméterek
+
+| Név | Típus | Kötelező | Leírás |
+|---|---|---|---|
+| `Bearer` | `string` | Nem | Access token a hitelesítéshez. |
+
+## Válasz szerkezet
+
+| Név | Típus | Leírás |
+|---|---|---|
+| `group_permissions` | `array` | Elérhető csoport permission elemek listája. |
+
+---
+
+## Endpoint
+
+- **Név:** Group admin member role add
+- **Metódus:** `POST`
+- **Útvonal:** `/v1/group/admin/member/role/add`
+- **Leírás:** Admin jogosultsággal csoporttaghoz csoportszerepkör hozzárendelése.
+
+## Jogosultságok (Permissions)
+
+Az endpoint sikeres hívásához az alábbi feltételeknek egyszerre kell teljesülniük:
+
+1. **Kötelező hálózati fejléc**
+   - A route implementációja jellemzően elvárja az `x-forwarded-for` fejlécet.
+
+2. **Globális jogosultság**
+   - Kötelező permission: `group.admin.role.management`.
+
+## Használat
+
+### Kérés formátuma
+
+- **URL:** `/v1/group/admin/member/role/add`
+- **Metódus:** `POST`
+- **Header:**
+  - `x-forwarded-for: <client-ip>` (kötelező/ajánlott)
+  - `Content-Type: application/json`
+- **Rate limit:** `40 kérés / 5 perc`
+- **Body/Model:** `AddGroupMemberRole`
+
+## Paraméterek
+
+### Body paraméterek
+
+| Név | Típus | Kötelező | Leírás |
+|---|---|---|---|
+| `Bearer` | `string` | Nem | Access token a hitelesítéshez. |
+| `group_id` | `string` | Igen | Csoport azonosító. |
+| `user_id` | `string` | Igen | Felhasználó azonosító. |
+| `group_role_id` | `string` | Igen | Hozzárendelendő csoportszerepkör azonosítója. |
+
+## Válasz szerkezet
+
+| Név | Típus | Leírás |
+|---|---|---|
+| `message` | `string` | Művelet eredménye. |
+| `group_id` | `string` | Csoport azonosítója. |
+| `user_id` | `string` | Felhasználó azonosítója. |
+| `group_role_id` | `string` | Beállított csoportszerepkör azonosítója. |
+
+---
+
+## Endpoint
+
+- **Név:** Group admin member role modify
+- **Metódus:** `POST`
+- **Útvonal:** `/v1/group/admin/member/role/modify`
+- **Leírás:** Admin jogosultsággal csoporttagon lévő csoportszerepkör módosítása.
+
+## Jogosultságok (Permissions)
+
+Az endpoint sikeres hívásához az alábbi feltételeknek egyszerre kell teljesülniük:
+
+1. **Kötelező hálózati fejléc**
+   - A route implementációja jellemzően elvárja az `x-forwarded-for` fejlécet.
+
+2. **Globális jogosultság**
+   - Kötelező permission: `group.admin.role.management`.
+
+## Használat
+
+### Kérés formátuma
+
+- **URL:** `/v1/group/admin/member/role/modify`
+- **Metódus:** `POST`
+- **Header:**
+  - `x-forwarded-for: <client-ip>` (kötelező/ajánlott)
+  - `Content-Type: application/json`
+- **Rate limit:** `40 kérés / 5 perc`
+- **Body/Model:** `ModifyGroupMemberRole`
+
+## Paraméterek
+
+### Body paraméterek
+
+| Név | Típus | Kötelező | Leírás |
+|---|---|---|---|
+| `Bearer` | `string` | Nem | Access token a hitelesítéshez. |
+| `group_id` | `string` | Igen | Csoport azonosító. |
+| `user_id` | `string` | Igen | Felhasználó azonosító. |
+| `group_role_id` | `string` | Igen | Új csoportszerepkör azonosítója. |
+
+## Válasz szerkezet
+
+| Név | Típus | Leírás |
+|---|---|---|
+| `message` | `string` | Művelet eredménye. |
+| `group_id` | `string` | Csoport azonosítója. |
+| `user_id` | `string` | Felhasználó azonosítója. |
+| `previous_group_role_id` | `string`/`null` | Előző csoportszerepkör azonosítója. |
+| `group_role_id` | `string` | Új csoportszerepkör azonosítója. |
+
+---
+
+## Endpoint
+
+- **Név:** Group admin member role remove
+- **Metódus:** `POST`
+- **Útvonal:** `/v1/group/admin/member/role/remove`
+- **Leírás:** Admin jogosultsággal csoporttagról csoportszerepkör eltávolítása.
+
+## Jogosultságok (Permissions)
+
+Az endpoint sikeres hívásához az alábbi feltételeknek egyszerre kell teljesülniük:
+
+1. **Kötelező hálózati fejléc**
+   - A route implementációja jellemzően elvárja az `x-forwarded-for` fejlécet.
+
+2. **Globális jogosultság**
+   - Kötelező permission: `group.admin.role.management`.
+
+## Használat
+
+### Kérés formátuma
+
+- **URL:** `/v1/group/admin/member/role/remove`
+- **Metódus:** `POST`
+- **Header:**
+  - `x-forwarded-for: <client-ip>` (kötelező/ajánlott)
+  - `Content-Type: application/json`
+- **Rate limit:** `40 kérés / 5 perc`
+- **Body/Model:** `RemoveGroupMemberRole`
+
+## Paraméterek
+
+### Body paraméterek
+
+| Név | Típus | Kötelező | Leírás |
+|---|---|---|---|
+| `Bearer` | `string` | Nem | Access token a hitelesítéshez. |
+| `group_id` | `string` | Igen | Csoport azonosító. |
+| `user_id` | `string` | Igen | Felhasználó azonosító. |
+
+## Válasz szerkezet
+
+| Név | Típus | Leírás |
+|---|---|---|
+| `message` | `string` | Művelet eredménye. |
+| `group_id` | `string` | Csoport azonosítója. |
+| `user_id` | `string` | Felhasználó azonosítója. |
+| `removed_group_role_id` | `string` | Eltávolított csoportszerepkör azonosítója. |
+
+---
+
+## Endpoint
+
+- **Név:** Group admin role permission set fixed
+- **Metódus:** `POST`
+- **Útvonal:** `/v1/group/admin/role/permission/set/fixed`
+- **Leírás:** Admin jogosultsággal fix permission lista beállítása egy csoportszerepkörre.
+
+## Jogosultságok (Permissions)
+
+Az endpoint sikeres hívásához az alábbi feltételeknek egyszerre kell teljesülniük:
+
+1. **Kötelező hálózati fejléc**
+   - A route implementációja jellemzően elvárja az `x-forwarded-for` fejlécet.
+
+2. **Globális jogosultság**
+   - Kötelező permission: `group.admin.role.management`.
+
+## Használat
+
+### Kérés formátuma
+
+- **URL:** `/v1/group/admin/role/permission/set/fixed`
+- **Metódus:** `POST`
+- **Header:**
+  - `x-forwarded-for: <client-ip>` (kötelező/ajánlott)
+  - `Content-Type: application/json`
+- **Rate limit:** `25 kérés / 5 perc`
+- **Body/Model:** `SetGroupRoleFixedPermission`
+
+## Paraméterek
+
+### Body paraméterek
+
+| Név | Típus | Kötelező | Leírás |
+|---|---|---|---|
+| `Bearer` | `string` | Nem | Access token a hitelesítéshez. |
+| `group_id` | `string` | Igen | Csoport azonosító. |
+| `group_role_id` | `string` | Igen | Módosítandó szerepkör azonosítója. |
+| `group_permission_ids` | `array[string]` | Nem | Beállítandó fix permission azonosítók. |
+
+## Válasz szerkezet
+
+| Név | Típus | Leírás |
+|---|---|---|
+| `data` | `object`/`array` | Route-függő üzleti válasz. |
 
 ---
 
@@ -5450,7 +6005,18 @@ Az endpoint működése lépésenként:
 
 | Név | Típus | Leírás |
 |---|---|---|
-| `data` | `object`/`array` | Lekérdezett adatok. |
+| `id` | `string (UUID)` | Task azonosító. |
+| `issue_key` | `string` | Task kulcs. |
+| `summary` | `string` | Rövid összefoglaló. |
+| `description` | `string/null` | Részletes leírás. |
+| `task_type` | `string` | Task típus (`STORY`, `TASK`, `BUG`, `EPIC`, `SUBTASK`). |
+| `status` | `string` | Task státusz (`TODO`, `IN_PROGRESS`, `IN_REVIEW`, `DONE`, `BLOCKED`). |
+| `priority` | `string` | Prioritás. |
+| `parent_task_id` | `string (UUID)/null` | Szülő task azonosító (ha alfeladat). |
+| `subtasks_total` | `integer` | A taskhoz tartozó közvetlen alfeladatok száma. |
+| `subtasks_completed` | `integer` | A lezárt (vagy `completed_at`-tal rendelkező) alfeladatok száma. |
+| `created_at` | `string (ISO-8601 datetime)` | Létrehozási idő. |
+| `updated_at` | `string (ISO-8601 datetime)` | Utolsó módosítás ideje. |
 
 ## Tipikus hibák
 
@@ -5621,7 +6187,16 @@ Az endpoint működése lépésenként:
 
 | Név | Típus | Leírás |
 |---|---|---|
-| `items` | `array` | Lapozott listaelemek. |
+| `tasks` | `array[object]` | A lekért task lista. |
+| `total_tasks` | `integer` | A feltételnek megfelelő taskok teljes száma. |
+| `total_pages` | `integer` | Összes oldalszám. |
+| `current_page` | `integer` | Aktuális oldalszám. |
+| `tasks[].id` | `string (UUID)` | Task azonosító. |
+| `tasks[].summary` | `string` | Rövid összefoglaló. |
+| `tasks[].status` | `string` | Task státusz. |
+| `tasks[].parent_task_id` | `string (UUID)/null` | Szülő task azonosító. |
+| `tasks[].subtasks_total` | `integer` | A taskhoz tartozó közvetlen alfeladatok száma. |
+| `tasks[].subtasks_completed` | `integer` | A lezárt (vagy `completed_at`-tal rendelkező) alfeladatok száma. |
 
 ## Tipikus hibák
 
@@ -5630,6 +6205,92 @@ Az endpoint működése lépésenként:
 | `401` | `Authentication failed.` | Hiányzó/hibás token vagy hiányzó IP fejléc. |
 | `403` | `Permission denied.` | Jogosultság vagy csoporttagság hiánya. |
 | `404` | `Record not found.` | Nem található rekord. |
+| `422` | `Validation failed.` | Bemeneti validációs hiba. |
+| `429` | `Too Many Requests` | Rate limit túllépése. |
+| `500` | `Application error occurred.` | Váratlan szerveroldali hiba. |
+
+---
+
+## Endpoint
+
+- **Név:** Task history get
+- **Metódus:** `POST`
+- **Útvonal:** `/v1/task/history/get`
+- **Leírás:** Egy task aktivitási/történeti naplójának lekérdezése, legújabb elemekkel elöl.
+
+## Jogosultságok (Permissions)
+
+Az endpoint sikeres hívásához az alábbi feltételeknek egyszerre kell teljesülniük:
+
+1. **Kötelező hálózati fejléc**
+   - A route implementációja jellemzően elvárja az `x-forwarded-for` fejlécet.
+
+2. **Csoportszintű jogosultság**
+   - Kötelező csoport permission: `group.task.read`.
+   - Kötelező csoporttagság és tokenből feloldható csoportszerepkör.
+
+3. **Token kezelés**
+   - A kérésmodell tokenes mezőt használhat (`Bearer` vagy auth token mezők).
+
+## Működés
+
+Az endpoint működése lépésenként:
+
+1. A rendszer beolvassa az `x-forwarded-for` fejlécet.
+2. A request mezőit validálja (ha van modell).
+3. Csoportszintű jogosultság-ellenőrzés fut le.
+4. A task-csoport kapcsolat ellenőrzése után a history rekordokat `created_at DESC` sorrendben adja vissza.
+
+## Használat
+
+### Kérés formátuma
+
+- **URL:** `/v1/task/history/get`
+- **Metódus:** `POST`
+- **Header:**
+  - `x-forwarded-for: <client-ip>` (kötelező/ajánlott)
+  - `Content-Type: application/json`
+- **Rate limit:** `120 kérés / 2 perc`
+- **Body/Model:** `GetTaskHistory`
+
+## Paraméterek
+
+### Header paraméterek
+
+| Név | Típus | Kötelező | Leírás |
+|---|---|---|---|
+| `x-forwarded-for` | `string` | Igen | A kliens IP címe. |
+
+### Body paraméterek
+
+| Név | Típus | Kötelező | Leírás |
+|---|---|---|---|
+| `Bearer` | `string` | Nem | Access token a hitelesítéshez. |
+| `content-type` | `string` | Nem | Technikai tartalomtípus mező. |
+| `group_id` | `string` | Igen | Csoport azonosító. |
+| `task_id` | `string` | Igen | A vizsgált task azonosítója. |
+| `limit` | `integer` | Nem | Visszaadott history elemek maximális száma (alapértelmezés: 50). |
+
+## Válasz szerkezet
+
+| Név | Típus | Leírás |
+|---|---|---|
+| `data` | `array[object]` | A task history elemek listája (legújabb elöl). |
+| `data[].id` | `string (UUID)` | History rekord azonosítója. |
+| `data[].task_id` | `string (UUID)` | Érintett task azonosítója. |
+| `data[].user_id` | `string (UUID)/null` | A módosítást végző user azonosítója. |
+| `data[].action_type` | `string` | Művelettípus (`CREATED`, `STATUS_CHANGED`, stb.). |
+| `data[].old_value` | `string/null` | Korábbi érték (ha értelmezett). |
+| `data[].new_value` | `string/null` | Új érték (ha értelmezett). |
+| `data[].created_at` | `string (ISO-8601 datetime)` | Esemény időpontja. |
+
+## Tipikus hibák
+
+| HTTP kód | `detail` | Mikor fordul elő |
+|---|---|---|
+| `401` | `Authentication failed.` | Hiányzó/hibás token vagy hiányzó IP fejléc. |
+| `403` | `Permission denied.` | Jogosultság vagy csoporttagság hiánya. |
+| `404` | `Record not found.` | Nem található task vagy nincs hozzáférés a csoporton belül. |
 | `422` | `Validation failed.` | Bemeneti validációs hiba. |
 | `429` | `Too Many Requests` | Rate limit túllépése. |
 | `500` | `Application error occurred.` | Váratlan szerveroldali hiba. |

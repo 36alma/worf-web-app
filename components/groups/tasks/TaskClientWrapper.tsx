@@ -1,4 +1,6 @@
-import {useState, useEffect, useMemo} from 'react';
+'use client';
+
+import {useState, useEffect, useMemo, useCallback} from 'react';
 import {Plus, Tags, Filter, Search, Columns3, List, Calendar as CalendarIcon, Trash2, Clock} from 'lucide-react';
 import toast from 'react-hot-toast';
 import clsx from 'clsx';
@@ -8,12 +10,37 @@ import ListView from './ListView';
 import CalendarView from './CalendarView';
 import TimelineView from './TimelineView';
 import FilterSheet, {FilterState} from './FilterSheet';
-import TaskDetailSheet from './TaskDetailSheet';
+import TaskDetailModal from './TaskDetailModal';
 import TaskFormModal from './TaskFormModal';
 import CategoryManagerModal from './CategoryManagerModal';
 
-import {Task} from './types';
+import {Task, GroupUser} from './types';
 import {getTaskPanel, modifyTask, deleteTask} from '@/lib/api/tasks';
+import {getGroupMembers} from '@/lib/api/groups';
+
+// ── User list parser (mirrors admin panel's toUsers) ──
+const parseGroupUsers = (payload: unknown): GroupUser[] => {
+  if (!payload || typeof payload !== 'object') return [];
+  const raw = payload as Record<string, unknown>;
+  const data = raw.data ?? raw;
+  const inner = typeof data === 'object' && data !== null ? (data as Record<string, unknown>) : {};
+  const arr = inner.data ?? inner.users ?? inner.group_users ?? inner.items ?? (Array.isArray(data) ? data : []);
+  if (!Array.isArray(arr)) return [];
+
+  return arr
+    .map((item: any): GroupUser | null => {
+      if (!item || typeof item !== 'object') return null;
+      const user_id = String(item.user_id ?? '').trim();
+      if (!user_id) return null;
+      return {
+        user_id,
+        full_name: String(item.full_name ?? item.fullname ?? item.name ?? item.email ?? ''),
+        email: String(item.email ?? ''),
+        username: String(item.username ?? (item.email ?? '').split('@')[0] ?? ''),
+      };
+    })
+    .filter((u): u is GroupUser => u !== null);
+};
 
 export interface TaskClientWrapperProps {
   groupId: string;
@@ -31,6 +58,10 @@ export default function TaskClientWrapper({groupId, permissions}: TaskClientWrap
   // Data
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Group Users (for Assignee Combobox)
+  const [groupUsers, setGroupUsers] = useState<GroupUser[]>([]);
+  const [groupUsersLoading, setGroupUsersLoading] = useState(false);
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
@@ -54,6 +85,25 @@ export default function TaskClientWrapper({groupId, permissions}: TaskClientWrap
     dateFrom: '',
     dateTo: ''
   });
+
+  // ── Fetch group users (cached) ──
+  const fetchGroupUsers = useCallback(async () => {
+    setGroupUsersLoading(true);
+    try {
+      const res = await getGroupMembers(groupId);
+      const users = parseGroupUsers(res);
+      setGroupUsers(users);
+    } catch {
+      // Silent — non-critical for task operations
+    } finally {
+      setGroupUsersLoading(false);
+    }
+  }, [groupId]);
+
+  // Fetch group users on mount
+  useEffect(() => {
+    fetchGroupUsers();
+  }, [fetchGroupUsers]);
 
   const fetchTasks = async () => {
     if (!permissions.task.read) return;
@@ -355,7 +405,7 @@ export default function TaskClientWrapper({groupId, permissions}: TaskClientWrap
         onApplyFilters={handleApplyFilters} 
       />
 
-      <TaskDetailSheet
+      <TaskDetailModal
         open={!!selectedTask}
         onClose={() => setSelectedTask(null)}
         task={selectedTask}
@@ -365,6 +415,8 @@ export default function TaskClientWrapper({groupId, permissions}: TaskClientWrap
           setTasks(prev => prev.map(t => t.id === updatedTask.id ? updatedTask : t));
           setSelectedTask(updatedTask);
         }}
+        groupUsers={groupUsers}
+        groupUsersLoading={groupUsersLoading}
       />
 
       {isFormOpen && (
@@ -374,6 +426,8 @@ export default function TaskClientWrapper({groupId, permissions}: TaskClientWrap
           onClose={() => setIsFormOpen(false)}
           groupId={groupId}
           onSuccess={fetchTasks}
+          groupUsers={groupUsers}
+          groupUsersLoading={groupUsersLoading}
         />
       )}
 

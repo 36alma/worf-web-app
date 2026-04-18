@@ -95,16 +95,16 @@ export default function TaskColumn({
       </div>
 
       <div className="flex flex-1 flex-col gap-3 overflow-y-auto pr-1">
-        <SortableContext items={tasks.map((t) => t.task_id)} strategy={verticalListSortingStrategy}>
+        <SortableContext items={tasks.map((t) => t.id)} strategy={verticalListSortingStrategy}>
           {tasks.map((task) => (
             <SortableTaskCard
-              key={task.task_id}
+              key={task.id}
               task={task}
               permissions={permissions}
               onClick={() => onTaskClick(task)}
-              isSelected={selectedTaskIds.includes(task.task_id)}
-              onToggleSelection={() => onToggleSelection(task.task_id)}
-              onModifySummary={(newSummary) => onModifyTaskSummary(task.task_id, newSummary)}
+              isSelected={selectedTaskIds.includes(task.id)}
+              onToggleSelection={() => onToggleSelection(task.id)}
+              onModifySummary={(newSummary) => onModifyTaskSummary(task.id, newSummary)}
             />
           ))}
         </SortableContext>
@@ -123,3 +123,4 @@ export default function TaskColumn({
     </div>
   );
 }
+

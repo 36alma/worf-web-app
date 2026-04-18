@@ -1,10 +1,20 @@
 import Link from 'next/link';
 import { Bot } from 'lucide-react';
+import {redirect} from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 import LoginForm from '@/components/auth/LoginForm';
+import {getServerRefreshToken} from '@/lib/utils/cookies';
 
-export default async function LoginPage() {
+export default async function LoginPage({params}: {params: Promise<{locale: string}>}) {
+  const {locale} = await params;
   const t = await getTranslations('auth');
+
+  const refreshToken = await getServerRefreshToken();
+  if (refreshToken) {
+    const fallback = encodeURIComponent(`/${locale}/auth/login`);
+    const destination = encodeURIComponent(`/${locale}/dashboard`);
+    redirect(`/api/auth/token?redirect=${destination}&fallback=${fallback}`);
+  }
 
   return (
     <div className="auth-page -m-4 md:-m-8">

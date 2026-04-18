@@ -325,6 +325,36 @@ textarea::placeholder {
   background: #080808;
 }
 
+/* FullCalendar event styling */
+.worf-calendar .fc-event {
+  background-color: var(--accent) !important;
+  border-color: var(--accent) !important;
+  border-radius: 4px !important;
+  font-size: 0.75rem !important;
+}
+
+.worf-calendar .fc-event-title {
+  color: #fff !important;
+  font-weight: 500;
+}
+
+.worf-calendar .fc-event-cancelled {
+  opacity: 0.4;
+  text-decoration: line-through;
+}
+
+.worf-calendar .fc-button-primary:not(:disabled).fc-button-active {
+  background-color: var(--accent) !important;
+  border-color: var(--accent) !important;
+  color: #fff !important;
+}
+
+.worf-calendar .fc-toolbar-title {
+  color: #f4f4f5;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
 .page-content {
   animation: fadeInUp 300ms ease-out;
 }
@@ -1176,7 +1206,7 @@ textarea::placeholder {
   color: var(--text-primary);
   font-size: 15px;
   line-height: 1.7;
-  max-width: 760px;
+  max-width: none;
 }
 
 .post-detail-content h1 {
@@ -1253,6 +1283,26 @@ textarea::placeholder {
 .post-detail-content th {
   background: var(--bg-elevated);
   font-weight: 600;
+}
+
+.post-detail-content [style*='text-align: left'],
+.post-detail-content .has-text-align-left {
+  text-align: left;
+}
+
+.post-detail-content [style*='text-align: center'],
+.post-detail-content .has-text-align-center {
+  text-align: center;
+}
+
+.post-detail-content [style*='text-align: right'],
+.post-detail-content .has-text-align-right {
+  text-align: right;
+}
+
+.post-detail-content [style*='text-align: justify'],
+.post-detail-content .has-text-align-justify {
+  text-align: justify;
 }
 
 .post-skeleton {

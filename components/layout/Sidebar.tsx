@@ -10,12 +10,18 @@ import * as Tooltip from '@radix-ui/react-tooltip';
 import { CalendarDays, Check, ChevronDown, ClipboardList, HelpCircle, Home, Shield, Sparkles, StickyNote, Users, X } from 'lucide-react';
 import Link from 'next/link';
 import { useLocale, useTranslations } from 'next-intl';
-import { usePathname, useRouter } from 'next/navigation';
+import { useParams, usePathname, useRouter } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { ElementType } from 'react';
 import { getUserGroups } from '@/lib/api/groups';
 import { getGroupPermissions } from '@/lib/api/permissions';
-import { hasPermissionRequirement, navPermissionRequirements, type NavKey } from '@/lib/permissions/access';
+import { normalizeGroupId } from '@/lib/utils/groupId';
+import {
+  hasPermissionRequirement,
+  navPermissionRequirements,
+  groupNavPermissionRequirements,
+  type NavKey
+} from '@/lib/permissions/access';
 import { useAuthStore } from '@/lib/store/authStore';
 import { usePermissionStore } from '@/lib/store/permissionStore';
 import { useUiStore } from '@/lib/store/uiStore';
@@ -31,53 +37,73 @@ const navIcons: Record<NavKey, ElementType> = {
   tasks: ClipboardList,
   calendar: CalendarDays,
   posts: StickyNote,
+  roles: Shield,
+  permissions: Shield,
   admin: Shield,
   profile: Users
 };
 
-const navKeys: NavKey[] = ['dashboard', 'groups', 'tasks', 'calendar', 'posts', 'admin'];
+const navKeys: NavKey[] = ['dashboard', 'groups', 'tasks', 'calendar', 'posts', 'roles', 'permissions', 'admin'];
 
-const selectedGroupNavPermissions: Partial<Record<NavKey, string[]>> = {
-  tasks: ['group.task.read'],
-  calendar: ['group.calendar.read', 'group.calendar.write'],
-  posts: ['group.post.read']
+const readData = (payload: unknown): unknown => {
+  if (!payload || typeof payload !== 'object') {
+    return payload;
+  }
+
+  const candidate = payload as Record<string, unknown>;
+  if ('data' in candidate) {
+    return candidate.data;
+  }
+
+  return payload;
 };
 
-const normalizeGroups = (payload: unknown): SidebarGroup[] => {
-  if (!payload) return [];
-  let data = payload;
-  if (typeof payload === 'string') {
-    try {
-      data = JSON.parse(payload);
-    } catch {
-      return [];
+const findArrayValue = (source: unknown): unknown[] => {
+  if (Array.isArray(source)) {
+    return source;
+  }
+
+  if (!source || typeof source !== 'object') {
+    return [];
+  }
+
+  const objectValue = source as Record<string, unknown>;
+  const knownArray = ['group_users', 'groups', 'items', 'rows', 'result'].find((key) => Array.isArray(objectValue[key]));
+  if (knownArray) {
+    return objectValue[knownArray] as unknown[];
+  }
+
+  for (const value of Object.values(objectValue)) {
+    if (Array.isArray(value)) {
+      return value;
     }
   }
 
-  const results: SidebarGroup[] = [];
-  const traverse = (item: unknown) => {
-    if (!item || typeof item === 'function') return;
-    if (Array.isArray(item)) {
-      item.forEach(traverse);
-      return;
-    }
-    if (typeof item === 'object') {
-      const record = item as Record<string, unknown>;
-      const keys = Object.keys(record);
-      const idKey = keys.find((key) => key.toLowerCase().endsWith('id') || key.toLowerCase() === 'id');
-      const nameKey = keys.find((key) => key.toLowerCase().includes('name') || key.toLowerCase() === 'title');
-      const id = idKey ? record[idKey] : null;
-      const name = nameKey ? record[nameKey] : null;
-      if (id && id !== 'undefined' && id !== 'null') {
-        results.push({ id: String(id), name: String(name || id) });
-        return;
-      }
-      Object.values(record).forEach(traverse);
-    }
-  };
+  return [];
+};
 
-  traverse(data);
-  return results.filter((value, index, all) => all.findIndex((entry) => entry.id === value.id) === index);
+const normalizeGroups = (payload: unknown): SidebarGroup[] => {
+  const source = readData(payload);
+  const arrayValue = findArrayValue(source);
+
+  return arrayValue
+    .map((item) => {
+      if (!item || typeof item !== 'object') {
+        return null;
+      }
+
+      const row = item as Record<string, unknown>;
+      const id = String(row.group_id ?? row.id ?? '').trim();
+      if (!id) {
+        return null;
+      }
+
+      return {
+        id,
+        name: String(row.group_name ?? row.name ?? id)
+      };
+    })
+    .filter((value): value is SidebarGroup => value !== null);
 };
 
 function SidebarContent({ isMobile }: { isMobile?: boolean }) {
@@ -87,35 +113,42 @@ function SidebarContent({ isMobile }: { isMobile?: boolean }) {
   const locale = useLocale();
   const router = useRouter();
   const pathname = usePathname();
+  const params = useParams();
+  const groupId = normalizeGroupId(typeof params.groupId === 'string' ? params.groupId : '');
   const { setSidebarOpen, selectedGroupId, setSelectedGroupId } = useUiStore();
   const { user } = useAuthStore();
   const {
     systemPermissions,
     isSystemPermissionsLoaded,
     groupPermissionsById,
-    groupPermissionsLoadingById,
+    groupPermissionsStatusById,
     setGroupPermissions,
-    setGroupPermissionsLoading
+    setGroupPermissionsLoading,
+    setGroupPermissionsError
   } = usePermissionStore();
 
   const [groups, setGroups] = useState<SidebarGroup[]>([]);
   const [isGroupsLoaded, setIsGroupsLoaded] = useState(false);
+  const [isGroupsLoadError, setIsGroupsLoadError] = useState(false);
   const [groupSectionOpen, setGroupSectionOpen] = useState(true);
 
   const { pathGroupId, pathGroupSubSegment } = useMemo(() => {
     const match = pathname.match(new RegExp(`^/${locale}/groups/([^/]+)(?:/([^/]+))?`));
-    return {
-      pathGroupId: match?.[1] ?? '',
+    const res = {
+      pathGroupId: groupId || '',
       pathGroupSubSegment: match?.[2] ?? ''
     };
-  }, [pathname, locale]);
+    return res;
+  }, [pathname, locale, groupId]);
 
   const loadGroups = useCallback(async () => {
     try {
       const response = await getUserGroups();
       setGroups(normalizeGroups(response?.data));
+      setIsGroupsLoadError(false);
     } catch {
       setGroups([]);
+      setIsGroupsLoadError(true);
     } finally {
       setIsGroupsLoaded(true);
     }
@@ -131,30 +164,34 @@ function SidebarContent({ isMobile }: { isMobile?: boolean }) {
     }
   }, [pathGroupId, selectedGroupId, setSelectedGroupId]);
 
+  const activeGroupId = pathGroupId || selectedGroupId;
+
   useEffect(() => {
-    if (!pathGroupId || !isGroupsLoaded) return;
+    if (!pathGroupId || !isGroupsLoaded || isGroupsLoadError) return;
     const exists = groups.some((group) => group.id === pathGroupId);
     if (!exists) {
+      // Silent Policy: if the group is no longer in the user's list,
+      // just clear the selected state. Do NOT redirect — that creates
+      // a redirect loop when combined with AppShell's permission guard.
       setSelectedGroupId('');
-      router.replace(`/${locale}/groups`);
-      router.refresh();
     }
-  }, [groups, isGroupsLoaded, locale, pathGroupId, router, setSelectedGroupId]);
+  }, [groups, isGroupsLoadError, isGroupsLoaded, pathGroupId, setSelectedGroupId]);
 
   useEffect(() => {
     let mounted = true;
     const loadSelectedGroupPermissions = async () => {
-      if (!selectedGroupId) return;
-      if (groupPermissionsById[selectedGroupId] || groupPermissionsLoadingById[selectedGroupId]) return;
-      setGroupPermissionsLoading(selectedGroupId, true);
+      if (!activeGroupId) return;
+      const permissionStatus = groupPermissionsStatusById[activeGroupId];
+      if (permissionStatus === 'loading' || permissionStatus === 'loaded' || permissionStatus === 'error') return;
+      setGroupPermissionsLoading(activeGroupId, true);
       try {
-        const permissions = await getGroupPermissions(selectedGroupId);
+        const permissions = await getGroupPermissions(activeGroupId);
         if (mounted) {
-          setGroupPermissions(selectedGroupId, permissions);
+          setGroupPermissions(activeGroupId, permissions);
         }
       } catch {
         if (mounted) {
-          setGroupPermissions(selectedGroupId, {});
+          setGroupPermissionsError(activeGroupId);
         }
       }
     };
@@ -163,15 +200,17 @@ function SidebarContent({ isMobile }: { isMobile?: boolean }) {
       mounted = false;
     };
   }, [
-    selectedGroupId,
-    groupPermissionsById,
-    groupPermissionsLoadingById,
+    activeGroupId,
+    groupPermissionsStatusById,
     setGroupPermissions,
+    setGroupPermissionsError,
     setGroupPermissionsLoading
   ]);
 
-  const selectedGroupPermissions = selectedGroupId ? groupPermissionsById[selectedGroupId] : null;
-  const isSelectedGroupPermissionsLoaded = selectedGroupId ? Boolean(selectedGroupPermissions) : true;
+  const activeGroupPermissions = activeGroupId ? groupPermissionsById[activeGroupId] : null;
+  const activeGroupPermissionStatus = activeGroupId
+    ? groupPermissionsStatusById[activeGroupId] ?? 'idle'
+    : 'loaded';
 
   const handleGroupSelect = (groupId: string) => {
     setSelectedGroupId(groupId);
@@ -186,37 +225,59 @@ function SidebarContent({ isMobile }: { isMobile?: boolean }) {
       router.refresh();
       return;
     }
-    router.push(`/${locale}/groups/${groupId}`);
+    router.push(`/${locale}/groups/${encodeURIComponent(groupId)}`);
   };
 
   const resolveHref = (key: NavKey) => {
-    if (!selectedGroupId) return `/${locale}/${key}`;
-    if (key === 'groups') return `/${locale}/groups/${selectedGroupId}`;
-    if (key === 'calendar') return `/${locale}/groups/${selectedGroupId}/calendar`;
-    if (key === 'posts') return `/${locale}/groups/${selectedGroupId}/posts`;
+    if (!activeGroupId) return `/${locale}/${key}`;
+    const encodedGroupId = encodeURIComponent(activeGroupId);
+    if (key === 'groups') return `/${locale}/groups/${encodedGroupId}`;
+    if (key === 'tasks') return `/${locale}/groups/${encodedGroupId}/tasks`;
+    if (key === 'calendar') return `/${locale}/groups/${encodedGroupId}/calendar`;
+    if (key === 'posts') return `/${locale}/posts`; // Posts feed is global and context-aware
+    if (key === 'roles') return `/${locale}/groups/${encodedGroupId}/roles`;
+    if (key === 'permissions') return `/${locale}/groups/${encodedGroupId}/permissions`;
     return `/${locale}/${key}`;
   };
 
-  const filteredNav = navKeys
-    .filter((key) => {
-      const requirement = navPermissionRequirements[key];
-      if (!requirement) return true;
-      if (!isSystemPermissionsLoaded) return false;
-      return hasPermissionRequirement(systemPermissions, requirement);
-    })
-    .filter((key) => {
-      const requiredGroupPermissions = selectedGroupNavPermissions[key];
-      if (!requiredGroupPermissions) return true;
-      if (selectedGroupId) {
-        if (!isSelectedGroupPermissionsLoaded || !selectedGroupPermissions) return false;
-        return requiredGroupPermissions.some((permission) => selectedGroupPermissions[permission]);
+  const filteredNav = navKeys.filter((key) => {
+    if (activeGroupId) {
+      // In group context: completely hide roles and permissions (not rendered, not disabled)
+      // These are global/admin-only items with no function within a group
+      if (key === 'roles' || key === 'permissions') {
+        return false;
+      }
+
+      // Group context - apply normal permission filtering
+      const requiredGroupPermissions = groupNavPermissionRequirements[key];
+      if (requiredGroupPermissions) {
+        if (activeGroupPermissionStatus !== 'loaded' || !activeGroupPermissions) return true;
+        return hasPermissionRequirement(activeGroupPermissions, requiredGroupPermissions, { mode: 'explicit' });
+      }
+      
+      const globalRequirement = navPermissionRequirements[key];
+      if (globalRequirement === 'GROUP_ONLY') return true; 
+      if (globalRequirement) {
+        if (!isSystemPermissionsLoaded) return false;
+        return hasPermissionRequirement(systemPermissions, globalRequirement);
       }
       return true;
-    });
+    } else {
+      // Global context - show all items with appropriate permissions
+      const globalRequirement = navPermissionRequirements[key];
+      if (globalRequirement === 'GROUP_ONLY') return false; 
+      if (globalRequirement) {
+        if (!isSystemPermissionsLoaded) return false;
+        return hasPermissionRequirement(systemPermissions, globalRequirement);
+      }
+      return true;
+    }
+  });
 
   const canOpenGroups = (() => {
     const requirement = navPermissionRequirements.groups;
     if (!requirement) return true;
+    if (requirement === 'GROUP_ONLY') return true;
     if (!isSystemPermissionsLoaded) return false;
     return hasPermissionRequirement(systemPermissions, requirement);
   })();
@@ -240,13 +301,12 @@ function SidebarContent({ isMobile }: { isMobile?: boolean }) {
         <ScrollArea.Root className="flex-1">
           <ScrollArea.Viewport className={`h-full p-[var(--sidebar-padding)] ${isMobile ? 'pb-2' : ''}`}>
             <div className="space-y-6">
-              <section>
-                <p className="mb-3 px-2 text-[11px] uppercase tracking-[0.05em] text-[var(--text-tertiary)]">{t('workspace')}</p>
-                {canOpenGroups && (
+              {canOpenGroups && isGroupsLoaded && groups.length > 0 && (
+                <section>
+                  <p className="mb-3 px-2 text-[11px] uppercase tracking-[0.05em] text-[var(--text-tertiary)]">{t('workspace')}</p>
                   <Collapsible.Root open={groupSectionOpen} onOpenChange={setGroupSectionOpen}>
-
                     <Collapsible.Content>
-                      <Select.Root value={selectedGroupId || '__none__'} onValueChange={(value) => handleGroupSelect(value === '__none__' ? '' : value)}>
+                      <Select.Root value={activeGroupId || '__none__'} onValueChange={(value) => handleGroupSelect(value === '__none__' ? '' : value)}>
                         <Select.Trigger className="workspace-select inline-flex h-[var(--input-height)] w-full items-center justify-between rounded-[var(--radius-md)] border border-[var(--border-default)] bg-[var(--bg-input)] px-3 text-sm text-[var(--text-primary)] hover:border-[var(--border-hover)]">
                           <Select.Value placeholder={groupsT('team_selector_placeholder')} />
                           <Select.Icon>
@@ -270,11 +330,10 @@ function SidebarContent({ isMobile }: { isMobile?: boolean }) {
                           </Select.Content>
                         </Select.Portal>
                       </Select.Root>
-                      {isGroupsLoaded && groups.length === 0 && <p className="mt-2 px-1 text-xs text-[var(--text-tertiary)]">{groupsT('team_selector_empty')}</p>}
                     </Collapsible.Content>
                   </Collapsible.Root>
-                )}
-              </section>
+                </section>
+              )}
 
               <section>
                 <p className="mb-2 px-2 text-[11px] uppercase tracking-[0.05em] text-[var(--text-tertiary)]">{t('navigation')}</p>

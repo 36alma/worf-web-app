@@ -64,8 +64,8 @@ html[data-theme='dark'] {
   --all-day-bg: #111111;
   --now-indicator-color: #ff6b2c;
 
-  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+  --font-sans: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: 'Cascadia Code', 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
 
   --sidebar-width: 240px;
   --sidebar-padding: 12px;

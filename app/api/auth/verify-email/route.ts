@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
 
   const endpoint = '/v1/auth/verify-email/{email_verification_token}'.replace(
     '{email_verification_token}',
-    encodeURIComponent(token)
+    token
   );
 
   const {status, data} = await callWorfApi(endpoint, {

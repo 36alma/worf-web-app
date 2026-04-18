@@ -12,21 +12,34 @@ export interface Column<T> {
 export interface DataTableProps<T extends object> {
   columns: Column<T>[];
   rows: T[];
+  /** Custom content rendered inside an empty tbody — replaces the default "No data" row. */
+  emptyState?: ReactNode;
 }
 
-export default function DataTable<T extends object>({columns, rows}: DataTableProps<T>) {
+export default function DataTable<T extends object>({columns, rows, emptyState}: DataTableProps<T>) {
   return (
     <Tooltip.Provider delayDuration={170}>
-      <div className="overflow-hidden rounded-[var(--radius-lg)] border border-[var(--border-default)] bg-[var(--bg-surface)]">
+      {/* 0.5px subtle border — background already separates the surface */}
+      <div className="overflow-hidden rounded-[var(--radius-lg)] border-[0.5px] border-[var(--border-subtle)] bg-[var(--bg-surface)]">
         <ScrollArea.Root>
           <ScrollArea.Viewport className="w-full">
             <table className="min-w-full text-left text-sm">
               <thead className="sticky top-0 z-10 bg-[var(--bg-surface)]">
                 <tr className="h-[var(--table-header-height)] border-b border-[var(--border-subtle)]">
                   {columns.map((column) => (
-                    <th key={String(column.key)} scope="col" className="px-4 text-xs uppercase tracking-[0.04em] text-[var(--text-tertiary)]">
-                      <span className="inline-flex items-center gap-1 hover:text-[var(--text-secondary)]">
-                        <ArrowUpDown size={14} strokeWidth={1.75} />
+                    <th
+                      key={String(column.key)}
+                      scope="col"
+                      /* group — so the sort icon can react to th hover */
+                      className="group px-4 text-xs font-medium text-[var(--text-tertiary)]"
+                    >
+                      <span className="inline-flex items-center gap-1.5 transition-colors hover:text-[var(--text-secondary)]">
+                        {/* Sort icon: invisible by default, fades in on column hover */}
+                        <ArrowUpDown
+                          size={13}
+                          strokeWidth={1.75}
+                          className="opacity-0 transition-opacity duration-150 group-hover:opacity-60"
+                        />
                         {column.label}
                       </span>
                     </th>
@@ -48,23 +61,32 @@ export default function DataTable<T extends object>({columns, rows}: DataTablePr
               <tbody>
                 {rows.length === 0 ? (
                   <tr>
-                    <td colSpan={columns.length + 1} className="h-20 px-4 text-sm text-[var(--text-tertiary)]">
-                      <span className="inline-flex items-center gap-2">
-                        <Table2 size={16} strokeWidth={1.75} />
-                        No data
-                      </span>
+                    <td colSpan={columns.length + 1} className="px-4 py-10 text-center">
+                      {emptyState ?? (
+                        <span className="inline-flex items-center gap-2 text-sm text-[var(--text-tertiary)]">
+                          <Table2 size={16} strokeWidth={1.75} />
+                          No data
+                        </span>
+                      )}
                     </td>
                   </tr>
                 ) : (
                   rows.map((row, index) => (
-                    <tr key={index} className="table-row h-[var(--table-row-height)] border-b border-[var(--border-subtle)] hover:bg-[var(--bg-hover)]">
+                    /* h-12 = 48px minimum row height */
+                    <tr
+                      key={index}
+                      className="table-row h-12 border-b border-[var(--border-subtle)] hover:bg-[var(--bg-hover)]"
+                    >
                       {columns.map((column) => (
                         <td key={String(column.key)} className="px-4 py-3 text-[var(--text-primary)]">
                           {column.render ? column.render(row[column.key], row) : String(row[column.key] ?? '-')}
                         </td>
                       ))}
                       <td className="px-2 text-[var(--text-secondary)]">
-                        <button type="button" className="inline-flex h-7 w-7 items-center justify-center rounded-[var(--radius-sm)] hover:bg-[var(--bg-active)] hover:text-[var(--text-primary)]">
+                        <button
+                          type="button"
+                          className="inline-flex h-7 w-7 items-center justify-center rounded-[var(--radius-sm)] hover:bg-[var(--bg-active)] hover:text-[var(--text-primary)]"
+                        >
                           <MoreHorizontal size={14} strokeWidth={1.75} />
                         </button>
                       </td>

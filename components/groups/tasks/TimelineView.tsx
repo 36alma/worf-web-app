@@ -33,7 +33,7 @@ export default function TimelineView({ groupId, permissions, onTaskClick }: Time
     if (task.id === '1' && task.name === 'Nincs feladat') return;
 
     // Find original task to open sheet
-    const originalTask = rawTasks.find(t => (t.task_id || t.id) === task.id);
+    const originalTask = rawTasks.find(t => (t.id || t.id) === task.id);
     if (originalTask) {
       onTaskClick(originalTask);
     }
@@ -149,3 +149,4 @@ export default function TimelineView({ groupId, permissions, onTaskClick }: Time
     </div>
   );
 }
+

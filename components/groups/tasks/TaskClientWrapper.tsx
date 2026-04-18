@@ -69,18 +69,21 @@ export default function TaskClientWrapper({groupId, permissions}: TaskClientWrap
       let fetchedTasks: Task[] = [];
 
       if (Array.isArray(data.tasks)) {
-        fetchedTasks = data.tasks.map((t: any) => ({ ...t, task_id: t.task_id || t.id }));
+        fetchedTasks = data.tasks.map((t: any) => ({ ...t, id: t.id || t.task_id }));
         setHasMore(data.current_page < data.total_pages);
       } else if (Array.isArray(data)) {
-        fetchedTasks = data.map((t: any) => ({ ...t, task_id: t.task_id || t.id }));
+        fetchedTasks = data.map((t: any) => ({ ...t, id: t.id || t.task_id }));
         setHasMore(data.length === 100);
       } else {
         setHasMore(false);
       }
       
       setTasks(fetchedTasks);
-    } catch {
-      toast.error('Hiba a feladatok betöltésekor');
+    } catch (error: any) {
+      const status = error?.response?.status;
+      if (status === 403) toast.error('Nincs olvasási jogosultságod (403)');
+      else if (status === 429) toast.error('Túl sok kérés (429)');
+      else toast.error('Hiba a feladatok betöltésekor');
     } finally {
       setLoading(false);
     }
@@ -123,7 +126,7 @@ export default function TaskClientWrapper({groupId, permissions}: TaskClientWrap
     if (selectedTaskIds.length === filteredTasks.length) {
       setSelectedTaskIds([]);
     } else {
-      setSelectedTaskIds(filteredTasks.map(t => t.task_id));
+      setSelectedTaskIds(filteredTasks.map(t => t.id));
     }
   };
 
@@ -136,8 +139,12 @@ export default function TaskClientWrapper({groupId, permissions}: TaskClientWrap
       toast.success(`${selectedTaskIds.length} feladat sikeresen törölve`);
       setSelectedTaskIds([]);
       fetchTasks();
-    } catch {
-      toast.error('Hiba történt a törlés során');
+    } catch (error: any) {
+      const status = error?.response?.status;
+      if (status === 403) toast.error('Nincs törlési jogosultságod (403)');
+      else if (status === 422) toast.error('Hibás kérés (422)');
+      else if (status === 429) toast.error('Túl sok kérés (429)');
+      else toast.error('Hiba történt a törlés során');
     }
   };
 
@@ -145,11 +152,15 @@ export default function TaskClientWrapper({groupId, permissions}: TaskClientWrap
   const handleModifySummary = async (taskId: string, newSummary: string) => {
     if (!permissions.task.modify) return;
     try {
-      setTasks(prev => prev.map(t => t.task_id === taskId ? {...t, summary: newSummary} : t));
+      setTasks(prev => prev.map(t => t.id === taskId ? {...t, summary: newSummary} : t));
       await modifyTask({group_id: groupId, task_id: taskId, summary: newSummary});
       toast.success('Cím módosítva');
-    } catch {
-      toast.error('Hiba a módosítás során');
+    } catch (error: any) {
+      const status = error?.response?.status;
+      if (status === 403) toast.error('Nincs módosítási jogosultságod (403)');
+      else if (status === 422) toast.error('Érvénytelen adatok (422)');
+      else if (status === 429) toast.error('Túl sok kérés (429)');
+      else toast.error('Hiba a módosítás során');
       fetchTasks();
     }
   };
@@ -157,11 +168,14 @@ export default function TaskClientWrapper({groupId, permissions}: TaskClientWrap
   const handleTaskMove = async (taskId: string, newStatus: string) => {
     try {
       // Optimistic locally handled by KanbanView, but we sync root state
-      setTasks(prev => prev.map(t => t.task_id === taskId ? {...t, status: newStatus} : t));
+      setTasks(prev => prev.map(t => t.id === taskId ? {...t, status: newStatus} : t));
       await modifyTask({group_id: groupId, task_id: taskId, status: newStatus});
       toast.success('Státusz módosítva');
-    } catch {
-      toast.error('Hiba az áthelyezés során');
+    } catch (error: any) {
+      const status = error?.response?.status;
+      if (status === 403) toast.error('Nincs jogosultságod a státusz módosításához (403)');
+      else if (status === 422) toast.error('Érvénytelen kérés (422)');
+      else toast.error('Hiba az áthelyezés során');
       fetchTasks();
     }
   };
@@ -348,7 +362,7 @@ export default function TaskClientWrapper({groupId, permissions}: TaskClientWrap
         groupId={groupId}
         permissions={{task: permissions.task, comment: permissions.comment}}
         onUpdateTask={(updatedTask) => {
-          setTasks(prev => prev.map(t => t.task_id === updatedTask.task_id ? updatedTask : t));
+          setTasks(prev => prev.map(t => t.id === updatedTask.id ? updatedTask : t));
           setSelectedTask(updatedTask);
         }}
       />

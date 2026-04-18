@@ -188,17 +188,33 @@ export function useCalendar({initialGroupId}: UseCalendarArgs = {}) {
   const [error, setError] = useState<string | null>(null);
 
   const safeError = useCallback((reason: unknown) => {
-    if (reason && typeof reason === 'object') {
-      const candidate = reason as {message?: string};
-      if (candidate.message) {
-        return candidate.message;
-      }
+    if (!reason || typeof reason !== 'object') {
+      return 'Calendar request failed';
+    }
+
+    const candidate = reason as {
+      message?: string;
+      response?: {
+        data?: {
+          message?: string;
+          error?: string;
+        };
+      };
+    };
+
+    const backendMessage = candidate.response?.data?.message ?? candidate.response?.data?.error;
+    if (backendMessage) {
+      return backendMessage;
+    }
+
+    if (candidate.message) {
+      return candidate.message;
     }
 
     return 'Calendar request failed';
   }, []);
 
-  const loadGroups = useCallback(async () => {
+  const loadGroups = useCallback(async (): Promise<GroupOption[]> => {
     try {
       const response = await getUserGroups();
       const rows = mapGroups(response.data);
@@ -207,41 +223,48 @@ export function useCalendar({initialGroupId}: UseCalendarArgs = {}) {
       if (!groupId && rows.length > 0) {
         setGroupId(initialGroupId ?? rows[0].id);
       }
+
+      return rows;
     } catch {
       // Group list is optional for fixed group pages.
+      return [];
     }
   }, [groupId, initialGroupId]);
 
-  const loadCalendars = useCallback(async () => {
+  const loadCalendars = useCallback(async (): Promise<{rows: GroupCalendar[]; selectedId: string}> => {
     if (!groupId) {
       setCalendars([]);
       setCalendarId('');
-      return;
+      return {rows: [], selectedId: ''};
     }
 
     const response = await getGroupCalendars({group_id: groupId});
     const rows = mapCalendars(response.data, groupId);
     setCalendars(rows);
 
-    if (!rows.some((row) => row.id === calendarId)) {
-      setCalendarId(rows[0]?.id ?? '');
+    const selectedId = rows.some((row) => row.id === calendarId) ? calendarId : (rows[0]?.id ?? '');
+    if (selectedId !== calendarId) {
+      setCalendarId(selectedId);
     }
+
+    return {rows, selectedId};
   }, [calendarId, groupId]);
 
-  const loadEvents = useCallback(async () => {
-    if (!groupId || !calendarId) {
+  const loadEvents = useCallback(async (targetCalendarId?: string) => {
+    const activeCalendarId = targetCalendarId ?? calendarId;
+    if (!groupId || !activeCalendarId) {
       setEvents([]);
       return;
     }
 
     const response = await getGroupCalendarEvents({
       group_id: groupId,
-      group_calendar_id: calendarId,
+      group_calendar_id: activeCalendarId,
       include_cancelled: includeCancelled || undefined,
       only_global: scopeFilter === 'global' ? true : undefined
     });
 
-    let rows = mapEvents(response.data, groupId, calendarId);
+    let rows = mapEvents(response.data, groupId, activeCalendarId);
     if (scopeFilter === 'group') {
       rows = rows.filter((row) => !row.isGlobal);
     }
@@ -254,13 +277,19 @@ export function useCalendar({initialGroupId}: UseCalendarArgs = {}) {
     setError(null);
 
     try {
-      await loadCalendars();
+      await loadGroups();
+      const {selectedId} = await loadCalendars();
+      if (selectedId) {
+        await loadEvents(selectedId);
+      } else {
+        setEvents([]);
+      }
     } catch (reason) {
       setError(safeError(reason));
     } finally {
       setLoading(false);
     }
-  }, [loadCalendars, safeError]);
+  }, [loadCalendars, loadEvents, loadGroups, safeError]);
 
   useEffect(() => {
     void loadGroups();

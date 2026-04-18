@@ -19,7 +19,7 @@ import toast from 'react-hot-toast';
 
 import TaskColumn from './TaskColumn';
 import TaskCard from './TaskCard';
-import TaskDetailSheet from './TaskDetailSheet';
+import TaskDetailModal from './TaskDetailModal';
 import TaskFormModal from './TaskFormModal';
 import CategoryManagerModal from './CategoryManagerModal';
 import {Task} from './types';
@@ -442,7 +442,7 @@ export default function TaskBoard({groupId, permissions}: TaskBoardProps) {
         </div>
       </div>
 
-      <TaskDetailSheet
+      <TaskDetailModal
         open={!!selectedTask}
         onClose={() => setSelectedTask(null)}
         task={selectedTask}

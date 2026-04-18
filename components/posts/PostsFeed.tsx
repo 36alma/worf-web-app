@@ -49,7 +49,14 @@ import {
 } from '@/lib/api/posts';
 import { getGroupPermissions } from '@/lib/api/permissions';
 import { hasPermissionRequirement } from '@/lib/permissions/access';
+import {
+  canDeleteGlobalPost,
+  canDeleteGroupPost,
+  canModifyGlobalPost,
+  canModifyGroupPost
+} from '@/lib/permissions/postGuard';
 import { usePermissionStore } from '@/lib/store/permissionStore';
+import { useAuthStore } from '@/lib/store/authStore';
 import { getFormattedExcerpt } from '@/lib/utils/postUtils';
 import Button from '@/components/ui/Button';
 import ConfirmDialog from '@/components/ui/ConfirmDialog';
@@ -74,6 +81,7 @@ interface PostItem {
   title: string;
   body: string;
   author: string;
+  author_id?: string;
   createdAt: string;
   categoryId: string;
   categoryName: string;
@@ -233,16 +241,25 @@ const normalizePosts = (payload: unknown): PostItem[] => {
         return null;
       }
 
+      const authorId = String(
+        nestedPost?.author_id ??
+        row.author_id ??
+        (nestedAuthor?.id) ??
+        (row.author && typeof row.author === 'object' ? (row.author as RawObject).id : undefined) ??
+        ''
+      );
+
       return {
         id,
         title: String(titleValue),
         body: String(bodyValue),
         author: String(authorValue),
+        author_id: authorId === '' ? undefined : authorId,
         createdAt: String(createdAtValue),
         categoryId: String(categoryIdValue),
         categoryName: String(categoryNameValue),
         status: statusValue === 'draft' || statusValue === 'scheduled' ? statusValue : 'published'
-      };
+      } as PostItem;
     })
     .filter((row): row is PostItem => Boolean(row));
 };
@@ -311,13 +328,15 @@ export default function PostsFeed({ mode, groupId = '' }: PostsFeedProps) {
   const t = useTranslations('posts');
   const locale = useLocale();
   const router = useRouter();
+  const { user } = useAuthStore();
   const {
     systemPermissions,
     isSystemPermissionsLoaded,
     groupPermissionsById,
-    groupPermissionsLoadingById,
+    groupPermissionsStatusById,
     setGroupPermissions,
-    setGroupPermissionsLoading
+    setGroupPermissionsLoading,
+    setGroupPermissionsError
   } = usePermissionStore();
 
   const [groups, setGroups] = useState<GroupItem[]>([]);
@@ -349,7 +368,8 @@ export default function PostsFeed({ mode, groupId = '' }: PostsFeedProps) {
         return;
       }
 
-      if (groupPermissionsById[targetGroupId] || groupPermissionsLoadingById[targetGroupId]) {
+      const permissionStatus = groupPermissionsStatusById[targetGroupId];
+      if (permissionStatus === 'loading' || permissionStatus === 'loaded' || permissionStatus === 'error') {
         return;
       }
 
@@ -358,10 +378,10 @@ export default function PostsFeed({ mode, groupId = '' }: PostsFeedProps) {
         const permissions = await getGroupPermissions(targetGroupId);
         setGroupPermissions(targetGroupId, permissions);
       } catch {
-        setGroupPermissions(targetGroupId, {});
+        setGroupPermissionsError(targetGroupId);
       }
     },
-    [groupPermissionsById, groupPermissionsLoadingById, setGroupPermissions, setGroupPermissionsLoading]
+    [groupPermissionsStatusById, setGroupPermissions, setGroupPermissionsError, setGroupPermissionsLoading]
   );
 
   const canCreateInScope = useMemo(() => {
@@ -380,28 +400,20 @@ export default function PostsFeed({ mode, groupId = '' }: PostsFeedProps) {
     return hasPermissionRequirement(systemPermissions, { anyOf: ['post.create.global'] });
   }, [activeGroupPermissions, isGroupScope, isSystemPermissionsLoaded, systemPermissions]);
 
-  const canEditInScope = useMemo(() => {
-    if (!isGroupScope || !activeGroupPermissions) {
-      return false;
-    }
-
-    return hasPermissionRequirement(activeGroupPermissions, { anyOf: ['group.post.modify'] });
-  }, [activeGroupPermissions, isGroupScope]);
-
   const canDeleteInScope = useMemo(() => {
     if (isGroupScope) {
       if (!activeGroupPermissions) {
         return false;
       }
 
-      return hasPermissionRequirement(activeGroupPermissions, { anyOf: ['group.post.delete', 'group.post.modify'] });
+      return hasPermissionRequirement(activeGroupPermissions, { anyOf: ['group.post.delete'] });
     }
 
     if (!isSystemPermissionsLoaded) {
       return false;
     }
 
-    return hasPermissionRequirement(systemPermissions, { anyOf: ['post.delete.global', 'post.create.global'] });
+    return hasPermissionRequirement(systemPermissions, { anyOf: ['post.delete.global'] });
   }, [activeGroupPermissions, isGroupScope, isSystemPermissionsLoaded, systemPermissions]);
 
   const canReadCategories = useMemo(() => {
@@ -519,10 +531,7 @@ export default function PostsFeed({ mode, groupId = '' }: PostsFeedProps) {
   }, [loadCategories]);
 
   useEffect(() => {
-    if (mode !== 'global') {
-      return;
-    }
-
+    // Remove mode check so groups always load, enabling group name display
     let mounted = true;
     const loadGroups = async () => {
       try {
@@ -601,7 +610,6 @@ export default function PostsFeed({ mode, groupId = '' }: PostsFeedProps) {
 
       if (categoryEditingId) {
         if (!canModifyCategory) {
-          toast.error(t('toasts.noCategoryModifyPermission'));
           return;
         }
 
@@ -623,7 +631,6 @@ export default function PostsFeed({ mode, groupId = '' }: PostsFeedProps) {
         toast.success(t('toasts.categoryUpdated'));
       } else {
         if (!canCreateCategory) {
-          toast.error(t('toasts.noCategoryCreatePermission'));
           return;
         }
 
@@ -668,7 +675,6 @@ export default function PostsFeed({ mode, groupId = '' }: PostsFeedProps) {
     }
 
     if (!canDeleteCategory) {
-      toast.error(t('toasts.noCategoryDeletePermission'));
       return;
     }
 
@@ -701,7 +707,6 @@ export default function PostsFeed({ mode, groupId = '' }: PostsFeedProps) {
     }
 
     if (!canDeleteInScope) {
-      toast.error(t('toasts.noPostDeletePermission'));
       return;
     }
 
@@ -723,20 +728,20 @@ export default function PostsFeed({ mode, groupId = '' }: PostsFeedProps) {
   const canManageCategories = canCreateCategory || canModifyCategory || canDeleteCategory;
   const createEditorHref = useMemo(() => {
     if (isGroupScope && activeGroupId) {
-      return `/${locale}/groups/${activeGroupId}/posts/new`;
+      return `/${locale}/groups/${encodeURIComponent(activeGroupId)}/posts/new`;
     }
 
     return `/${locale}/posts/new`;
   }, [activeGroupId, isGroupScope, locale]);
 
   const selectedGroupName = useMemo(() => {
-    if (!selectedFilterGroupId) {
+    if (!activeGroupId) {
       return t('filters.globalFeed');
     }
 
-    const selectedGroup = groups.find((group) => group.id === selectedFilterGroupId);
+    const selectedGroup = groups.find((group) => group.id === activeGroupId);
     return selectedGroup?.name ?? t('filters.globalFeed');
-  }, [groups, selectedFilterGroupId, t]);
+  }, [groups, activeGroupId, t]);
 
   const selectedCategoryName = useMemo(() => {
     if (selectedCategoryFilterId === 'all') {
@@ -751,7 +756,7 @@ export default function PostsFeed({ mode, groupId = '' }: PostsFeedProps) {
     const encodedPostId = encodeURIComponent(postId);
 
     if (isGroupScope && activeGroupId) {
-      router.push(`/${locale}/groups/${activeGroupId}/posts/${encodedPostId}`);
+      router.push(`/${locale}/groups/${encodeURIComponent(activeGroupId)}/posts/${encodedPostId}`);
       return;
     }
 
@@ -762,7 +767,7 @@ export default function PostsFeed({ mode, groupId = '' }: PostsFeedProps) {
     const encodedPostId = encodeURIComponent(postId);
 
     if (isGroupScope && activeGroupId) {
-      router.push(`/${locale}/groups/${activeGroupId}/posts/${encodedPostId}/edit`);
+      router.push(`/${locale}/groups/${encodeURIComponent(activeGroupId)}/posts/${encodedPostId}/edit`);
       return;
     }
 
@@ -771,7 +776,7 @@ export default function PostsFeed({ mode, groupId = '' }: PostsFeedProps) {
 
   const copyPostLink = async (postId: string) => {
     const encodedPostId = encodeURIComponent(postId);
-    const path = isGroupScope && activeGroupId ? `/${locale}/groups/${activeGroupId}/posts/${encodedPostId}` : `/${locale}/posts/${encodedPostId}`;
+    const path = isGroupScope && activeGroupId ? `/${locale}/groups/${encodeURIComponent(activeGroupId)}/posts/${encodedPostId}` : `/${locale}/posts/${encodedPostId}`;
     const url = typeof window !== 'undefined' ? `${window.location.origin}${path}` : path;
 
     try {
@@ -789,14 +794,30 @@ export default function PostsFeed({ mode, groupId = '' }: PostsFeedProps) {
     }));
   };
 
+  // ── group.post.read gate (Silent Policy) ─────────────────────────
+  // In group mode, if permissions are loaded but "group.post.read" is
+  // false, render an empty page silently — no error message.
+  if (mode === 'group' && activeGroupId) {
+    const groupPermStatus = groupPermissionsStatusById[activeGroupId];
+    const permissionsLoaded = groupPermStatus === 'loaded' || groupPermStatus === 'error';
+    if (permissionsLoaded && !hasPermissionRequirement(activeGroupPermissions || {}, { anyOf: ['group.post.read'] })) {
+      return null;
+    }
+  }
+
   return (
     <Tooltip.Provider delayDuration={100}>
       <section className="posts-page">
         <div className="page-header posts-header">
           <div className="page-title-section">
-            <h1 className="page-title posts-page-title">
+            <h1 className="page-title posts-page-title inline-flex items-center gap-2 flex-wrap">
               <FileText size={20} className="page-title-icon" />
-              {mode === 'group' ? t('groupTitle') : t('title')}
+              <span>{mode === 'group' ? t('groupTitle') : t('title')}</span>
+              {isGroupScope && selectedGroupName !== t('filters.globalFeed') && (
+                <span className="text-[var(--text-secondary)] font-normal text-[15px]">
+                  — {selectedGroupName}
+                </span>
+              )}
             </h1>
             <span className="page-count-badge">{t('stats.postCount', { count: filteredPosts.length })}</span>
           </div>
@@ -959,23 +980,56 @@ export default function PostsFeed({ mode, groupId = '' }: PostsFeedProps) {
                               <Eye size={14} />
                               <span>{t('actions.view')}</span>
                             </DropdownMenu.Item>
-                            <DropdownMenu.Item className="posts-dropdown-item" onClick={() => openPostEditor(post.id)} disabled={!canEditInScope}>
-                              <Pencil size={14} />
-                              <span>{t('actions.edit')}</span>
-                            </DropdownMenu.Item>
                             <DropdownMenu.Item className="posts-dropdown-item" onClick={() => void copyPostLink(post.id)}>
                               <Copy size={14} />
                               <span>{t('actions.copyLink')}</span>
                             </DropdownMenu.Item>
-                            <DropdownMenu.Item className="posts-dropdown-item" onClick={() => togglePin(post.id)}>
-                              <Pin size={14} />
-                              <span>{pinned ? t('actions.unpin') : t('actions.pin')}</span>
-                            </DropdownMenu.Item>
+                            {/* ── Edit menu item (Silent Policy: hidden if no permission) ── */}
+                            {(() => {
+                              const canEdit = isGroupScope
+                                ? canModifyGroupPost(
+                                    user?.id,
+                                    post.author_id || '',
+                                    activeGroupPermissions || {}
+                                  )
+                                : canModifyGlobalPost(
+                                    user?.id,
+                                    post.author_id || '',
+                                    systemPermissions
+                                  );
+                              if (!canEdit) return null;
+                              return (
+                                <DropdownMenu.Item className="posts-dropdown-item" onClick={() => openPostEditor(post.id)}>
+                                  <Pencil size={14} />
+                                  <span>{t('actions.edit')}</span>
+                                </DropdownMenu.Item>
+                              );
+                            })()}
                             <DropdownMenu.Separator className="posts-dropdown-separator" />
-                            <DropdownMenu.Item className="posts-dropdown-item danger" onClick={() => setDeletingPostId(post.id)} disabled={!canDeleteInScope}>
-                              <Trash2 size={14} />
-                              <span>{t('actions.delete')}</span>
-                            </DropdownMenu.Item>
+                            {/* ── Delete menu item (Silent Policy: hidden if no permission) ── */}
+                            {(() => {
+                              const canDelete = isGroupScope
+                                ? canDeleteGroupPost(
+                                    user?.id,
+                                    post.author_id || '',
+                                    activeGroupPermissions || {}
+                                  )
+                                : canDeleteGlobalPost(
+                                    user?.id,
+                                    post.author_id || '',
+                                    systemPermissions
+                                  );
+                              if (!canDelete) return null;
+                              return (
+                                <DropdownMenu.Item
+                                  className="posts-dropdown-item danger"
+                                  onClick={() => setDeletingPostId(post.id)}
+                                >
+                                  <Trash2 size={14} />
+                                  <span>{t('actions.delete')}</span>
+                                </DropdownMenu.Item>
+                              );
+                            })()}
                           </DropdownMenu.Content>
                         </DropdownMenu.Portal>
                       </DropdownMenu.Root>

@@ -2,11 +2,95 @@ import {request as httpRequest} from 'node:http';
 import {request as httpsRequest} from 'node:https';
 import {NextRequest, NextResponse} from 'next/server';
 import {getServerAccessToken} from '@/lib/utils/cookies';
+import {normalizeGroupId} from '@/lib/utils/groupId';
 
 type RawHttpResponse = {
   status: number;
   text: string;
   contentType: string;
+};
+
+const tryExtractFirstJson = (input: string): string | null => {
+  const text = input.trim();
+  if (!text) return null;
+  const start = text[0];
+  if (start !== '{' && start !== '[') return null;
+
+  let depth = 0;
+  let inString = false;
+  let escape = false;
+
+  for (let i = 0; i < text.length; i += 1) {
+    const ch = text[i];
+
+    if (inString) {
+      if (escape) {
+        escape = false;
+        continue;
+      }
+      if (ch === '\\') {
+        escape = true;
+        continue;
+      }
+      if (ch === '"') {
+        inString = false;
+      }
+      continue;
+    }
+
+    if (ch === '"') {
+      inString = true;
+      continue;
+    }
+
+    if (ch === '{' || ch === '[') {
+      depth += 1;
+      continue;
+    }
+
+    if (ch === '}' || ch === ']') {
+      depth -= 1;
+      if (depth === 0) {
+        return text.slice(0, i + 1);
+      }
+    }
+  }
+
+  return null;
+};
+
+const normalizePossiblyBrokenJsonResponse = (
+  text: string,
+  contentType: string,
+  requestLabel: string
+): {text: string; contentType: string} => {
+  const trimmed = text.trim();
+  const likelyJson =
+    contentType.toLowerCase().includes('json') || trimmed.startsWith('{') || trimmed.startsWith('[');
+
+  if (!trimmed || !likelyJson) {
+    return {text, contentType};
+  }
+
+  try {
+    const parsed = JSON.parse(trimmed);
+    return {text: JSON.stringify(parsed), contentType: 'application/json'};
+  } catch {
+    const extracted = tryExtractFirstJson(trimmed);
+    if (!extracted) {
+      console.warn(`[Proxy] Upstream returned invalid JSON payload for ${requestLabel}`);
+      return {text, contentType: 'text/plain; charset=utf-8'};
+    }
+
+    try {
+      const parsed = JSON.parse(extracted);
+      console.warn(`[Proxy] Upstream JSON had trailing garbage for ${requestLabel}. Trimmed to first valid JSON value.`);
+      return {text: JSON.stringify(parsed), contentType: 'application/json'};
+    } catch {
+      console.warn(`[Proxy] Upstream returned non-recoverable JSON payload for ${requestLabel}`);
+      return {text, contentType: 'text/plain; charset=utf-8'};
+    }
+  }
 };
 
 const normalizeQueryValue = (value: string): unknown => {
@@ -43,7 +127,12 @@ const getQueryPayload = (request: NextRequest): Record<string, unknown> => {
   return queryPayload;
 };
 
-function sendJsonWithBody(url: URL, method: string, payload: Record<string, any>): Promise<RawHttpResponse> {
+function sendJsonWithBody(
+  url: URL,
+  method: string,
+  payload: Record<string, any>,
+  headers: Record<string, string> = {}
+): Promise<RawHttpResponse> {
   const data = JSON.stringify(payload);
 
   return new Promise((resolve, reject) => {
@@ -57,7 +146,8 @@ function sendJsonWithBody(url: URL, method: string, payload: Record<string, any>
         method,
         headers: {
           'Content-Type': 'application/json',
-          'Content-Length': Buffer.byteLength(data)
+          'Content-Length': Buffer.byteLength(data),
+          ...headers
         }
       },
       (res) => {
@@ -87,6 +177,10 @@ async function handleProxy(request: NextRequest, params: {path: string[]}) {
 
   const joinedPath = params.path.join('/');
   const normalizedPath = joinedPath.startsWith('v1/') ? joinedPath.slice(3) : joinedPath;
+  const shouldTranslatePostToGet =
+    request.method === 'POST' &&
+    (normalizedPath === 'group/permission' || normalizedPath === 'user/permission');
+  const upstreamMethod = shouldTranslatePostToGet ? 'GET' : request.method;
   const targetUrl = new URL(
     `/v1/${normalizedPath}`,
     apiBase.endsWith('/') ? apiBase : `${apiBase}/`
@@ -115,16 +209,37 @@ async function handleProxy(request: NextRequest, params: {path: string[]}) {
     ...(token ? {Bearer: token} : {})
   };
 
-  const response = await sendJsonWithBody(targetUrl, request.method, payload);
-
-  if (response.status >= 400) {
-    console.error(`[Proxy] Backend error for ${request.method} ${joinedPath}:`, response.status, response.text);
+  // Normalise group_id: callers sometimes pass URL-encoded base64 ids (e.g.
+  // %3D instead of =).  Decode so the value matches the raw database key.
+  if (typeof payload.group_id === 'string') {
+    payload.group_id = normalizeGroupId(payload.group_id);
   }
 
-  return new NextResponse(response.text, {
+  const forwardedFor =
+    request.headers.get('x-forwarded-for') ??
+    request.headers.get('cf-connecting-ip') ??
+    '127.0.0.1';
+
+
+
+
+  const response = await sendJsonWithBody(targetUrl, upstreamMethod, payload, {
+    ...(forwardedFor ? {'x-forwarded-for': forwardedFor} : {})
+  });
+  const normalizedResponse = normalizePossiblyBrokenJsonResponse(
+    response.text,
+    response.contentType,
+    `${upstreamMethod} ${joinedPath}`
+  );
+
+  if (response.status >= 400) {
+    console.error(`[Proxy] Backend error for ${upstreamMethod} ${joinedPath}:`, response.status, response.text);
+  }
+
+  return new NextResponse(normalizedResponse.text, {
     status: response.status,
     headers: {
-      'Content-Type': response.contentType
+      'Content-Type': normalizedResponse.contentType
     }
   });
 }

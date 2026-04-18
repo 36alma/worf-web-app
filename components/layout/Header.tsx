@@ -17,7 +17,7 @@ export interface HeaderProps {
   className?: string;
 }
 
-const navKeys: NavKey[] = ['dashboard', 'groups', 'tasks', 'calendar', 'posts', 'admin', 'profile'];
+const navKeys: NavKey[] = ['dashboard', 'groups', 'tasks', 'calendar', 'posts', 'roles', 'permissions', 'admin', 'profile'];
 
 export default function Header({className}: HeaderProps) {
   const pathname = usePathname();
@@ -32,7 +32,11 @@ export default function Header({className}: HeaderProps) {
   const {toggleSidebar} = useUiStore();
 
   const handleLogout = useCallback(async () => {
-    await logout();
+    try {
+      await logout();
+    } catch {
+      // Best-effort logout: continue local cleanup and redirect even if upstream logout fails.
+    }
     clearPermissions();
     router.push(`/${locale}/auth/login`);
     router.refresh();
@@ -44,14 +48,15 @@ export default function Header({className}: HeaderProps) {
     const parent = segments.at(-2) ?? '';
 
     const parentLabel = parent === 'posts' ? postsT('title') : navKeys.find((key) => key === parent) ? navT(parent as NavKey) : '';
+    const parentHref = '/' + [locale, ...segments.slice(0, -1)].join('/');
 
     let currentLabel = navKeys.find((key) => key === current) ? navT(current as NavKey) : current;
     if (current === 'new' && parent === 'posts') currentLabel = postsT('createPost');
-    if (current === 'edit' && parent === 'posts') currentLabel = postsT('edit.pageTitle');
+    if (current === 'edit') currentLabel = postsT('edit.pageTitle');
     if (parent === 'posts' && current !== 'new' && current !== 'edit') currentLabel = postsT('detail.title');
 
-    return {parentLabel, currentLabel};
-  }, [pathname, navT, postsT]);
+    return {parentLabel, currentLabel, parentHref};
+  }, [locale, pathname, navT, postsT]);
 
   return (
     <header className={`topbar ${className ?? ''}`}>
@@ -71,7 +76,7 @@ export default function Header({className}: HeaderProps) {
         {breadcrumb.parentLabel ? (
           <>
             <ChevronRight size={14} strokeWidth={1.75} className="breadcrumb-sep" />
-            <Link href={`/${locale}/posts`} className="hover:text-[var(--text-primary)]">
+            <Link href={breadcrumb.parentHref} className="hover:text-[var(--text-primary)]">
               {breadcrumb.parentLabel}
             </Link>
           </>
@@ -118,4 +123,3 @@ export default function Header({className}: HeaderProps) {
     </header>
   );
 }
-

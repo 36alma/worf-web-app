@@ -22,9 +22,9 @@ export default function CalendarView({tasks, permissions, onTaskClick}: Calendar
     return tasks
       .filter(t => t.due_at || t.started_at)
       .map(task => ({
-        id: task.task_id,
+        id: task.id,
         title: task.summary,
-        start: task.due_at || task.started_at,
+        start: (task.due_at || task.started_at) as string,
         allDay: true,
         backgroundColor: STATUS_COLORS[task.status] || '#6366f1', // indigo-500 fallback
         borderColor: 'transparent',
@@ -66,3 +66,4 @@ export default function CalendarView({tasks, permissions, onTaskClick}: Calendar
     </div>
   );
 }
+

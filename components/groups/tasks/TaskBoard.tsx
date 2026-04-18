@@ -94,11 +94,11 @@ export default function TaskBoard({groupId, permissions}: TaskBoardProps) {
       let fetchedTasks: Task[] = [];
 
       if (Array.isArray(data.tasks)) {
-        fetchedTasks = data.tasks.map((t: any) => ({ ...t, task_id: t.task_id || t.id }));
+        fetchedTasks = data.tasks.map((t: any) => ({ ...t, task_id: t.id || t.id }));
         setHasMore(data.current_page < data.total_pages);
       } else if (Array.isArray(data)) {
         // Fallback if data is a direct array
-        fetchedTasks = data.map((t: any) => ({ ...t, task_id: t.task_id || t.id }));
+        fetchedTasks = data.map((t: any) => ({ ...t, task_id: t.id || t.id }));
         setHasMore(data.length === 100);
       } else {
         setHasMore(false);
@@ -117,7 +117,7 @@ export default function TaskBoard({groupId, permissions}: TaskBoardProps) {
   }, [groupId, permissions.task.read, currentPage]);
 
   const activeTask = useMemo(
-    () => tasks.find((t) => t.task_id === activeId),
+    () => tasks.find((t) => t.id === activeId),
     [activeId, tasks]
   );
 
@@ -192,11 +192,11 @@ export default function TaskBoard({groupId, permissions}: TaskBoardProps) {
 
     if (isActiveTask) {
       setTasks((tasks) => {
-        const activeIndex = tasks.findIndex((t) => t.task_id === activeId);
+        const activeIndex = tasks.findIndex((t) => t.id === activeId);
         let overIndex = -1;
 
         if (isOverTask) {
-          overIndex = tasks.findIndex((t) => t.task_id === overId);
+          overIndex = tasks.findIndex((t) => t.id === overId);
           // Same column reorder
           if (tasks[activeIndex].status === tasks[overIndex].status) {
             // Note: Since we don't have an order API, we just reorder locally for UI feel
@@ -229,7 +229,7 @@ export default function TaskBoard({groupId, permissions}: TaskBoardProps) {
     const {active, over} = event;
     if (!over) return;
 
-    const task = tasks.find(t => t.task_id === active.id);
+    const task = tasks.find(t => t.id === active.id);
     const destinationCol = STATUS_COLUMNS.includes(over.id as string) 
       ? over.id as string 
       : over.data.current?.task?.status;
@@ -241,7 +241,7 @@ export default function TaskBoard({groupId, permissions}: TaskBoardProps) {
     
     try {
       // Trigger modify only if we actually changed columns
-      await modifyTask({group_id: groupId, task_id: task.task_id, status: destinationCol});
+      await modifyTask({group_id: groupId, task_id: task.id, status: destinationCol});
       toast.success('Kártya áthelyezve');
       if (destinationCol === 'DONE') {
         triggerConfetti();
@@ -277,7 +277,7 @@ export default function TaskBoard({groupId, permissions}: TaskBoardProps) {
   const handleModifySummary = async (taskId: string, newSummary: string) => {
     if (!permissions.task.modify) return;
     try {
-      setTasks(prev => prev.map(t => t.task_id === taskId ? {...t, summary: newSummary} : t));
+      setTasks(prev => prev.map(t => t.id === taskId ? {...t, summary: newSummary} : t));
       await modifyTask({group_id: groupId, task_id: taskId, summary: newSummary});
       toast.success('Cím módosítva');
     } catch {
@@ -449,7 +449,7 @@ export default function TaskBoard({groupId, permissions}: TaskBoardProps) {
         groupId={groupId}
         permissions={{task: permissions.task, comment: permissions.comment}}
         onUpdateTask={(updatedTask) => {
-          setTasks(prev => prev.map(t => t.task_id === updatedTask.task_id ? updatedTask : t));
+          setTasks(prev => prev.map(t => t.id === updatedTask.id ? updatedTask : t));
           setSelectedTask(updatedTask);
         }}
       />
@@ -475,3 +475,4 @@ export default function TaskBoard({groupId, permissions}: TaskBoardProps) {
     </div>
   );
 }
+

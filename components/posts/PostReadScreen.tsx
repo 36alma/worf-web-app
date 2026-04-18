@@ -5,7 +5,6 @@ import {useEffect, useMemo, useState} from 'react';
 import {useLocale, useTranslations} from 'next-intl';
 import {ArrowLeft, Calendar, ChevronDown, Edit, Globe, Tag, User} from 'lucide-react';
 import toast from 'react-hot-toast';
-import MarkdownRenderer from '@/components/posts/MarkdownRenderer';
 import {getGlobalPost, getGroupPost} from '@/lib/api/posts';
 
 type RawObject = Record<string, unknown>;
@@ -134,9 +133,9 @@ export default function PostReadScreen({scope, groupId = '', postId}: PostReadSc
     }
   }, [postId]);
 
-  const backHref = scope === 'group' ? `/${locale}/groups/${groupId}/posts` : `/${locale}/posts`;
+  const backHref = scope === 'group' ? `/${locale}/groups/${encodeURIComponent(groupId)}/posts` : `/${locale}/posts`;
   const editHref =
-    scope === 'group' ? `/${locale}/groups/${groupId}/posts/${encodeURIComponent(resolvedPostId)}/edit` : `/${locale}/posts/${encodeURIComponent(resolvedPostId)}/edit`;
+    scope === 'group' ? `/${locale}/groups/${encodeURIComponent(groupId)}/posts/${encodeURIComponent(resolvedPostId)}/edit` : `/${locale}/posts/${encodeURIComponent(resolvedPostId)}/edit`;
 
   const [loading, setLoading] = useState(true);
   const [post, setPost] = useState<ReadPostData | null>(null);
@@ -264,11 +263,14 @@ export default function PostReadScreen({scope, groupId = '', postId}: PostReadSc
           </div>
 
           <div className="post-read-content mt-4">
-            <MarkdownRenderer content={post.body} className="post-detail-content" />
+            {post.body.trim() ? (
+              <div className="post-detail-content prose prose-invert max-w-none" dangerouslySetInnerHTML={{__html: post.body}} />
+            ) : (
+              <p className="text-sm text-[var(--text-tertiary)]">-</p>
+            )}
           </div>
         </article>
       )}
     </section>
   );
 }
-

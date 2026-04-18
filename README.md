@@ -1,36 +1,123 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# WORF Frontend Calendar Integration
 
-## Getting Started
+Teljes, production-ready naptár modul Next.js + React + TypeScript alapon, a Worf Calendar API endpointokra építve.
 
-First, run the development server:
+## Telepítés
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Konfiguráció
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+`.env.local`:
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+```env
+WORF_API_URL=https://your-backend.example.com
+NEXT_PUBLIC_API_PROXY_URL=/api/proxy
+```
 
-## Learn More
+Megjegyzések:
+- A kliens a `Bearer` tokent JSON body-ba injektálja.
+- Minden kéréshez `x-forwarded-for` header kerül.
+- A proxy route szintén átadja a tokent és az IP-t.
 
-To learn more about Next.js, take a look at the following resources:
+## Mappaszerkezet
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```text
+src/
+  types/
+    calendar.types.ts
+    ui.types.ts
+  api/
+    client.ts
+    calendarApi.ts
+  services/
+    calendarService.ts
+  hooks/
+    useCalendars.ts
+    useCalendar.ts
+    useEvents.ts
+    useCreateEvent.ts
+    useUpdateEvent.ts
+    useDeleteEvent.ts
+  contexts/
+    CalendarContext.tsx
+  components/
+    calendar/
+      CalendarLayout.tsx
+      CalendarList.tsx
+      CalendarView.tsx
+      EventModal.tsx
+      EventList.tsx
+      RecurringEventHandler.tsx
+    ui/
+      Button.tsx
+      Modal.tsx
+      Toast.tsx
+      ErrorBoundary.tsx
+  utils/
+    dateUtils.ts
+    errorHandler.ts
+    rateLimiter.ts
+  __tests__/
+    api.test.ts
+    hooks.test.tsx
+    components.test.tsx
+    integration.test.ts
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
+## Használat meglévő appban
 
-## Deploy on Vercel
+```tsx
+import { CalendarProvider } from '@/src/contexts/CalendarContext';
+import CalendarLayout from '@/src/components/calendar/CalendarLayout';
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+function App() {
+  return (
+    <CalendarProvider groupId="group-123" token="bearer-token">
+      <CalendarLayout groupId="group-123" />
+    </CalendarProvider>
+  );
+}
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+## API Rate Limit kezelés
+
+- `calendar_mutate`: 35 kérés / 5 perc
+- `calendar_get`: 90 kérés / 2 perc
+- `event_mutate`: 50 kérés / 5 perc
+- `event_get`: 120 kérés / 2 perc
+
+Mit csinál a kliens:
+- Lokális rolling-window limiter minden kategóriára.
+- 429 esetén automatikus retry (exponential backoff, max 3 próbálkozás).
+- Rate limit hibáknál egységes hibaosztály + toast.
+
+## Tesztek
+
+```bash
+npm run test
+```
+
+Fő tesztterületek:
+- API/service metódusok
+- Dátum utility-k
+- Hook/provider alapműködés
+- Komponens render + validáció
+- Integrációs flow (event create, calendar delete cache invalidáció)
+
+## Troubleshooting
+
+1. `401 Authentication failed`:
+- Ellenőrizd, hogy a cookie token elérhető-e és a `Bearer` mező bekerül-e a body-ba.
+- Ellenőrizd az `x-forwarded-for` header továbbítását.
+
+2. `429 Too Many Requests`:
+- Várd meg a visszaállási ablakot.
+- Ellenőrizd a lokális limiter státuszát a `CalendarService.getRateLimitStatus` metódussal.
+
+3. Nincs adat a naptár oldalon:
+- Ellenőrizd a `WORF_API_URL` és `NEXT_PUBLIC_API_PROXY_URL` értékeket.
+- Nézd meg a proxy route logokat: `app/api/proxy/[...path]/route.ts`.

@@ -29,7 +29,7 @@ export default function SortableTaskCard({
     transition,
     isDragging,
   } = useSortable({
-    id: task.task_id,
+    id: task.id,
     data: {
       type: 'Task',
       task,
@@ -58,3 +58,4 @@ export default function SortableTaskCard({
     </div>
   );
 }
+

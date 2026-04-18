@@ -12,6 +12,56 @@ type WorfRequestOptions = {
 type RawHttpResponse = {
   status: number;
   text: string;
+  contentType: string;
+};
+
+const tryExtractFirstJson = (input: string): string | null => {
+  const text = input.trim();
+  if (!text) return null;
+  const start = text[0];
+  if (start !== '{' && start !== '[') return null;
+
+  let depth = 0;
+  let inString = false;
+  let escape = false;
+
+  for (let i = 0; i < text.length; i += 1) {
+    const ch = text[i];
+
+    if (inString) {
+      if (escape) {
+        escape = false;
+        continue;
+      }
+      if (ch === '\\') {
+        escape = true;
+        continue;
+      }
+      if (ch === '"') {
+        inString = false;
+      }
+      continue;
+    }
+
+    if (ch === '"') {
+      inString = true;
+      continue;
+    }
+
+    if (ch === '{' || ch === '[') {
+      depth += 1;
+      continue;
+    }
+
+    if (ch === '}' || ch === ']') {
+      depth -= 1;
+      if (depth === 0) {
+        return text.slice(0, i + 1);
+      }
+    }
+  }
+
+  return null;
 };
 
 function sendJsonWithBody(url: URL, method: string, payload: Record<string, any>): Promise<RawHttpResponse> {
@@ -37,7 +87,8 @@ function sendJsonWithBody(url: URL, method: string, payload: Record<string, any>
         res.on('end', () => {
           resolve({
             status: res.statusCode ?? 500,
-            text: Buffer.concat(chunks).toString('utf8')
+            text: Buffer.concat(chunks).toString('utf8'),
+            contentType: (res.headers['content-type'] as string | undefined) ?? 'application/json'
           });
         });
       }
@@ -70,8 +121,31 @@ export async function callWorfApi<T = unknown>(
     ...(token ? {Bearer: token} : {})
   };
 
-  const {status, text} = await sendJsonWithBody(url, method, requestBody);
-  const data = text ? (JSON.parse(text) as T) : ({} as T);
+  const {status, text, contentType} = await sendJsonWithBody(url, method, requestBody);
+  const trimmedText = text.trim();
+  const isLikelyJson =
+    contentType.toLowerCase().includes('json') || trimmedText.startsWith('{') || trimmedText.startsWith('[');
+
+  let data = {} as T;
+  if (trimmedText && isLikelyJson) {
+    try {
+      data = JSON.parse(trimmedText) as T;
+    } catch {
+      const extracted = tryExtractFirstJson(trimmedText);
+      if (extracted) {
+        try {
+          data = JSON.parse(extracted) as T;
+          console.warn(`[callWorfApi] Upstream JSON had trailing garbage for ${path}. Trimmed to first valid JSON value.`);
+        } catch {
+          console.warn(`[callWorfApi] Upstream returned non-recoverable JSON payload for ${path}.`);
+          data = {} as T;
+        }
+      } else {
+        console.warn(`[callWorfApi] Upstream returned invalid JSON payload for ${path}.`);
+        data = {} as T;
+      }
+    }
+  }
 
   return {status, data};
 }

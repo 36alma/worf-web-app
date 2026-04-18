@@ -73,19 +73,21 @@ const toUserRows = (payload: unknown): AdminUserRow[] => {
       }
 
       const row = item as RawObject;
-      const id = String(row.user_id ?? row.id ?? '');
+      const rawId = row.user_id ?? row.id;
+      const id = typeof rawId === 'string' ? rawId.trim() : String(rawId ?? '').trim();
       if (!id) {
         return null;
       }
+      const email = String(row.email ?? '').trim();
 
       return {
         id,
-        username: String(row.username ?? ''),
-        email: String(row.email ?? ''),
+        username: String(row.username ?? (email.includes('@') ? email.split('@')[0] : '')),
+        email,
         full_name: String(row.full_name ?? row.fullname ?? ''),
         is_active: typeof row.is_active === 'boolean' ? row.is_active : null,
         email_verified: typeof row.email_verified === 'boolean' ? row.email_verified : null,
-        role_id: String(row.role_id ?? '')
+        role_id: String(row.role_id ?? row.role_name ?? '')
       };
     })
     .filter((row): row is AdminUserRow => Boolean(row));
@@ -140,11 +142,15 @@ const toProfile = (payload: unknown, fallback: AdminUserRow): EditFormState => {
 };
 
 const getApiErrorMessage = (error: unknown): string | null => {
-  const axiosError = error as AxiosError<{ detail?: Array<{ msg?: string }>; message?: string }>;
+  const axiosError = error as AxiosError<{ detail?: Array<{ msg?: string }> | string; message?: string }>;
   const detail = axiosError?.response?.data?.detail;
 
   if (Array.isArray(detail) && detail.length > 0) {
     return detail.map((item) => item?.msg).filter(Boolean).join(', ');
+  }
+
+  if (typeof detail === 'string' && detail.trim()) {
+    return detail.trim();
   }
 
   if (typeof axiosError?.response?.data?.message === 'string') {
@@ -167,7 +173,7 @@ export default function AdminUsersManager() {
     setLoading(true);
     try {
       const [usersRes, rolesRes] = await Promise.all([getAdminUsers(), getAllSystemRoles()]);
-      setRows(toUserRows(usersRes.data));
+      setRows(toUserRows(usersRes));
       setRoles(toRoles(rolesRes.data));
     } catch {
       toast.error(t('load_error'));
@@ -196,6 +202,7 @@ export default function AdminUsersManager() {
         render: (value: any, row: AdminUserRow) => (
           <Button
             variant="ghost"
+            className='p-2'
             onClick={async () => {
               try {
                 const detailRes = await getAdminUserProfile(row.id);
@@ -245,7 +252,11 @@ export default function AdminUsersManager() {
       await load();
     } catch (error) {
       const message = getApiErrorMessage(error);
-      toast.error(message ? `${t('save_error')} (${message})` : t('save_error'));
+      const axiosError = error as AxiosError;
+      const isAuthFailure =
+        axiosError?.response?.status === 401 || message?.toLowerCase().includes('authentication failed') === true;
+
+      toast.error(isAuthFailure ? t('save_error') : message ? `${t('save_error')} (${message})` : t('save_error'));
     } finally {
       setSaving(false);
     }

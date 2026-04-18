@@ -16,6 +16,8 @@
     "tasks": "Feladatok",
     "calendar": "Naptár",
     "posts": "Posztok",
+    "roles": "Role-ok",
+    "permissions": "Jogosultságok",
     "admin": "Admin",
     "profile": "Profil"
   },
@@ -499,6 +501,9 @@
     "yes": "Igen",
     "no": "Nem",
     "none": "Nincs",
+    "filter": {
+      "noRole": "Nincs szerep"
+    },
     "create_group": "Csoport létrehozása",
     "create_group_title": "Új csoport",
     "edit_group_title": "Csoport szerkesztése",
@@ -506,6 +511,11 @@
     "delete_group_confirm": "Biztosan törlöd ezt a csoportot?",
     "manage_members": "Tagok kezelése",
     "manage_members_title": "Csoporttagok kezelése",
+    "manage_roles": "Szerepkörök kezelése",
+    "manage_roles_title": "Csoport szerepköreinek és jogosultságainak kezelése",
+    "groups": "Csoportok",
+    "back_to_groups": "Vissza a csoportokhoz",
+    "group_not_found": "Csoport nem található",
     "members_tab": "Tagok",
     "add_tab": "Hozzáadás",
     "group_members_current": "Jelenlegi tagok",
@@ -514,11 +524,19 @@
     "remove_member": "Kirúgás",
     "select_user": "Válassz felhasználót",
     "no_available_users": "Nincs hozzáadható felhasználó.",
+    "members_page": "{page}. oldal",
+    "members_total": "Összes: {total}",
+    "members_prev": "Előző",
+    "members_next": "Következő",
     "load_members_error": "A csoporttagok betöltése sikertelen.",
     "add_member_success": "A tag hozzáadása sikeres.",
     "add_member_error": "A tag hozzáadása sikertelen.",
     "remove_member_success": "A tag eltávolítása sikeres.",
     "remove_member_error": "A tag eltávolítása sikertelen.",
+    "set_role": "Szerepkör beállítása",
+    "set_role_title": "Tag szerepkörének beállítása",
+    "set_role_success": "A szerepkör hozzárendelése sikeres.",
+    "set_role_error": "A szerepkör hozzárendelése sikertelen.",
     "roles_readonly_hint": "A rendszer role-ok ezen a képernyőn csak olvashatók.",
     "edit_user_title": "Felhasználó szerkesztése",
     "sections": {
@@ -539,6 +557,111 @@
       "group_name": "Csoport név",
       "description": "Leírás",
       "actions": "Műveletek"
+    },
+    "groupRoles": {
+      "title": "Csoport Szerepkörök Kezelése",
+      "subtitle": "Hozz létre és kezelj szerepköröket ehhez a csoporthoz, majd rendeld hozzá a jogosultságokat az egyes szerepkörökhöz.",
+      "rolesList": {
+        "heading": "Szerepkörök",
+        "countLabel": "{count} szerep",
+        "newRoleButton": "Új Szerepkör",
+        "noRoles": "Még nincs szerep. Kattints az \"Új Szerepkör\" gombra az első szerepkör létrehozásához.",
+        "permissionsCount": "{count} jogosultság"
+      },
+      "form": {
+        "createTitle": "Új Szerep Létrehozása",
+        "editTitle": "Szerep Szerkesztése",
+        "reviewTitle": "Szerep Áttekintése",
+        "nameLabel": "Szerep Neve *",
+        "namePlaceholder": "pl. Szerkesztő, Moderátor, Néző",
+        "nameError": "A szerep neve kötelező",
+        "descriptionLabel": "Leírás",
+        "descriptionPlaceholder": "Mire való ez a szerep?",
+        "createButton": "Szerep Létrehozása",
+        "saveButton": "Módosítások Mentése",
+        "updateButton": "Szerep Frissítése",
+        "editButton": "Szerep Szerkesztése",
+        "deleteButton": "Törlés",
+        "cancelButton": "Mégse"
+      },
+      "permissions": {
+        "heading": "Jogosultságok",
+        "selectRoleHint": "Válassz egy szerepet a bal panelből a jogosultságok kezeléséhez",
+        "noPermissions": "Nem érhető el jogosultság",
+        "searchPlaceholder": "Keresés...",
+        "selectedCount": "{selected} / {total} kiválasztva",
+        "categorySelectAll": "Az összes kiválasztása ebben a kategóriában",
+        "categoryDeselectAll": "Az összes kijelölésének törlése ebben a kategóriában",
+        "saveButton": "Jogosultságok Mentése",
+        "permissions": {
+          "Roles": "Szerepkörök",
+          "Calendar": "Naptár",
+          "Posts": "Posztok",
+          "Tasks": "Feladatok",
+          "Users & Groups": "Felhasználók & Csoportok",
+          "Other": "Egyéb"
+        }
+      },
+      "deleteConfirm": {
+        "title": "Szerep Törlése",
+        "message": "Biztosan törlöd ezt a szerepet: \"{name}\"? Ez a művelet nem vonható vissza.",
+        "confirm": "Törlés",
+        "cancel": "Mégse"
+      },
+      "messages": {
+        "roleCreated": "Szerep sikeresen létrehozva",
+        "roleUpdated": "Szerep sikeresen frissítve",
+        "roleDeleted": "Szerep sikeresen törölve",
+        "permissionsSaved": "Jogosultságok sikeresen frissítve",
+        "loadError": "Hiba a betöltéskor",
+        "saveError": "Hiba a mentéskor",
+        "deleteError": "Hiba a törlésekor"
+      }
+    },
+    "userGroupRoles": {
+      "actions": {
+        "edit": "SzerkesztĂ©s"
+      },
+      "title": "Felhasználó Csoportos Szerepkörök",
+      "subtitle": "Megtekintheted és kezelheted a csoporttagok szerepköreit és jogosultságaikat.",
+      "table": {
+        "name": "Név",
+        "role": "Szerep",
+        "permissions": "Jogosultságok",
+        "noRole": "Nincs szerep"
+      },
+      "card": {
+        "role": "Szerep",
+        "permissions": "Jogosultságok",
+        "noRole": "Nincs szerep"
+      },
+      "search": {
+        "placeholder": "Keress név, e-mail vagy felhasználónév alapján..."
+      },
+      "filter": {
+        "role": "Szűrés",
+        "allRoles": "Összes szerep",
+        "noRole": "Nincs szerep"
+      },
+      "sort": {
+        "by": "Rendezés",
+        "name": "Név",
+        "role": "Szerep",
+        "permissions": "Jogosultságok száma"
+      },
+      "results": {
+        "count": "{count} / {total} felhasználó"
+      },
+      "empty": {
+        "noUsers": "Nincsenek felhasználók ebben a csoportban",
+        "noResults": "Nincs találat a keresésre"
+      },
+      "messages": {
+        "loadError": "Hiba a betöltéskor",
+        "roleAssigned": "Szerep sikeresen hozzárendelve",
+        "userUpdated": "Felhasználó sikeresen módosítva",
+        "saveError": "Hiba a mentéskor"
+      }
     }
   },
   "editor": {
@@ -624,5 +747,3 @@
     }
   }
 }
-
-

@@ -1,8 +1,8 @@
 'use client';
 
-import {ArrowRight, LogIn, Shield} from 'lucide-react';
-import {useLocale} from 'next-intl';
-import {useTranslations} from 'next-intl';
+import { ArrowRight, LogIn, Shield } from 'lucide-react';
+import { useLocale } from 'next-intl';
+import { useTranslations } from 'next-intl';
 import Button from '@/components/ui/Button';
 
 export default function LoginForm() {
@@ -22,7 +22,6 @@ export default function LoginForm() {
         startIcon={<LogIn size={18} strokeWidth={1.75} />}
       >
         <span>{t('login')}</span>
-        <ArrowRight size={16} strokeWidth={1.75} className="auth-btn-arrow" />
       </Button>
       <p className="auth-info">{t('redirect_info')}</p>
       <div className="auth-security">

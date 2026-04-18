@@ -5277,7 +5277,7 @@ Az endpoint működése lépésenként:
 | `Bearer` | `string` | Nem | Access token a hitelesítéshez. |
 | `content-type` | `string` | Nem | Technikai tartalomtípus mező. |
 | `group_id` | `string` | Igen | Csoport azonosító. |
-| `task_category_id` | `string` | Igen | Az adott erőforrás azonosítója. |
+| `task_category_id` | `string` | Igen | Titkosított task kategória azonosító. |
 
 ## Válasz szerkezet
 
@@ -5355,7 +5355,7 @@ Az endpoint működése lépésenként:
 | `Bearer` | `string` | Nem | Access token a hitelesítéshez. |
 | `content-type` | `string` | Nem | Technikai tartalomtípus mező. |
 | `group_id` | `string` | Igen | Csoport azonosító. |
-| `task_category_id` | `string` | Nem | Az adott erőforrás azonosítója. |
+| `task_category_id` | `string` | Nem | Titkosított task kategória azonosító. |
 | `is_global` | `boolean` | Nem | Logikai jelzőmező. |
 | `limit` | `integer` | Nem | Lapozási vagy mennyiségi paraméter. |
 
@@ -5435,7 +5435,7 @@ Az endpoint működése lépésenként:
 | `Bearer` | `string` | Nem | Access token a hitelesítéshez. |
 | `content-type` | `string` | Nem | Technikai tartalomtípus mező. |
 | `group_id` | `string` | Igen | Csoport azonosító. |
-| `task_category_id` | `string` | Igen | Az adott erőforrás azonosítója. |
+| `task_category_id` | `string` | Igen | Titkosított task kategória azonosító. |
 | `name` | `string` | Nem | Kérésparaméter. |
 | `description` | `string` | Nem | Kérésparaméter. |
 | `color` | `string` | Nem | Kérésparaméter. |
@@ -5518,7 +5518,7 @@ Az endpoint működése lépésenként:
 | `Bearer` | `string` | Nem | Access token a hitelesítéshez. |
 | `content-type` | `string` | Nem | Technikai tartalomtípus mező. |
 | `group_id` | `string` | Igen | Csoport azonosító. |
-| `task_id` | `string` | Igen | Az adott erőforrás azonosítója. |
+| `task_id` | `string` | Igen | Titkosított task azonosító. |
 | `author_id` | `string` | Nem | Az adott erőforrás azonosítója. |
 | `comment` | `string` | Igen | Kérésparaméter. |
 
@@ -5598,7 +5598,7 @@ Az endpoint működése lépésenként:
 | `Bearer` | `string` | Nem | Access token a hitelesítéshez. |
 | `content-type` | `string` | Nem | Technikai tartalomtípus mező. |
 | `group_id` | `string` | Igen | Csoport azonosító. |
-| `task_comment_id` | `string` | Igen | Az adott erőforrás azonosítója. |
+| `task_comment_id` | `string` | Igen | Titkosított task komment azonosító. |
 
 ## Válasz szerkezet
 
@@ -5676,7 +5676,7 @@ Az endpoint működése lépésenként:
 | `Bearer` | `string` | Nem | Access token a hitelesítéshez. |
 | `content-type` | `string` | Nem | Technikai tartalomtípus mező. |
 | `group_id` | `string` | Igen | Csoport azonosító. |
-| `task_id` | `string` | Igen | Az adott erőforrás azonosítója. |
+| `task_id` | `string` | Igen | Titkosított task azonosító. |
 | `limit` | `integer` | Nem | Lapozási vagy mennyiségi paraméter. |
 
 ## Válasz szerkezet
@@ -5755,7 +5755,7 @@ Az endpoint működése lépésenként:
 | `Bearer` | `string` | Nem | Access token a hitelesítéshez. |
 | `content-type` | `string` | Nem | Technikai tartalomtípus mező. |
 | `group_id` | `string` | Igen | Csoport azonosító. |
-| `task_comment_id` | `string` | Igen | Az adott erőforrás azonosítója. |
+| `task_comment_id` | `string` | Igen | Titkosított task komment azonosító. |
 | `comment` | `string` | Igen | Kérésparaméter. |
 
 ## Válasz szerkezet
@@ -5842,7 +5842,7 @@ Az endpoint működése lépésenként:
 | `reporter_id` | `string` | Nem | Az adott erőforrás azonosítója. |
 | `assignee_id` | `string` | Nem | Az adott erőforrás azonosítója. |
 | `group_id` | `string` | Igen | Csoport azonosító. |
-| `parent_task_id` | `string` | Nem | Az adott erőforrás azonosítója. |
+| `parent_task_id` | `string` | Nem | Titkosított szülő task azonosító. |
 | `story_points` | `integer` | Nem | Kérésparaméter. |
 
 ## Válasz szerkezet
@@ -5921,7 +5921,7 @@ Az endpoint működése lépésenként:
 | `Bearer` | `string` | Nem | Access token a hitelesítéshez. |
 | `content-type` | `string` | Nem | Technikai tartalomtípus mező. |
 | `group_id` | `string` | Igen | Csoport azonosító. |
-| `task_id` | `array[string (UUID)]` | Igen | Az adott erőforrás azonosítója. |
+| `task_id` | `array[string]` | Igen | Titkosított task azonosítók listája. |
 
 ## Válasz szerkezet
 
@@ -5999,20 +5999,20 @@ Az endpoint működése lépésenként:
 | `Bearer` | `string` | Nem | Access token a hitelesítéshez. |
 | `content-type` | `string` | Nem | Technikai tartalomtípus mező. |
 | `group_id` | `string` | Igen | Csoport azonosító. |
-| `task_id` | `string` | Igen | Az adott erőforrás azonosítója. |
+| `task_id` | `string` | Igen | Titkosított task azonosító. |
 
 ## Válasz szerkezet
 
 | Név | Típus | Leírás |
 |---|---|---|
-| `id` | `string (UUID)` | Task azonosító. |
+| `id` | `string` | Titkosított task azonosító. |
 | `issue_key` | `string` | Task kulcs. |
 | `summary` | `string` | Rövid összefoglaló. |
 | `description` | `string/null` | Részletes leírás. |
 | `task_type` | `string` | Task típus (`STORY`, `TASK`, `BUG`, `EPIC`, `SUBTASK`). |
 | `status` | `string` | Task státusz (`TODO`, `IN_PROGRESS`, `IN_REVIEW`, `DONE`, `BLOCKED`). |
 | `priority` | `string` | Prioritás. |
-| `parent_task_id` | `string (UUID)/null` | Szülő task azonosító (ha alfeladat). |
+| `parent_task_id` | `string/null` | Titkosított szülő task azonosító (ha alfeladat). |
 | `subtasks_total` | `integer` | A taskhoz tartozó közvetlen alfeladatok száma. |
 | `subtasks_completed` | `integer` | A lezárt (vagy `completed_at`-tal rendelkező) alfeladatok száma. |
 | `created_at` | `string (ISO-8601 datetime)` | Létrehozási idő. |
@@ -6088,7 +6088,7 @@ Az endpoint működése lépésenként:
 | `Bearer` | `string` | Nem | Access token a hitelesítéshez. |
 | `content-type` | `string` | Nem | Technikai tartalomtípus mező. |
 | `group_id` | `string` | Igen | Csoport azonosító. |
-| `task_id` | `string` | Igen | Az adott erőforrás azonosítója. |
+| `task_id` | `string` | Igen | Titkosított task azonosító. |
 | `summary` | `string` | Nem | Kérésparaméter. |
 | `description` | `string` | Nem | Kérésparaméter. |
 | `task_type` | `string` | Nem | Kérésparaméter. |
@@ -6191,10 +6191,10 @@ Az endpoint működése lépésenként:
 | `total_tasks` | `integer` | A feltételnek megfelelő taskok teljes száma. |
 | `total_pages` | `integer` | Összes oldalszám. |
 | `current_page` | `integer` | Aktuális oldalszám. |
-| `tasks[].id` | `string (UUID)` | Task azonosító. |
+| `tasks[].id` | `string` | Titkosított task azonosító. |
 | `tasks[].summary` | `string` | Rövid összefoglaló. |
 | `tasks[].status` | `string` | Task státusz. |
-| `tasks[].parent_task_id` | `string (UUID)/null` | Szülő task azonosító. |
+| `tasks[].parent_task_id` | `string/null` | Titkosított szülő task azonosító. |
 | `tasks[].subtasks_total` | `integer` | A taskhoz tartozó közvetlen alfeladatok száma. |
 | `tasks[].subtasks_completed` | `integer` | A lezárt (vagy `completed_at`-tal rendelkező) alfeladatok száma. |
 
@@ -6268,7 +6268,7 @@ Az endpoint működése lépésenként:
 | `Bearer` | `string` | Nem | Access token a hitelesítéshez. |
 | `content-type` | `string` | Nem | Technikai tartalomtípus mező. |
 | `group_id` | `string` | Igen | Csoport azonosító. |
-| `task_id` | `string` | Igen | A vizsgált task azonosítója. |
+| `task_id` | `string` | Igen | A vizsgált task titkosított azonosítója. |
 | `limit` | `integer` | Nem | Visszaadott history elemek maximális száma (alapértelmezés: 50). |
 
 ## Válasz szerkezet
@@ -6276,8 +6276,8 @@ Az endpoint működése lépésenként:
 | Név | Típus | Leírás |
 |---|---|---|
 | `data` | `array[object]` | A task history elemek listája (legújabb elöl). |
-| `data[].id` | `string (UUID)` | History rekord azonosítója. |
-| `data[].task_id` | `string (UUID)` | Érintett task azonosítója. |
+| `data[].id` | `string` | Titkosított history rekord azonosító. |
+| `data[].task_id` | `string` | Érintett task titkosított azonosítója. |
 | `data[].user_id` | `string (UUID)/null` | A módosítást végző user azonosítója. |
 | `data[].action_type` | `string` | Művelettípus (`CREATED`, `STATUS_CHANGED`, stb.). |
 | `data[].old_value` | `string/null` | Korábbi érték (ha értelmezett). |

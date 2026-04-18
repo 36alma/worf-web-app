@@ -1,81 +1,119 @@
-﻿'use client';
+// worf-app/lib/api/client.ts
+import axios from 'axios'
 
-import axios from 'axios';
-
-let isRefreshing = false;
-let requestQueue: Array<() => void> = [];
+const baseURL = typeof window === 'undefined'
+  ? `${process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'}/api/proxy`
+  : '/api/proxy'
 
 const apiClient = axios.create({
-  baseURL: '',
-  withCredentials: true,
+  baseURL,
   headers: {
-    'Content-Type': 'application/json'
-  }
-});
+    'Content-Type': 'application/json',
+  },
+})
 
+// Client IP utility for WORF backend
+const FORWARDED_FOR_KEYS = ['worf_client_ip', 'client_ip', 'x_forwarded_for'];
+
+const parseCookie = (key: string) => {
+  if (typeof document === 'undefined') {
+    return '';
+  }
+  const match = document.cookie.match(new RegExp(`(?:^|; )${key}=([^;]*)`));
+  return match?.[1] ? decodeURIComponent(match[1]) : '';
+};
+
+const readForwardedFor = () => {
+  if (typeof window === 'undefined') {
+    return '127.0.0.1';
+  }
+  for (const key of FORWARDED_FOR_KEYS) {
+    const sessionValue = window.sessionStorage.getItem(key);
+    if (sessionValue?.trim()) {
+      return sessionValue.trim();
+    }
+  }
+  for (const key of FORWARDED_FOR_KEYS) {
+    const cookieValue = parseCookie(key);
+    if (cookieValue.trim()) {
+      return cookieValue.trim();
+    }
+  }
+  if (window.location.hostname?.trim()) {
+    return window.location.hostname;
+  }
+  return '127.0.0.1';
+};
+
+// Inject Bearer token from cookie or session on every request
 apiClient.interceptors.request.use((config) => {
-  const proxyBase = process.env.NEXT_PUBLIC_API_PROXY_URL ?? '/api/proxy';
-  const url = config.url ?? '';
-
-  if (url.startsWith('/v1/')) {
-    config.url = `${proxyBase}${url}`;
+  // Check and append x-forwarded-for header (Mandatory WORF feature)
+  if (typeof window !== 'undefined') {
+    config.headers['x-forwarded-for'] = readForwardedFor();
   }
 
-  return config;
-});
+  // token injection is handled by /api/proxy — nothing needed here
+  return config
+})
 
+let isRefreshing = false;
+let failedQueue: Array<{
+  resolve: (value?: unknown) => void;
+  reject: (reason?: any) => void;
+}> = [];
+
+const processQueue = (error: any) => {
+  failedQueue.forEach((prom) => {
+    if (error) {
+      prom.reject(error);
+    } else {
+      prom.resolve();
+    }
+  });
+  failedQueue = [];
+};
+
+// Exclusively returning promise rejection to allow silent failures on UI components
 apiClient.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
-    const status = error.response?.status;
 
-    if (status === 403 && typeof window !== 'undefined') {
-      const locale = window.location.pathname.split('/')[1] || 'hu';
-      const forbiddenPath = `/${locale}/forbidden`;
-
-      if (!window.location.pathname.startsWith(forbiddenPath)) {
-        window.location.href = forbiddenPath;
+    // Ha a válasz 401, és még nem próbáltuk újra
+    if (error.response?.status === 401 && !originalRequest._retry && typeof window !== 'undefined') {
+      if (isRefreshing) {
+        return new Promise((resolve, reject) => {
+          failedQueue.push({ resolve, reject });
+        })
+          .then(() => apiClient(originalRequest))
+          .catch((err) => Promise.reject(err));
       }
 
-      return Promise.reject(error);
-    }
+      originalRequest._retry = true;
+      isRefreshing = true;
 
-    if (status !== 401 || originalRequest?._retry) {
-      return Promise.reject(error);
-    }
-
-    originalRequest._retry = true;
-
-    if (isRefreshing) {
-      return new Promise((resolve) => {
-        requestQueue.push(() => resolve(apiClient(originalRequest)));
-      });
-    }
-
-    isRefreshing = true;
-
-    try {
-      await axios.post('/api/auth/token', {}, {withCredentials: true});
-
-      requestQueue.forEach((callback) => callback());
-      requestQueue = [];
-
-      return apiClient(originalRequest);
-    } catch (refreshError) {
-      requestQueue = [];
-
-      if (typeof window !== 'undefined') {
-        await axios.post('/api/auth/logout', {}, {withCredentials: true}).catch(() => null);
+      try {
+        // Frissítjük a tokent a dedikált szerveres végponton
+        await axios.post('/api/auth/token');
+        
+        isRefreshing = false;
+        processQueue(null);
+        
+        // Ismételjük meg az eredeti kérést
+        return apiClient(originalRequest);
+      } catch (err) {
+        isRefreshing = false;
+        processQueue(err);
+        
+        // Ha lejárt, vagy nem sikerült, irányítsuk a loginra
         const locale = window.location.pathname.split('/')[1] || 'hu';
         window.location.href = `/${locale}/auth/login`;
+        return Promise.reject(err);
       }
-
-      return Promise.reject(refreshError);
-    } finally {
-      isRefreshing = false;
     }
-  }
-);
 
-export default apiClient;
+    return Promise.reject(error);
+  }
+)
+
+export default apiClient

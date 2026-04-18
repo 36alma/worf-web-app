@@ -1,20 +1,10 @@
 'use client';
 
-import { FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
+import {FormEvent, useCallback, useEffect, useMemo, useState} from 'react';
+import {useRouter} from 'next/navigation';
 import toast from 'react-hot-toast';
-import { useTranslations } from 'next-intl';
-import { getAdminUsers } from '@/lib/api/admin';
-import {
-  addUserToGroup,
-  createGroup,
-  deleteGroup,
-  getAllGroups,
-  getAdminGroupMembers,
-  modifyGroupBase,
-  removeUserFromGroup
-} from '@/lib/api/groups';
-import { hasPermissionRequirement } from '@/lib/permissions/access';
-import { usePermissionStore } from '@/lib/store/permissionStore';
+import {useLocale, useTranslations} from 'next-intl';
+import {createGroup, deleteGroup, getAllGroups, modifyGroupBase} from '@/lib/api/groups';
 import Button from '@/components/ui/Button';
 import ConfirmDialog from '@/components/ui/ConfirmDialog';
 import DataTable from '@/components/ui/DataTable';
@@ -33,14 +23,6 @@ interface GroupFormState {
   id?: string;
   name: string;
   description: string;
-}
-
-interface UserRow {
-  id: string;
-  username: string;
-  email: string;
-  full_name: string;
-  group_ids: string[];
 }
 
 const readData = (payload: unknown): unknown => {
@@ -62,8 +44,8 @@ const toGroupRows = (payload: unknown): GroupRow[] => {
     ? source
     : source && typeof source === 'object'
       ? ['groups', 'items', 'rows', 'result']
-        .map((key) => (source as RawObject)[key])
-        .find((value) => Array.isArray(value))
+          .map((key) => (source as RawObject)[key])
+          .find((value) => Array.isArray(value))
       : null;
 
   if (!Array.isArray(arrayValue)) {
@@ -91,81 +73,6 @@ const toGroupRows = (payload: unknown): GroupRow[] => {
     .filter((row): row is GroupRow => Boolean(row));
 };
 
-const toStringArray = (value: unknown): string[] => {
-  if (!Array.isArray(value)) {
-    return [];
-  }
-
-  return value.map((item) => String(item)).filter(Boolean);
-};
-
-const extractGroupIds = (row: RawObject): string[] => {
-  const directIds = toStringArray(row.group_ids);
-  const singleId = String(row.group_id ?? '');
-  const groupRoleId = String(row.group_role_id ?? '');
-  const groupsArray = Array.isArray(row.groups) ? row.groups : [];
-  const nestedGroupIds = groupsArray
-    .map((group) => {
-      if (!group || typeof group !== 'object') {
-        return '';
-      }
-
-      const g = group as RawObject;
-      return String(g.group_id ?? g.id ?? '');
-    })
-    .filter(Boolean);
-  const groupRoles = row.group_roles;
-  const groupRoleKeys =
-    groupRoles && typeof groupRoles === 'object' ? Object.keys(groupRoles as Record<string, unknown>) : [];
-
-  return Array.from(
-    new Set([
-      ...directIds,
-      ...(singleId ? [singleId] : []),
-      ...(groupRoleId && groupRoleId !== 'null' ? [groupRoleId] : []),
-      ...nestedGroupIds,
-      ...groupRoleKeys
-    ])
-  );
-};
-
-const toUsers = (payload: unknown): UserRow[] => {
-  const source = readData(payload);
-  const arrayValue = Array.isArray(source)
-    ? source
-    : source && typeof source === 'object'
-      ? ['users', 'items', 'rows', 'result', 'members']
-        .map((key) => (source as RawObject)[key])
-        .find((value) => Array.isArray(value))
-      : null;
-
-  if (!Array.isArray(arrayValue)) {
-    return [];
-  }
-
-  return arrayValue
-    .map((item) => {
-      if (!item || typeof item !== 'object') {
-        return null;
-      }
-
-      const row = item as RawObject;
-      const id = String(row.user_id ?? row.id ?? row.email ?? row.username ?? row.name ?? '');
-      if (!id) {
-        return null;
-      }
-
-      return {
-        id,
-        username: String(row.username ?? row.name ?? row.email ?? ''),
-        email: String(row.email ?? ''),
-        full_name: String(row.full_name ?? row.fullname ?? row.name ?? ''),
-        group_ids: extractGroupIds(row)
-      };
-    })
-    .filter((row): row is UserRow => Boolean(row));
-};
-
 const defaultForm: GroupFormState = {
   name: '',
   description: ''
@@ -173,7 +80,6 @@ const defaultForm: GroupFormState = {
 
 export default function AdminGroupsManager() {
   const t = useTranslations('admin');
-  const { systemPermissions, isSystemPermissionsLoaded } = usePermissionStore();
   const [rows, setRows] = useState<GroupRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [openForm, setOpenForm] = useState(false);
@@ -181,19 +87,8 @@ export default function AdminGroupsManager() {
   const [deleting, setDeleting] = useState(false);
   const [form, setForm] = useState<GroupFormState>(defaultForm);
   const [deleteTarget, setDeleteTarget] = useState<GroupRow | null>(null);
-  const [memberModalGroup, setMemberModalGroup] = useState<GroupRow | null>(null);
-  const [memberLoading, setMemberLoading] = useState(false);
-  const [memberActionLoading, setMemberActionLoading] = useState(false);
-  const [groupMembers, setGroupMembers] = useState<UserRow[]>([]);
-  const [allUsers, setAllUsers] = useState<UserRow[]>([]);
-  const [memberTab, setMemberTab] = useState<'members' | 'add'>('members');
-
-  const canAddMember =
-    isSystemPermissionsLoaded &&
-    hasPermissionRequirement(systemPermissions, { anyOf: ['group.create.add.usertogroup'] });
-  const canRemoveMember =
-    isSystemPermissionsLoaded &&
-    hasPermissionRequirement(systemPermissions, { anyOf: ['group.delete.remove.userfromgroup'] });
+  const router = useRouter();
+  const locale = useLocale();
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -208,73 +103,50 @@ export default function AdminGroupsManager() {
   }, [t]);
 
   useEffect(() => {
-    load();
+    void load();
   }, [load]);
-
-  const loadMembersContext = useCallback(
-    async (group: GroupRow) => {
-      setMemberLoading(true);
-
-      try {
-        const [membersRes, usersRes] = await Promise.all([getAdminGroupMembers(group.id), getAdminUsers()]);
-        const members = toUsers(membersRes.data);
-        const users = toUsers(usersRes.data);
-
-        const memberIds = new Set(members.map((member) => member.id));
-        const normalizedMembers = users.filter((user) => memberIds.has(user.id));
-        const missingMembers = members.filter((member) => !normalizedMembers.some((user) => user.id === member.id));
-
-        setGroupMembers([...normalizedMembers, ...missingMembers]);
-        setAllUsers(users);
-      } catch {
-        setGroupMembers([]);
-        setAllUsers([]);
-        toast.error(t('load_members_error'));
-      } finally {
-        setMemberLoading(false);
-      }
-    },
-    [t]
-  );
 
   const columns = useMemo(
     () => [
-      { key: 'name' as const, label: t('columns.group_name') },
-      { key: 'description' as const, label: t('columns.description') },
+      {key: 'name' as const, label: t('columns.group_name')},
+      {key: 'description' as const, label: t('columns.description')},
       {
         key: 'id' as const,
         label: t('columns.actions'),
-        render: (value: any, row: GroupRow) => (
+        render: (value: unknown, row: GroupRow) => (
           <div className="flex gap-2">
             <Button
-              className='p-2'
+              className="p-2"
               variant="ghost"
               onClick={() => {
-                setForm({ id: row.id, name: row.name, description: row.description });
+                setForm({id: row.id, name: row.name, description: row.description});
                 setOpenForm(true);
               }}
             >
               {t('edit')}
             </Button>
             <Button
-              className='p-2'
+              className="p-2"
               variant="ghost"
-              onClick={async () => {
-                setMemberModalGroup(row);
-                setMemberTab('members');
-                await loadMembersContext(row);
-              }}
+              onClick={() => router.push(`/${locale}/admin/groups/${row.id}/members`)}
             >
               {t('manage_members')}
             </Button>
-            <Button className='p-2' variant="danger" onClick={() => setDeleteTarget(row)}>
+            <Button
+              className="p-2"
+              variant="ghost"
+              onClick={() => router.push(`/${locale}/admin/groups/${row.id}/role`)}
+            >
+              {t('manage_roles')}
+            </Button>
+            <Button className="p-2" variant="danger" onClick={() => setDeleteTarget(row)}>
               {t('delete')}
             </Button>
           </div>
         )
       }
     ],
-    [t, loadMembersContext]
+    [t, router, locale]
   );
 
   const onSubmit = async (event: FormEvent) => {
@@ -328,108 +200,6 @@ export default function AdminGroupsManager() {
     }
   };
 
-  const availableUsers = useMemo(() => {
-    if (!memberModalGroup) {
-      return [];
-    }
-
-    const memberIds = new Set(groupMembers.map((member) => member.id));
-    return allUsers.filter((user) => !memberIds.has(user.id));
-  }, [allUsers, groupMembers, memberModalGroup]);
-
-  const onAddMember = useCallback(async (userId: string) => {
-    if (!memberModalGroup || !userId) {
-      return;
-    }
-
-    try {
-      setMemberActionLoading(true);
-      await addUserToGroup(memberModalGroup.id, userId);
-      const addedUser = allUsers.find((user) => user.id === userId);
-      if (addedUser && !groupMembers.some((member) => member.id === userId)) {
-        setGroupMembers((prev) => [...prev, addedUser]);
-      }
-      setAllUsers((prev) =>
-        prev.map((user) =>
-          user.id === userId
-            ? {
-              ...user,
-              group_ids: user.group_ids.includes(memberModalGroup.id)
-                ? user.group_ids
-                : [...user.group_ids, memberModalGroup.id]
-            }
-            : user
-        )
-      );
-      toast.success(t('add_member_success'));
-    } catch {
-      toast.error(t('add_member_error'));
-    } finally {
-      setMemberActionLoading(false);
-    }
-  }, [memberModalGroup, t, allUsers, groupMembers]);
-
-  const onRemoveMember = useCallback(async (userId: string) => {
-    if (!memberModalGroup) {
-      return;
-    }
-
-    try {
-      setMemberActionLoading(true);
-      await removeUserFromGroup(memberModalGroup.id, userId);
-      setGroupMembers((prev) => prev.filter((member) => member.id !== userId));
-      setAllUsers((prev) =>
-        prev.map((user) =>
-          user.id === userId
-            ? {
-              ...user,
-              group_ids: user.group_ids.filter((groupId) => groupId !== memberModalGroup.id)
-            }
-            : user
-        )
-      );
-      toast.success(t('remove_member_success'));
-    } catch {
-      toast.error(t('remove_member_error'));
-    } finally {
-      setMemberActionLoading(false);
-    }
-  }, [memberModalGroup, t]);
-
-  const memberColumns = useMemo(
-    () => [
-      { key: 'full_name' as const, label: t('columns.full_name') },
-      { key: 'email' as const, label: t('columns.email') },
-      {
-        key: 'id' as const,
-        label: t('columns.actions'),
-        render: (value: any, row: UserRow) => (
-          <Button className='p-2' variant="danger" disabled={memberActionLoading || !canRemoveMember} onClick={() => onRemoveMember(row.id)}>
-            {t('remove_member')}
-          </Button>
-        )
-      }
-    ],
-    [t, memberActionLoading, canRemoveMember, onRemoveMember]
-  );
-
-  const addColumns = useMemo(
-    () => [
-      { key: 'full_name' as const, label: t('columns.full_name') },
-      { key: 'email' as const, label: t('columns.email') },
-      {
-        key: 'id' as const,
-        label: t('columns.actions'),
-        render: (value: any, row: UserRow) => (
-          <Button className='p-2' disabled={memberActionLoading || !canAddMember} onClick={() => onAddMember(row.id)}>
-            {t('add_member')}
-          </Button>
-        )
-      }
-    ],
-    [t, memberActionLoading, canAddMember, onAddMember]
-  );
-
   if (loading) {
     return (
       <div className="space-y-2">
@@ -444,7 +214,7 @@ export default function AdminGroupsManager() {
     <div className="space-y-3">
       <div className="flex justify-end">
         <Button
-          className='p-2'
+          className="p-2"
           onClick={() => {
             setForm(defaultForm);
             setOpenForm(true);
@@ -467,7 +237,7 @@ export default function AdminGroupsManager() {
             <input
               className="w-full rounded-md border border-[var(--border)] bg-[#0f0f18] px-3 py-2"
               value={form.name}
-              onChange={(event) => setForm((prev) => ({ ...prev, name: event.target.value }))}
+              onChange={(event) => setForm((prev) => ({...prev, name: event.target.value}))}
               required
             />
           </div>
@@ -476,15 +246,15 @@ export default function AdminGroupsManager() {
             <textarea
               className="w-full rounded-md border border-[var(--border)] bg-[#0f0f18] px-3 py-2"
               value={form.description}
-              onChange={(event) => setForm((prev) => ({ ...prev, description: event.target.value }))}
+              onChange={(event) => setForm((prev) => ({...prev, description: event.target.value}))}
               rows={3}
             />
           </div>
           <div className="flex justify-end gap-2">
-            <Button className='p-2' variant="ghost" type="button" onClick={() => setOpenForm(false)}>
+            <Button className="p-2" variant="ghost" type="button" onClick={() => setOpenForm(false)}>
               {t('cancel')}
             </Button>
-            <Button className='p-2' type="submit" disabled={saving}>
+            <Button className="p-2" type="submit" disabled={saving}>
               {saving ? t('saving') : t('save')}
             </Button>
           </div>
@@ -498,54 +268,6 @@ export default function AdminGroupsManager() {
         onCancel={() => setDeleteTarget(null)}
         onConfirm={onDelete}
       />
-
-      <Modal
-        open={Boolean(memberModalGroup)}
-        title={
-          memberModalGroup ? `${t('manage_members_title')}: ${memberModalGroup.name}` : t('manage_members_title')
-        }
-        onClose={() => setMemberModalGroup(null)}
-      >
-        {memberLoading ? (
-          <div className="space-y-2">
-            <Skeleton className="h-10 w-full" />
-            <Skeleton className="h-10 w-full" />
-          </div>
-        ) : (
-          <div className="space-y-4">
-            <div className="flex gap-2">
-              <Button className='p-2' variant={memberTab === 'members' ? 'primary' : 'ghost'} onClick={() => setMemberTab('members')}>
-                {t('members_tab')}
-              </Button>
-              <Button className='p-2' variant={memberTab === 'add' ? 'primary' : 'ghost'} onClick={() => setMemberTab('add')}>
-                {t('add_tab')}
-              </Button>
-            </div>
-
-            <div>
-              {memberTab === 'members' ? (
-                <>
-                  <p className="mb-2 text-sm font-medium text-slate-200">{t('group_members_current')}</p>
-                  {groupMembers.length === 0 ? (
-                    <p className="text-sm text-slate-400">{t('no_members')}</p>
-                  ) : (
-                    <DataTable columns={memberColumns} rows={groupMembers} />
-                  )}
-                </>
-              ) : (
-                <>
-                  <p className="mb-2 text-sm font-medium text-slate-200">{t('add_member')}</p>
-                  {availableUsers.length === 0 ? (
-                    <p className="text-sm text-slate-400">{t('no_available_users')}</p>
-                  ) : (
-                    <DataTable columns={addColumns} rows={availableUsers} />
-                  )}
-                </>
-              )}
-            </div>
-          </div>
-        )}
-      </Modal>
 
       {deleting && <div className="hidden" aria-hidden="true" />}
     </div>

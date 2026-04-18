@@ -1,4 +1,4 @@
-import {Task} from './types';
+import {Task, STATUS_LABELS, STATUS_COLORS, PRIORITY_COLORS} from './types';
 import clsx from 'clsx';
 import {Calendar} from 'lucide-react';
 
@@ -10,26 +10,6 @@ export interface ListViewProps {
   onToggleSelection: (taskId: string) => void;
   onToggleAll: () => void;
 }
-
-const STATUS_LABELS: Record<string, string> = {
-  TODO: 'To Do',
-  IN_PROGRESS: 'In Progress',
-  DONE: 'Done'
-};
-
-const STATUS_COLORS: Record<string, string> = {
-  TODO: 'bg-zinc-100 text-zinc-700 border-zinc-200 dark:bg-zinc-800/50 dark:text-zinc-300',
-  IN_PROGRESS: 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-300',
-  DONE: 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-300'
-};
-
-const PRIORITY_COLORS: Record<string, string> = {
-  HIGH: 'bg-red-100 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-300',
-  URGENT: 'bg-red-100 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-300',
-  MEDIUM: 'bg-yellow-100 text-yellow-700 border-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-300',
-  NORMAL: 'bg-yellow-100 text-yellow-700 border-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-300',
-  LOW: 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-300',
-};
 
 export default function ListView({
   tasks,
@@ -60,9 +40,11 @@ export default function ListView({
                   />
                 </th>
               )}
+              <th className="px-4 py-3 font-medium w-28">Kulcs</th>
               <th className="px-4 py-3 font-medium">Feladat Név</th>
               <th className="px-4 py-3 font-medium w-32">Prioritás</th>
               <th className="px-4 py-3 font-medium w-36">Státusz</th>
+              <th className="px-4 py-3 font-medium w-20 text-center">Haladás</th>
               <th className="px-4 py-3 font-medium w-36">Határidő</th>
               <th className="px-4 py-3 font-medium w-24 text-center">Megbízott</th>
             </tr>
@@ -70,19 +52,22 @@ export default function ListView({
           <tbody className="divide-y divide-[var(--border-subtle)]">
             {tasks.length === 0 ? (
               <tr>
-                <td colSpan={6} className="px-4 py-12 text-center text-[var(--text-tertiary)]">
+                <td colSpan={8} className="px-4 py-12 text-center text-[var(--text-tertiary)]">
                   Nincs találat a szűrések alapján.
                 </td>
               </tr>
             ) : (
               tasks.map(task => {
-                const isSelected = selectedTaskIds.includes(task.task_id);
+                const isSelected = selectedTaskIds.includes(task.id);
                 const isOverdue = task.due_at && new Date(task.due_at).getTime() < new Date().getTime();
                 const isDueSoon = task.due_at && !isOverdue && new Date(task.due_at).getTime() < new Date().getTime() + 2 * 24 * 60 * 60 * 1000;
+                const subtasksTotal = task.subtasks_total ?? 0;
+                const subtasksCompleted = task.subtasks_completed ?? 0;
+                const subtaskPercent = subtasksTotal > 0 ? Math.min(100, (subtasksCompleted / subtasksTotal) * 100) : 0;
                 
                 return (
                   <tr 
-                    key={task.task_id} 
+                    key={task.id} 
                     onClick={() => onTaskClick(task)}
                     className={clsx(
                       "cursor-pointer transition-colors hover:bg-[var(--bg-hover)] group",
@@ -94,11 +79,17 @@ export default function ListView({
                         <input
                           type="checkbox"
                           checked={isSelected}
-                          onChange={() => onToggleSelection(task.task_id)}
+                          onChange={() => onToggleSelection(task.id)}
                           className="rounded border-[var(--border-default)] text-indigo-600 focus:ring-indigo-500"
                         />
                       </td>
                     )}
+                    {/* Issue Key */}
+                    <td className="px-4 py-3">
+                      <span className="text-xs font-mono font-semibold text-[var(--text-tertiary)] bg-[var(--bg-elevated)] border border-[var(--border-subtle)] px-1.5 py-0.5 rounded">
+                        {task.issue_key}
+                      </span>
+                    </td>
                     <td className="px-4 py-3 text-[var(--text-primary)]">
                         <div className="font-medium truncate max-w-md">{task.summary}</div>
                         {task.categories && task.categories.length > 0 && (
@@ -128,10 +119,27 @@ export default function ListView({
                     <td className="px-4 py-3">
                       <span className={clsx(
                         "inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold border",
-                        STATUS_COLORS[task.status] || 'bg-gray-100 text-gray-700 border-gray-200'
+                        STATUS_COLORS[task.status as keyof typeof STATUS_COLORS] || 'bg-gray-100 text-gray-700 border-gray-200'
                       )}>
-                        {STATUS_LABELS[task.status] || task.status}
+                        {STATUS_LABELS[task.status as keyof typeof STATUS_LABELS] || task.status}
                       </span>
+                    </td>
+                    {/* Subtask Progress */}
+                    <td className="px-4 py-3 text-center">
+                      {subtasksTotal > 0 ? (
+                        <div className="flex items-center gap-1.5" title={`${subtasksCompleted}/${subtasksTotal}`}>
+                          <div className="flex-1 h-1.5 bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-full overflow-hidden min-w-[40px]">
+                            <div 
+                              className={clsx(
+                                "h-full rounded-full",
+                                subtasksCompleted === subtasksTotal ? "bg-emerald-500" : "bg-indigo-500"
+                              )}
+                              style={{ width: `${subtaskPercent}%` }}
+                            />
+                          </div>
+                          <span className="text-[10px] font-bold text-[var(--text-tertiary)] tabular-nums">{subtasksCompleted}/{subtasksTotal}</span>
+                        </div>
+                      ) : <span className="text-[var(--text-tertiary)]">-</span>}
                     </td>
                     <td className="px-4 py-3">
                       {task.due_at ? (

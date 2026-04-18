@@ -164,9 +164,9 @@ export default function PostEditorScreen({scope, groupId = '', postId = ''}: Pos
   }, [postId]);
 
   const isEdit = Boolean(resolvedPostId);
-  const backHref = scope === 'group' ? `/${locale}/groups/${groupId}/posts` : `/${locale}/posts`;
+  const backHref = scope === 'group' ? `/${locale}/groups/${encodeURIComponent(groupId)}/posts` : `/${locale}/posts`;
   const previewHref =
-    scope === 'group' ? `/${locale}/groups/${groupId}/posts/${encodeURIComponent(resolvedPostId)}` : `/${locale}/posts/${encodeURIComponent(resolvedPostId)}`;
+    scope === 'group' ? `/${locale}/groups/${encodeURIComponent(groupId)}/posts/${encodeURIComponent(resolvedPostId)}` : `/${locale}/posts/${encodeURIComponent(resolvedPostId)}`;
 
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);

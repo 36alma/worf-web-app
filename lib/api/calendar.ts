@@ -1,4 +1,9 @@
-﻿import apiClient from './client';
+﻿/**
+ * Calendar API methods used by GUI hooks/components.
+ * Uses the shared apiClient to keep the same auth refresh behavior.
+ */
+
+import apiClient from '@/lib/api/client';
 import type {
   CreateGlobalCalendarEventPayload,
   CreateGroupCalendarEventPayload,
@@ -10,7 +15,7 @@ import type {
   GetGroupCalendarPayload,
   ModifyGlobalCalendarEventPayload,
   ModifyGroupCalendarEventPayload,
-  ModifyGroupCalendarPayload
+  ModifyGroupCalendarPayload,
 } from '@/lib/types/calendar';
 
 export const createGlobalCalendarEvent = (data: CreateGlobalCalendarEventPayload) =>

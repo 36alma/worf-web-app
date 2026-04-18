@@ -111,3 +111,10 @@ export interface TaskHistoryItem {
   new_value?: string;
   created_at: string;
 }
+
+export interface GroupUser {
+  user_id: string;
+  full_name: string;
+  email: string;
+  username: string;
+}

@@ -4,8 +4,8 @@ import SideSheet from '@/components/ui/SideSheet';
 export interface FilterState {
   search: string;
   myTasksOnly: boolean;
-  status: string[]; // TODO, IN_PROGRESS, DONE
-  priority: string[]; // HIGH, MEDIUM, LOW
+  status: string[]; // TODO, IN_PROGRESS, IN_REVIEW, DONE, BLOCKED
+  priority: string[]; // HIGH, MEDIUM, LOW, URGENT
   dateFrom: string;
   dateTo: string;
 }
@@ -20,10 +20,13 @@ export interface FilterSheetProps {
 const STATUS_OPTIONS = [
   { value: 'TODO', label: 'To Do' },
   { value: 'IN_PROGRESS', label: 'In Progress' },
-  { value: 'DONE', label: 'Done' }
+  { value: 'IN_REVIEW', label: 'In Review' },
+  { value: 'DONE', label: 'Done' },
+  { value: 'BLOCKED', label: 'Blocked' }
 ];
 
 const PRIORITY_OPTIONS = [
+  { value: 'URGENT', label: 'Sürgős' },
   { value: 'HIGH', label: 'Magas' },
   { value: 'MEDIUM', label: 'Közepes' },
   { value: 'LOW', label: 'Alacsony' }

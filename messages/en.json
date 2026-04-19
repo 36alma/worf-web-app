@@ -94,7 +94,12 @@
     "reporter": "Reporter",
     "due_date": "Due date",
     "story_points": "Story points",
-    "comments": "Comments",
+    "comments": {
+      "title": "Comments",
+      "placeholder": "New comment...",
+      "send": "Send",
+      "edited": "(Edited)"
+    },
     "priority_low": "Low",
     "priority_medium": "Medium",
     "priority_high": "High",
@@ -213,12 +218,6 @@
       "prev": "Previous",
       "next": "Next"
     },
-    "comments": {
-      "title": "Comments",
-      "placeholder": "New comment...",
-      "send": "Send",
-      "edited": "(Edited)"
-    },
     "category": {
       "manage": "Manage categories"
     },
@@ -244,6 +243,18 @@
         "422": "Validation failed. Please review the form data."
       },
       "default": "An unknown error occurred while saving the task."
+    },
+    "taskStatus": {
+      "todo": "To Do",
+      "inProgress": "In Progress",
+      "inReview": "In Review",
+      "done": "Done",
+      "archived": "Archived"
+    },
+    "priorityLabels": {
+      "high": "High",
+      "medium": "Medium",
+      "low": "Low"
     }
   },
   "calendar": {
@@ -599,7 +610,8 @@
       "toast_updated": "Post updated",
       "toast_group_created": "Group post created",
       "toast_global_created": "Global post created"
-    }
+    },
+    "card_title": "Post"
   },
   "profile": {
     "title": "Profile",

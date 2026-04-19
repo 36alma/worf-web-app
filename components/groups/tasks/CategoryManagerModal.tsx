@@ -21,7 +21,7 @@ export default function CategoryManagerModal({open, onClose, groupId, permission
   const [categories, setCategories] = useState<TaskCategory[]>([]);
   const [loading, setLoading] = useState(true);
   const [newName, setNewName] = useState('');
-  const [newColor, setNewColor] = useState('#4f46e5'); // default indigo
+  const [newColor, setNewColor] = useState('#f97316'); // default orange
 
   useEffect(() => {
     if (open && permissions.read) {
@@ -107,12 +107,12 @@ export default function CategoryManagerModal({open, onClose, groupId, permission
                 value={newName}
                 onChange={(e) => setNewName(e.target.value)}
                 placeholder="Címke neve"
-                className="flex-1 rounded-md border border-[var(--border-default)] bg-[var(--bg-input)] px-3 py-2 text-sm text-[var(--text-primary)] outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                className="flex-1 rounded-md border border-[var(--border-default)] bg-[var(--bg-input)] px-3 py-2 text-sm text-[var(--text-primary)] outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500"
               />
               <button
                 type="submit"
                 disabled={!newName.trim()}
-                className="flex items-center justify-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-indigo-700 disabled:opacity-50"
+                className="flex items-center justify-center rounded-md bg-orange-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-orange-600 disabled:opacity-50"
               >
                 <Plus size={16} />
               </button>

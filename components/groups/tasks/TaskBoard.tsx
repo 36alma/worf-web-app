@@ -1,4 +1,5 @@
 import {useState, useEffect, useMemo} from 'react';
+import {useTranslations} from 'next-intl';
 import {
   DndContext,
   DragOverlay,
@@ -23,15 +24,10 @@ import TaskDetailModal from './TaskDetailModal';
 import TaskFormModal from './TaskFormModal';
 import CategoryManagerModal from './CategoryManagerModal';
 import {Task} from './types';
+import {translateTaskStatus} from '@/lib/i18n/tasks';
 import {getTaskPanel, modifyTask, deleteTask} from '@/lib/api/tasks';
 
 const STATUS_COLUMNS = ['TODO', 'IN_PROGRESS', 'DONE'];
-const STATUS_LABELS: Record<string, string> = {
-  TODO: 'To Do',
-  IN_PROGRESS: 'In Progress',
-  DONE: 'Done'
-};
-
 export interface TaskBoardProps {
   groupId: string;
   permissions: {
@@ -57,6 +53,7 @@ export interface TaskBoardProps {
 }
 
 export default function TaskBoard({groupId, permissions}: TaskBoardProps) {
+  const t = useTranslations('tasks');
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -393,7 +390,7 @@ export default function TaskBoard({groupId, permissions}: TaskBoardProps) {
               <TaskColumn
                 key={status}
                 id={status}
-                title={STATUS_LABELS[status]}
+                title={translateTaskStatus(t, status)}
                 tasks={colTasks}
                 wipLimit={status === 'IN_PROGRESS' ? 5 : undefined} // Example WIP limit
                 permissions={permissions}

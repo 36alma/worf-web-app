@@ -8,6 +8,7 @@ export interface TimelineTaskItem {
   end: Date;
   progress: number;
   isDisabled: boolean;
+  hasDueAt: boolean;
   task: Task;
 }
 
@@ -19,14 +20,11 @@ export function useTimelineData(tasks: Task[], canRead: boolean) {
 
     return tasks.map((task) => {
       let start = task.started_at ? new Date(task.started_at) : null;
+      const hasDueAt = Boolean(task.due_at);
       let end = task.due_at ? new Date(task.due_at) : null;
 
       if (!start && task.created_at) {
         start = new Date(task.created_at);
-      }
-
-      if (!end && task.completed_at) {
-        end = new Date(task.completed_at);
       }
 
       if (!start && end) {
@@ -42,7 +40,7 @@ export function useTimelineData(tasks: Task[], canRead: boolean) {
       }
 
       if (start.getTime() > end.getTime()) {
-        start = new Date(end.getTime() - DAY_MS);
+        end = new Date(start.getTime() + DAY_MS);
       }
 
       let progress = 0;
@@ -57,6 +55,7 @@ export function useTimelineData(tasks: Task[], canRead: boolean) {
         end,
         progress,
         isDisabled: !canRead,
+        hasDueAt,
         task
       };
     });

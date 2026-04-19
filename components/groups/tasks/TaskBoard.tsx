@@ -126,8 +126,8 @@ export default function TaskBoard({groupId, permissions}: TaskBoardProps) {
       if (searchQuery && !task.summary.toLowerCase().includes(searchQuery.toLowerCase())) {
         return false;
       }
-      if (myTasksOnly && task.assignee_id !== 'current_user_id') {
-        // FIXME: Use actual logged in user id here from auth context
+      if (myTasksOnly && task.assigneer_id?.assigneer_email !== 'current_user_email') {
+        // FIXME: Use actual logged in user email here from auth context
         return false;
       }
       return true;
@@ -144,14 +144,14 @@ export default function TaskBoard({groupId, permissions}: TaskBoardProps) {
         angle: 60,
         spread: 55,
         origin: {x: 0},
-        colors: ['#4f46e5', '#10b981', '#f59e0b']
+        colors: ['#f97316', '#10b981', '#f59e0b']
       });
       confetti({
         particleCount: 4,
         angle: 120,
         spread: 55,
         origin: {x: 1},
-        colors: ['#4f46e5', '#10b981', '#f59e0b']
+        colors: ['#f97316', '#10b981', '#f59e0b']
       });
 
       if (Date.now() < end) {
@@ -331,13 +331,13 @@ export default function TaskBoard({groupId, permissions}: TaskBoardProps) {
                 placeholder="Keresés..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="h-8 w-48 rounded bg-transparent pl-8 pr-3 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                className="h-8 w-48 rounded bg-transparent pl-8 pr-3 text-sm focus:outline-none focus:ring-1 focus:ring-orange-500"
               />
             </div>
             <div className="h-4 w-px bg-[var(--border-subtle)] mx-1" />
             <button
               onClick={() => setMyTasksOnly(!myTasksOnly)}
-              className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${myTasksOnly ? 'bg-indigo-100 text-indigo-700' : 'text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]'}`}
+              className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${myTasksOnly ? 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400' : 'text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]'}`}
             >
               <Filter size={14} /> Csak a sajátom
             </button>
@@ -357,7 +357,7 @@ export default function TaskBoard({groupId, permissions}: TaskBoardProps) {
                 setEditTask(undefined);
                 setIsFormOpen(true);
               }}
-              className="flex items-center gap-2 rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white transition-all hover:bg-indigo-700 hover:shadow-lg active:scale-95"
+              className="flex items-center gap-2 rounded-md bg-orange-500 px-4 py-2 text-sm font-medium text-white transition-all hover:bg-orange-600 hover:shadow-lg hover:shadow-orange-500/20 active:scale-95"
             >
               <Plus size={16} /> Új feladat
             </button>
@@ -366,8 +366,8 @@ export default function TaskBoard({groupId, permissions}: TaskBoardProps) {
       </div>
 
       {permissions.task.delete && selectedTaskIds.length > 0 && (
-        <div className="flex items-center justify-between rounded-lg bg-indigo-50 p-3 pr-4 border border-indigo-100 shadow-sm animate-in slide-in-from-top-4">
-          <span className="text-sm font-medium text-indigo-800">
+        <div className="flex items-center justify-between rounded-lg bg-orange-50 dark:bg-orange-900/30 p-3 pr-4 border border-orange-100 dark:border-orange-800 shadow-sm animate-in slide-in-from-top-4">
+          <span className="text-sm font-medium text-orange-800 dark:text-orange-300">
             {selectedTaskIds.length} feladat kijelölve
           </span>
           <button

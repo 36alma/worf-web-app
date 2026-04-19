@@ -18,13 +18,19 @@ export function useTimelineData(tasks: Task[], canRead: boolean) {
   const items = useMemo<TimelineTaskItem[]>(() => {
     if (!canRead) return [];
 
-    return tasks.map((task) => {
-      let start = task.started_at ? new Date(task.started_at) : null;
+    return tasks.flatMap((task) => {
+      const parseDate = (value?: string | null) => {
+        if (!value) return null;
+        const parsed = new Date(value);
+        return Number.isNaN(parsed.getTime()) ? null : parsed;
+      };
+
+      let start = parseDate(task.started_at);
       const hasDueAt = Boolean(task.due_at);
-      let end = task.due_at ? new Date(task.due_at) : null;
+      let end = parseDate(task.due_at);
 
       if (!start && task.created_at) {
-        start = new Date(task.created_at);
+        start = parseDate(task.created_at);
       }
 
       if (!start && end) {
@@ -32,11 +38,15 @@ export function useTimelineData(tasks: Task[], canRead: boolean) {
       }
 
       if (!start) {
-        start = new Date();
+        return [];
       }
 
       if (!end) {
         end = new Date(start.getTime() + DAY_MS);
+      }
+
+      if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
+        return [];
       }
 
       if (start.getTime() > end.getTime()) {
@@ -48,7 +58,7 @@ export function useTimelineData(tasks: Task[], canRead: boolean) {
       else if (task.status === 'IN_PROGRESS') progress = 50;
       else if (task.status === 'IN_REVIEW') progress = 80;
 
-      return {
+      return [{
         id: task.id,
         name: task.summary || 'Nevtelen feladat',
         start,
@@ -57,7 +67,7 @@ export function useTimelineData(tasks: Task[], canRead: boolean) {
         isDisabled: !canRead,
         hasDueAt,
         task
-      };
+      }];
     });
   }, [tasks, canRead]);
 

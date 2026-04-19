@@ -209,7 +209,7 @@ export default function TaskDetailModal({
     <Dialog.Root open={open} onOpenChange={(nextOpen) => !nextOpen && onClose()}>
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-50 bg-black/50 backdrop-blur-[3px] animate-in fade-in-0 duration-200" />
-        <Dialog.Content className="fixed left-1/2 top-1/2 z-50 w-[min(96vw,920px)] max-h-[90vh] -translate-x-1/2 -translate-y-1/2 rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-elevated)] shadow-2xl flex flex-col animate-in fade-in-0 zoom-in-95 slide-in-from-bottom-2 duration-200">
+        <Dialog.Content className="fixed left-1/2 top-1/2 z-50 flex max-h-[min(90vh,700px)] w-[min(96vw,920px)] -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-elevated)] shadow-2xl animate-in fade-in-0 zoom-in-95 slide-in-from-bottom-2 duration-200">
 
           {/* ── Header ── */}
           <div className="flex items-center justify-between border-b border-[var(--border-subtle)] px-6 py-4 shrink-0">
@@ -260,8 +260,9 @@ export default function TaskDetailModal({
             </Tabs.List>
 
             {/* ── Details Tab ── */}
-            <Tabs.Content value="details" className="flex-1 overflow-y-auto px-6 py-5 outline-none">
-              <div className="flex flex-col gap-5">
+            <Tabs.Content value="details" className="flex min-h-0 flex-1 flex-col outline-none">
+              <div className="min-h-0 flex-1 overflow-y-auto px-6 py-5 pr-5">
+                <div className="flex flex-col gap-5">
 
                 {/* ── Summary (Inline Edit) ── */}
                 <div>
@@ -569,10 +570,12 @@ export default function TaskDetailModal({
                   permissions={permissions.comment}
                 />
               </div>
+              </div>
             </Tabs.Content>
 
             {/* ── History Tab ── */}
-            <Tabs.Content value="history" className="flex-1 overflow-y-auto px-6 py-5 outline-none">
+            <Tabs.Content value="history" className="flex min-h-0 flex-1 flex-col outline-none">
+              <div className="min-h-0 flex-1 overflow-y-auto px-6 py-5 pr-5">
               {historyLoading ? (
                 <div className="relative border-l-2 border-[var(--border-subtle)] ml-4 py-2">
                   {[1, 2, 3, 4].map((i) => (
@@ -638,6 +641,7 @@ export default function TaskDetailModal({
                   ))}
                 </div>
               )}
+              </div>
             </Tabs.Content>
           </Tabs.Root>
         </Dialog.Content>

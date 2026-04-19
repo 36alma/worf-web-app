@@ -1,6 +1,6 @@
 'use client';
 
-import {useState, useEffect, useCallback} from 'react';
+import {useState, useEffect, useCallback, useMemo} from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
 import * as Tabs from '@radix-ui/react-tabs';
 import {
@@ -9,11 +9,15 @@ import {
   Hash, Archive, User, Sparkles,
 } from 'lucide-react';
 import clsx from 'clsx';
-import {Task, TaskHistoryItem, GroupUser, STATUSES, STATUS_LABELS, TASK_TYPES, TASK_TYPE_LABELS} from './types';
+import {Task, TaskHistoryItem, GroupUser, STATUSES, STATUS_LABELS, TASK_TYPES, TASK_TYPE_LABELS, PRIORITIES, PRIORITY_LABELS} from './types';
 import AssigneeCombobox from './AssigneeCombobox';
 import TaskComments from './TaskComments';
+import TaskTypeBadge from './TaskTypeBadge';
 import {modifyTask, getTaskHistory} from '@/lib/api/tasks';
 import toast from 'react-hot-toast';
+import {
+  Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
+} from '@/components/ui/select';
 
 // ── Task type icon map ──
 const TASK_TYPE_ICONS: Record<string, React.ReactNode> = {
@@ -21,7 +25,7 @@ const TASK_TYPE_ICONS: Record<string, React.ReactNode> = {
   STORY: <BookOpen size={14} className="text-blue-500" />,
   EPIC: <Zap size={14} className="text-purple-500" />,
   SUBTASK: <Layers size={14} className="text-teal-500" />,
-  TASK: <CheckSquare size={14} className="text-indigo-500" />,
+  TASK: <CheckSquare size={14} className="text-orange-500" />,
 };
 
 // ── Props ──
@@ -59,6 +63,16 @@ export default function TaskDetailModal({
     }
   }, [task]);
 
+  const currentAssigneeId = useMemo(() => {
+    if (!task?.assigneer_id?.assigneer_email) return null;
+    return groupUsers.find(u => u.email === task.assigneer_id!.assigneer_email)?.user_id || null;
+  }, [task?.assigneer_id?.assigneer_email, groupUsers]);
+
+  const currentReporterId = useMemo(() => {
+    if (!task?.reporter_id?.reporter_email) return null;
+    return groupUsers.find(u => u.email === task.reporter_id!.reporter_email)?.user_id || null;
+  }, [task?.reporter_id?.reporter_email, groupUsers]);
+
   useEffect(() => {
     if (open) {
       setActiveTab('details');
@@ -88,10 +102,24 @@ export default function TaskDetailModal({
   // ── Generic inline-save handler ──
   const handleUpdate = useCallback(async (field: string, value: unknown) => {
     if (!task || !canEdit) return;
-    const currentVal = task[field as keyof Task];
+    
+    let currentVal: unknown = task[field as keyof Task];
+    if (field === 'assignee_id') currentVal = currentAssigneeId;
+    if (field === 'reporter_id') currentVal = currentReporterId;
+
     if (currentVal === value) return;
 
     const updatedTask = {...task, [field]: value};
+    
+    if (field === 'assignee_id') {
+      const u = groupUsers.find(x => x.user_id === value);
+      updatedTask.assigneer_id = u ? { assigneer_email: u.email, assigneer_fullname: u.full_name || u.username } as any : null;
+    }
+    if (field === 'reporter_id') {
+      const u = groupUsers.find(x => x.user_id === value);
+      updatedTask.reporter_id = u ? { reporter_email: u.email, reporter_fullname: u.full_name || u.username } as any : null;
+    }
+
     if (onUpdateTask) onUpdateTask(updatedTask);
 
     try {
@@ -163,12 +191,19 @@ export default function TaskDetailModal({
     catch { return ''; }
   };
 
+  // ── Priority color helper ──
+  const priorityColorCls = (p: string | undefined | null) =>
+    p === 'HIGH' || p === 'URGENT' ? 'text-red-500' :
+    p === 'MEDIUM' ? 'text-amber-500' : 'text-blue-500';
+
   // ── Style helpers ──
   const labelCls = 'text-[11px] uppercase tracking-wider text-[var(--text-tertiary)] font-semibold mb-1';
   const fieldCardCls = 'flex flex-col rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-primary)] px-3 py-2.5 transition-all';
-  const inlineSelectCls = 'bg-transparent text-[var(--text-primary)] text-sm outline-none border-none cursor-pointer font-semibold w-full';
   const inlineDateCls = 'bg-transparent text-[var(--text-primary)] outline-none border-none cursor-pointer font-medium text-sm w-full';
   const inlineNumberCls = 'bg-transparent text-[var(--text-primary)] outline-none border-none font-semibold text-sm w-full';
+
+  // Inline select trigger style (borderless, transparent)
+  const inlineSelectTriggerCls = 'h-auto border-none bg-transparent px-0 py-0 text-sm font-semibold shadow-none ring-0 focus:ring-0 focus:border-none';
 
   return (
     <Dialog.Root open={open} onOpenChange={(nextOpen) => !nextOpen && onClose()}>
@@ -179,19 +214,16 @@ export default function TaskDetailModal({
           {/* ── Header ── */}
           <div className="flex items-center justify-between border-b border-[var(--border-subtle)] px-6 py-4 shrink-0">
             <div className="flex items-center gap-3 min-w-0">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-500/10 shrink-0">
-                {TASK_TYPE_ICONS[task.task_type] || <Sparkles size={16} className="text-indigo-500" />}
-              </div>
-              <div className="min-w-0">
-                <Dialog.Title className="text-base font-semibold text-[var(--text-primary)] truncate">
-                  {task.issue_key}
-                </Dialog.Title>
-                {task.parent_task_id && (
-                  <span className="text-[11px] text-[var(--text-tertiary)] font-medium">
-                    Szülő: {task.parent_task_id}
-                  </span>
-                )}
-              </div>
+              <Dialog.Title className="flex items-center m-0" asChild>
+                <div className="flex flex-row items-center gap-3">
+                  <TaskTypeBadge task_type={task.task_type} issue_key={task.issue_key} size="lg" />
+                  {task.parent_task_id && (
+                    <span className="text-[11px] text-[var(--text-tertiary)] font-medium bg-[var(--bg-hover)] px-2 py-1 rounded border border-[var(--border-subtle)] mt-0.5">
+                      Szülő: {task.parent_task_id}
+                    </span>
+                  )}
+                </div>
+              </Dialog.Title>
             </div>
             <Dialog.Close asChild>
               <button type="button" className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-[var(--text-tertiary)] transition-colors hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]">
@@ -208,7 +240,7 @@ export default function TaskDetailModal({
                 className={clsx(
                   'flex items-center gap-2 px-4 py-2.5 font-semibold text-sm transition-all border-b-2 outline-none -mb-px',
                   activeTab === 'details'
-                    ? 'border-indigo-500 text-indigo-600 dark:text-indigo-400'
+                    ? 'border-orange-500 text-orange-500'
                     : 'border-transparent text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] rounded-t-lg'
                 )}
               >
@@ -219,7 +251,7 @@ export default function TaskDetailModal({
                 className={clsx(
                   'flex items-center gap-2 px-4 py-2.5 font-semibold text-sm transition-all border-b-2 outline-none -mb-px',
                   activeTab === 'history'
-                    ? 'border-indigo-500 text-indigo-600 dark:text-indigo-400'
+                    ? 'border-orange-500 text-orange-500'
                     : 'border-transparent text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] rounded-t-lg'
                 )}
               >
@@ -236,7 +268,7 @@ export default function TaskDetailModal({
                   {isEditingSummary ? (
                     <input
                       autoFocus
-                      className="w-full text-xl font-bold bg-[var(--bg-primary)] text-[var(--text-primary)] border border-indigo-500 rounded-lg px-3 py-2 outline-none ring-2 ring-indigo-500/20"
+                      className="w-full text-xl font-bold bg-[var(--bg-primary)] text-[var(--text-primary)] border border-orange-500 rounded-lg px-3 py-2 outline-none ring-2 ring-orange-500/20"
                       value={summary}
                       onChange={(e) => setSummary(e.target.value)}
                       onBlur={submitSummary}
@@ -267,9 +299,16 @@ export default function TaskDetailModal({
                     <div className="flex items-center gap-2">
                       {TASK_TYPE_ICONS[task.task_type] || null}
                       {canEdit ? (
-                        <select value={task.task_type} onChange={(e) => handleUpdate('task_type', e.target.value)} className={inlineSelectCls}>
-                          {TASK_TYPES.map(tt => <option key={tt} value={tt}>{TASK_TYPE_LABELS[tt]}</option>)}
-                        </select>
+                        <Select value={task.task_type} onValueChange={(val) => handleUpdate('task_type', val)}>
+                          <SelectTrigger className={inlineSelectTriggerCls}>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {TASK_TYPES.map(tt => (
+                              <SelectItem key={tt} value={tt}>{TASK_TYPE_LABELS[tt]}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                       ) : (
                         <span className="font-semibold text-sm text-[var(--text-primary)]">
                           {TASK_TYPE_LABELS[task.task_type as keyof typeof TASK_TYPE_LABELS] || task.task_type}
@@ -282,9 +321,16 @@ export default function TaskDetailModal({
                   <div className={fieldCardCls}>
                     <span className={labelCls}>Állapot</span>
                     {canEdit ? (
-                      <select value={task.status} onChange={(e) => handleUpdate('status', e.target.value)} className={inlineSelectCls}>
-                        {STATUSES.map(s => <option key={s} value={s}>{STATUS_LABELS[s]}</option>)}
-                      </select>
+                      <Select value={task.status} onValueChange={(val) => handleUpdate('status', val)}>
+                        <SelectTrigger className={inlineSelectTriggerCls}>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {STATUSES.map(s => (
+                            <SelectItem key={s} value={s}>{STATUS_LABELS[s]}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     ) : (
                       <span className="font-semibold text-sm text-[var(--text-primary)]">
                         {STATUS_LABELS[task.status as keyof typeof STATUS_LABELS] || task.status}
@@ -296,24 +342,19 @@ export default function TaskDetailModal({
                   <div className={fieldCardCls}>
                     <span className={labelCls}>Prioritás</span>
                     {canEdit ? (
-                      <select value={task.priority || 'MEDIUM'} onChange={(e) => handleUpdate('priority', e.target.value)}
-                        className={clsx(inlineSelectCls,
-                          task.priority === 'HIGH' || task.priority === 'URGENT' ? 'text-red-500' :
-                          task.priority === 'MEDIUM' ? 'text-amber-500' : 'text-blue-500'
-                        )}
-                      >
-                        <option value="LOW">Alacsony</option>
-                        <option value="MEDIUM">Közepes</option>
-                        <option value="HIGH">Magas</option>
-                        <option value="URGENT">Sürgős</option>
-                      </select>
+                      <Select value={task.priority || 'MEDIUM'} onValueChange={(val) => handleUpdate('priority', val)}>
+                        <SelectTrigger className={clsx(inlineSelectTriggerCls, priorityColorCls(task.priority))}>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {PRIORITIES.map(p => (
+                            <SelectItem key={p} value={p}>{PRIORITY_LABELS[p]}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     ) : (
-                      <span className={clsx('font-semibold text-sm',
-                        task.priority === 'HIGH' || task.priority === 'URGENT' ? 'text-red-500' :
-                        task.priority === 'MEDIUM' ? 'text-amber-500' : 'text-blue-500'
-                      )}>
-                        {task.priority === 'HIGH' ? 'Magas' : task.priority === 'MEDIUM' ? 'Közepes' :
-                         task.priority === 'LOW' ? 'Alacsony' : task.priority === 'URGENT' ? 'Sürgős' : task.priority}
+                      <span className={clsx('font-semibold text-sm', priorityColorCls(task.priority))}>
+                        {PRIORITY_LABELS[task.priority] || task.priority}
                       </span>
                     )}
                   </div>
@@ -336,16 +377,33 @@ export default function TaskDetailModal({
                   </div>
                 </div>
 
-                {/* ── Assignee (Combobox) ── */}
-                <div className={fieldCardCls}>
-                  <span className={labelCls}>Felelős</span>
-                  <AssigneeCombobox
-                    users={groupUsers}
-                    value={task.assignee_id ?? null}
-                    onChange={(userId) => handleUpdate('assignee_id', userId)}
-                    disabled={!canEdit}
-                    loading={groupUsersLoading}
-                  />
+                {/* ── Reporters and Assignees ── */}
+                <div className="grid grid-cols-2 gap-3">
+                  {/* ── Assignee (Combobox) ── */}
+                  <div className={fieldCardCls}>
+                    <span className={labelCls}>Felelős</span>
+                    <AssigneeCombobox
+                      users={groupUsers}
+                      value={currentAssigneeId}
+                      onChange={(userId) => handleUpdate('assignee_id', userId)}
+                      disabled={!canEdit}
+                      loading={groupUsersLoading}
+                      placeholder={task.assigneer_id?.assigneer_fullname || "Nincs hozzárendelve"}
+                    />
+                  </div>
+
+                  {/* ── Reporter (Combobox) ── */}
+                  <div className={fieldCardCls}>
+                    <span className={labelCls}>Bejelentő</span>
+                    <AssigneeCombobox
+                      users={groupUsers}
+                      value={currentReporterId}
+                      onChange={(userId) => handleUpdate('reporter_id', userId)}
+                      disabled={!canEdit}
+                      loading={groupUsersLoading}
+                      placeholder={task.reporter_id?.reporter_fullname || "Ismeretlen"}
+                    />
+                  </div>
                 </div>
 
                 {/* ── Dates Grid ── */}
@@ -427,7 +485,7 @@ export default function TaskDetailModal({
                       <div className="flex-1 h-2.5 bg-[var(--bg-primary)] border border-[var(--border-subtle)] rounded-full overflow-hidden">
                         <div
                           className={clsx('h-full transition-all duration-500 ease-out rounded-full',
-                            subtasksCompleted === subtasksTotal ? 'bg-emerald-500' : 'bg-indigo-500'
+                            subtasksCompleted === subtasksTotal ? 'bg-emerald-500' : 'bg-orange-500'
                           )}
                           style={{width: `${subtaskPercent}%`}}
                         />
@@ -463,7 +521,7 @@ export default function TaskDetailModal({
                     <div className="flex flex-col gap-2.5">
                       <textarea
                         autoFocus
-                        className="w-full min-h-[120px] rounded-lg border border-indigo-500 ring-2 ring-indigo-500/20 bg-[var(--bg-primary)] px-4 py-3 text-sm text-[var(--text-primary)] outline-none resize-y"
+                        className="w-full min-h-[120px] rounded-lg border border-orange-500 ring-2 ring-orange-500/20 bg-[var(--bg-primary)] px-4 py-3 text-sm text-[var(--text-primary)] outline-none resize-y"
                         value={description}
                         onChange={(e) => setDescription(e.target.value)}
                       />
@@ -476,7 +534,7 @@ export default function TaskDetailModal({
                           Mégse
                         </button>
                         <button type="button" onClick={submitDescription}
-                          className="px-4 py-1.5 text-sm font-semibold bg-indigo-600 rounded-lg text-white hover:bg-indigo-700 transition-colors"
+                          className="px-4 py-1.5 text-sm font-semibold bg-orange-500 rounded-lg text-white hover:bg-orange-600 transition-colors"
                         >
                           Mentés
                         </button>
@@ -536,13 +594,13 @@ export default function TaskDetailModal({
                   <p className="text-sm">Nincsenek elérhető előzmények.</p>
                 </div>
               ) : (
-                <div className="relative border-l-2 border-indigo-200 dark:border-indigo-900 ml-4 py-2">
+                <div className="relative border-l-2 border-orange-200 dark:border-orange-900 ml-4 py-2">
                   {historyItems.map((item, index) => (
                     <div key={item.id || index} className="mb-6 ml-6 relative group">
-                      <div className="absolute -left-[31px] top-1.5 h-3 w-3 rounded-full bg-indigo-500 border-4 border-[var(--bg-elevated)] group-hover:bg-indigo-400 transition-colors" />
+                      <div className="absolute -left-[31px] top-1.5 h-3 w-3 rounded-full bg-orange-500 border-4 border-[var(--bg-elevated)] group-hover:bg-orange-400 transition-colors" />
                       <div className="flex flex-col gap-1.5 border border-[var(--border-subtle)] p-3 rounded-lg bg-[var(--bg-primary)]">
                         <div className="flex items-center gap-2 justify-between">
-                          <span className="text-[11px] font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">
+                          <span className="text-[11px] font-bold uppercase tracking-wider text-orange-600 dark:text-orange-400">
                             {formatActionType(item.action_type)}
                           </span>
                           <span className="text-[11px] text-[var(--text-tertiary)] bg-[var(--bg-hover)] px-2 py-0.5 rounded-md font-medium">

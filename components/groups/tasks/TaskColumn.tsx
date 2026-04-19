@@ -62,7 +62,7 @@ export default function TaskColumn({
       className={clsx(
         "flex h-[75vh] w-[320px] shrink-0 flex-col gap-4 rounded-xl border p-4 transition-colors",
         isOver
-          ? "border-indigo-500 bg-[rgba(79,70,229,0.05)]"
+          ? "border-orange-500 bg-orange-500/5"
           : "border-[var(--border-subtle)] bg-[var(--bg-surface)]",
         isOverWip && !isOver && "border-red-400/50 bg-red-500-[0.02]"
       )}

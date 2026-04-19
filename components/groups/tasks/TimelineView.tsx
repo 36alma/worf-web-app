@@ -28,11 +28,11 @@ const SIDEBAR_WIDTH = 320;
 const ROW_HEIGHT = 72;
 
 const STATUS_BAR_COLORS: Record<string, string> = {
-  TODO: 'bg-zinc-500/80',
+  TODO: 'bg-orange-500/85',
   IN_PROGRESS: 'bg-blue-500/80',
-  IN_REVIEW: 'bg-violet-500/80',
+  IN_REVIEW: 'bg-emerald-500/80',
   DONE: 'bg-emerald-500/80',
-  BLOCKED: 'bg-orange-500/80'
+  BLOCKED: 'bg-red-500/80'
 };
 
 const PRIORITY_BAR_COLORS: Record<string, string> = {
@@ -153,6 +153,19 @@ export default function TimelineView({
   const [drafts, setDrafts] = useState<Record<string, DraftSchedule>>({});
   const [dragMoved, setDragMoved] = useState(false);
   const [suppressClickTaskId, setSuppressClickTaskId] = useState<string | null>(null);
+  const displayItems = useMemo(() => items.map((item) => {
+    const draft = drafts[item.id];
+    if (!draft) {
+      return item;
+    }
+
+    return {
+      ...item,
+      start: draft.start,
+      end: draft.end,
+      hasDueAt: draft.hasDueAt
+    };
+  }), [drafts, items]);
 
   useEffect(() => {
     if (!dragState) {
@@ -253,8 +266,8 @@ export default function TimelineView({
         <div className="flex flex-col items-center gap-3 text-center text-[var(--text-tertiary)]">
           <CalendarRange size={42} className="opacity-60" />
           <div>
-            <p className="font-semibold text-[var(--text-secondary)]">Nincs megjelenitheto feladat</p>
-            <p className="text-sm">A timeline a betoltott feladatokbol epul fel.</p>
+            <p className="font-semibold text-[var(--text-secondary)]">Nincs feladat ebben az időszakban</p>
+            <p className="text-sm">A timeline a betöltött és érvényes dátummal rendelkező feladatokból épül fel.</p>
           </div>
         </div>
       </div>
@@ -266,25 +279,12 @@ export default function TimelineView({
   const start = addDays(toStartOfDay(rawStart), -1);
   const end = addDays(toEndOfDay(rawEnd), 2);
   const totalDays = Math.max(1, diffDays(start, end) + 1);
+  const totalMs = Math.max(DAY_MS, end.getTime() - start.getTime());
   const days = Array.from({length: totalDays}, (_, index) => addDays(start, index));
   const weekSegments = buildWeekSegments(days);
   const today = toStartOfDay(new Date()).getTime();
   const timelineWidth = totalDays * DAY_WIDTH;
   const activeDragTaskId = dragState?.taskId ?? null;
-
-  const displayItems = useMemo(() => items.map((item) => {
-    const draft = drafts[item.id];
-    if (!draft) {
-      return item;
-    }
-
-    return {
-      ...item,
-      start: draft.start,
-      end: draft.end,
-      hasDueAt: draft.hasDueAt
-    };
-  }), [drafts, items]);
 
   return (
     <div className="flex h-full min-h-0 w-full min-w-0 flex-1 flex-col overflow-hidden rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] shadow-sm">
@@ -366,14 +366,20 @@ export default function TimelineView({
 
           <div className="relative">
             {displayItems.map((item) => {
-              const startOffset = Math.max(0, diffDays(start, item.start));
-              const span = item.hasDueAt ? Math.max(1, diffDays(item.start, item.end) + 1) : 1;
-              const barWidth = Math.max(DAY_WIDTH * span - 12, 18);
-              const barLeft = startOffset * DAY_WIDTH + 6;
-              const barTone = getBarTone(item.task);
-              const issueKey = item.task.issue_key || item.name;
-              const priorityLabel = item.task.priority ? (PRIORITY_LABELS[item.task.priority] || item.task.priority) : null;
-              const statusLabel = STATUS_LABELS[item.task.status as keyof typeof STATUS_LABELS] || item.task.status;
+               const normalizedStart = new Date(item.start);
+               const normalizedEnd = new Date(item.end);
+               if (Number.isNaN(normalizedStart.getTime()) || Number.isNaN(normalizedEnd.getTime())) {
+                 return null;
+               }
+
+               const startMs = Math.max(start.getTime(), normalizedStart.getTime());
+               const inclusiveEnd = Math.min(end.getTime(), toEndOfDay(normalizedEnd).getTime());
+               const leftPct = ((startMs - start.getTime()) / totalMs) * 100;
+               const widthPct = Math.max(((inclusiveEnd - startMs) / totalMs) * 100, (DAY_MS / totalMs) * 100);
+               const barTone = getBarTone(item.task);
+               const issueKey = item.task.issue_key || item.name;
+               const priorityLabel = item.task.priority ? (PRIORITY_LABELS[item.task.priority] || item.task.priority) : null;
+               const statusLabel = STATUS_LABELS[item.task.status as keyof typeof STATUS_LABELS] || item.task.status;
 
               const isDragging = activeDragTaskId === item.id;
 
@@ -469,15 +475,15 @@ export default function TimelineView({
                       }}
                       onPointerDown={(event) => beginDrag('move', event)}
                       className={clsx(
-                        'absolute top-1/2 flex h-9 -translate-y-1/2 items-center overflow-hidden rounded-full border border-white/10 px-3 text-left shadow-[0_12px_30px_rgba(0,0,0,0.18)] transition-all',
+                         'absolute top-1/2 z-10 flex h-9 min-w-[60px] -translate-y-1/2 items-center overflow-hidden rounded-full border border-white/10 px-3 text-left shadow-[0_12px_30px_rgba(0,0,0,0.18)] transition-all',
                         barTone,
                         permissions.task.modify && 'cursor-grab active:cursor-grabbing',
                         !item.isDisabled && !isDragging && 'hover:-translate-y-[52%] hover:brightness-110',
                         isDragging && 'z-20 brightness-110 ring-2 ring-orange-500 shadow-lg shadow-orange-500/20'
                       )}
                       style={{
-                        left: barLeft,
-                        width: barWidth
+                        left: `calc(${leftPct}% + 6px)`,
+                        width: `max(calc(${widthPct}% - 12px), 60px)`
                       }}
                       title={`${item.name} (${issueKey})`}
                     >
@@ -513,16 +519,16 @@ export default function TimelineView({
                       <>
                         <div
                           className="absolute top-2 rounded-full border border-[var(--border-subtle)] bg-[var(--bg-surface)]/95 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--text-secondary)] shadow-md backdrop-blur"
-                          style={{left: Math.max(0, barLeft - 6)}}
-                        >
-                          Elkezdve {formatDayLabel(item.start)}
-                        </div>
+                           style={{left: `max(0px, calc(${leftPct}%))`}}
+                         >
+                           Elkezdve {formatDayLabel(item.start)}
+                         </div>
                         <div
                           className="absolute top-2 rounded-full border border-[var(--border-subtle)] bg-[var(--bg-surface)]/95 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--text-secondary)] shadow-md backdrop-blur"
-                          style={{left: Math.max(0, barLeft + barWidth - 110)}}
-                        >
-                          Hatarido {formatDayLabel(item.end)}
-                        </div>
+                           style={{left: `max(0px, calc(${leftPct + widthPct}% - 110px))`}}
+                         >
+                           Határidő {formatDayLabel(item.end)}
+                         </div>
                       </>
                     ) : null}
                   </div>

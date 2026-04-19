@@ -84,26 +84,166 @@
   },
   "tasks": {
     "title": "Feladatok",
-    "placeholder": "Itt jelenik meg a task panel, státusz és komment kezelés.",
+    "placeholder": "Itt jelenik meg a task panel, st?tusz ?s komment kezel?s.",
     "card_title": "Feladat",
-    "detail_label": "Feladat részletei",
-    "create": "Feladat létrehozása",
-    "status": "Státusz",
-    "priority": "Prioritás",
-    "assignee": "Felelős",
-    "reporter": "Bejelentő",
-    "due_date": "Határidő",
+    "detail_label": "Feladat r?szletei",
+    "create": "?j feladat",
+    "status": "St?tusz",
+    "priority": "Priorit?s",
+    "assignee": "Felel?s",
+    "reporter": "Bejelent?",
+    "due_date": "Hat?rid?",
     "story_points": "Story pontok",
-    "comments": "Megjegyzések",
+    "comments": {
+      "title": "Megjegyz?sek",
+      "placeholder": "?j komment...",
+      "send": "K?ld?s",
+      "edited": "(M?dos?tva)"
+    },
     "priority_low": "Alacsony",
-    "priority_medium": "Közepes",
+    "priority_medium": "K?zepes",
     "priority_high": "Magas",
     "priority_critical": "Kritikus",
-    "status_todo": "Teendő",
+    "status_todo": "Teend?",
     "status_in_progress": "Folyamatban",
-    "status_done": "Kész",
+    "status_done": "K?sz",
     "status_blocked": "Blokkolt",
-    "status_review": "Felülvizsgálat"
+    "status_review": "Fel?lvizsg?lat",
+    "page": {
+      "title": "Feladatok",
+      "createTitle": "?j feladat l?trehoz?sa",
+      "editTitle": "Feladat szerkeszt?se"
+    },
+    "table": {
+      "key": "Kulcs",
+      "summary": "?sszefoglal?",
+      "type": "T?pus",
+      "status": "St?tusz",
+      "priority": "Priorit?s",
+      "assignee": "Felel?s",
+      "progress": "Halad?s",
+      "dueDate": "Hat?rid?",
+      "createdAt": "L?trehozva",
+      "emptyText": "Nincs tal?lat a sz?r?sek alapj?n."
+    },
+    "actions": {
+      "save": "Ment?s",
+      "delete": "T?rl?s",
+      "cancel": "M?gse",
+      "filter": "Sz?r?s",
+      "addComment": "Komment hozz?ad?sa"
+    },
+    "types": {
+      "STORY": "Sztori",
+      "TASK": "Feladat",
+      "BUG": "Hiba",
+      "EPIC": "Epik",
+      "SUBTASK": "R?szfeladat"
+    },
+    "status_enum": {
+      "TODO": "Teend?",
+      "IN_PROGRESS": "Folyamatban",
+      "IN_REVIEW": "Fel?lvizsg?lat",
+      "DONE": "K?sz",
+      "BLOCKED": "Blokkolva"
+    },
+    "priority_enum": {
+      "LOW": "Alacsony",
+      "MEDIUM": "K?zepes",
+      "HIGH": "Magas",
+      "CRITICAL": "Kritikus",
+      "URGENT": "Kritikus"
+    },
+    "views": {
+      "kanban": "Kanban",
+      "list": "Lista",
+      "calendar": "Napt?r",
+      "timeline": "Id?vonal"
+    },
+    "calendar": {
+      "today": "Ma",
+      "month": "H?nap"
+    },
+    "filter": {
+      "searchPlaceholder": "Gyorskeres?s...",
+      "filterButton": "Sz?r?k",
+      "title": "Sz?r?k",
+      "myTasks": "Csak a saj?t feladataim",
+      "dateFrom": "Ett?l",
+      "dateTo": "Eddig",
+      "clear": "Sz?r?k t?rl?se",
+      "apply": "Alkalmaz",
+      "noSelection": "Nincs kiv?lasztva"
+    },
+    "form": {
+      "summary": "?sszefoglal?",
+      "description": "Le?r?s",
+      "labels": "C?mk?k",
+      "storyPoints": "Sztoripontok",
+      "summaryPlaceholder": "Mit kell megcsin?lni?",
+      "descriptionPlaceholder": "B?vebb r?szletek a feladatr?l...",
+      "typePlaceholder": "V?lassz t?pust...",
+      "statusPlaceholder": "V?lassz ?llapotot...",
+      "priorityPlaceholder": "V?lassz priorit?st...",
+      "assignee": "Felel?s",
+      "assigneePlaceholder": "Felel?s kiv?laszt?sa...",
+      "assigneeSearchPlaceholder": "Keres?s n?v vagy email alapj?n...",
+      "unassigned": "Nincs hozz?rendelve",
+      "parentTask": "Sz?l? feladat",
+      "parentTaskPlaceholder": "Ha alfeladat...",
+      "startedAt": "Kezd?si d?tum",
+      "createLabel": "L?trehoz?s",
+      "editLabel": "Ment?s",
+      "cancel": "M?gse"
+    },
+    "common": {
+      "noResults": "Nincs tal?lat."
+    },
+    "validation": {
+      "issueKeyRequired": "A feladat kulcs k?telez?",
+      "summaryRequired": "Az ?sszefoglal? k?telez?",
+      "taskTypeRequired": "A t?pus kiv?laszt?sa k?telez?",
+      "statusRequired": "Az ?llapot kiv?laszt?sa k?telez?"
+    },
+    "badges": {
+      "selectedCount": "{count} feladat kijel?lve",
+      "bulkDelete": "Kijel?ltek t?rl?se"
+    },
+    "confirm": {
+      "bulkDelete": "Biztosan t?r?lni szeretn?l {count} feladatot?"
+    },
+    "pagination": {
+      "page": "Oldal:",
+      "showing": "({count} feladat mutatva)",
+      "prev": "El?z?",
+      "next": "K?vetkez?"
+    },
+    "category": {
+      "manage": "C?mk?k kezel?se"
+    },
+    "toasts": {
+      "saving": "Ment?s...",
+      "loadError": "Nem siker?lt bet?lteni a feladatokat.",
+      "createSuccess": "A feladat sikeresen l?trej?tt.",
+      "updateSuccess": "A feladat sikeresen friss?lt.",
+      "deleteError": "Nem siker?lt t?r?lni a feladatokat.",
+      "bulkDeleteSuccess": "{count} feladat sikeresen t?r?lve.",
+      "summaryUpdated": "Az ?sszefoglal? friss?lt.",
+      "statusUpdated": "Az ?llapot friss?lt.",
+      "updateError": "Nem siker?lt friss?teni a feladatot.",
+      "scheduleUpdated": "Az ?temez?s friss?lt.",
+      "scheduleUpdateError": "Nem siker?lt friss?teni az ?temez?st.",
+      "scheduleSaveError": "A feladat l?trej?tt, de a d?tumok ment?se nem siker?lt."
+    },
+    "errors": {
+      "api": {
+        "401": "A hiteles?t?s sikertelen. Jelentkezz be ?jra.",
+        "403": "Nincs jogosults?god a m?velet v?grehajt?s?hoz.",
+        "404": "A keresett feladat vagy rekord nem tal?lhat?.",
+        "422": "Az ellen?rz?s sikertelen. Ellen?rizd az ?rlap adatait."
+      },
+      "default": "Ismeretlen hiba t?rt?nt a feladat ment?sekor."
+    }
   },
   "calendar": {
     "page": {

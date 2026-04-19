@@ -103,7 +103,148 @@
     "status_in_progress": "In progress",
     "status_done": "Done",
     "status_blocked": "Blocked",
-    "status_review": "Review"
+    "status_review": "Review",
+    "page": {
+      "title": "Tasks",
+      "createTitle": "Create New Task",
+      "editTitle": "Edit Task"
+    },
+    "table": {
+      "key": "Key",
+      "summary": "Summary",
+      "type": "Type",
+      "status": "Status",
+      "priority": "Priority",
+      "assignee": "Assignee",
+      "progress": "Progress",
+      "dueDate": "Due Date",
+      "createdAt": "Created At",
+      "emptyText": "No results found for the selected filters."
+    },
+    "actions": {
+      "save": "Save",
+      "delete": "Delete",
+      "cancel": "Cancel",
+      "filter": "Filter",
+      "addComment": "Add Comment"
+    },
+    "types": {
+      "STORY": "Story",
+      "TASK": "Task",
+      "BUG": "Bug",
+      "EPIC": "Epic",
+      "SUBTASK": "Subtask"
+    },
+    "status_enum": {
+      "TODO": "To Do",
+      "IN_PROGRESS": "In Progress",
+      "IN_REVIEW": "In Review",
+      "DONE": "Done",
+      "BLOCKED": "Blocked"
+    },
+    "priority_enum": {
+      "LOW": "Low",
+      "MEDIUM": "Medium",
+      "HIGH": "High",
+      "CRITICAL": "Critical",
+      "URGENT": "Critical"
+    },
+    "views": {
+      "kanban": "Kanban",
+      "list": "List",
+      "calendar": "Calendar",
+      "timeline": "Timeline"
+    },
+    "calendar": {
+      "today": "Today",
+      "month": "Month"
+    },
+    "filter": {
+      "searchPlaceholder": "Quick search...",
+      "filterButton": "Filters",
+      "title": "Filters",
+      "myTasks": "My tasks only",
+      "dateFrom": "From",
+      "dateTo": "To",
+      "clear": "Clear filters",
+      "apply": "Apply",
+      "noSelection": "No selection"
+    },
+    "form": {
+      "summary": "Summary",
+      "description": "Description",
+      "labels": "Labels",
+      "storyPoints": "Story points",
+      "summaryPlaceholder": "What needs to be done?",
+      "descriptionPlaceholder": "Add more context for the task...",
+      "typePlaceholder": "Select a type...",
+      "statusPlaceholder": "Select a status...",
+      "priorityPlaceholder": "Select a priority...",
+      "assignee": "Assignee",
+      "assigneePlaceholder": "Select assignee...",
+      "assigneeSearchPlaceholder": "Search by name or email...",
+      "unassigned": "Unassigned",
+      "parentTask": "Parent task",
+      "parentTaskPlaceholder": "If this is a subtask...",
+      "startedAt": "Start date",
+      "createLabel": "Create",
+      "editLabel": "Save",
+      "cancel": "Cancel"
+    },
+    "common": {
+      "noResults": "No results found."
+    },
+    "validation": {
+      "issueKeyRequired": "Task key is required",
+      "summaryRequired": "Summary is required",
+      "taskTypeRequired": "Task type is required",
+      "statusRequired": "Status is required"
+    },
+    "badges": {
+      "selectedCount": "{count} tasks selected",
+      "bulkDelete": "Delete selected"
+    },
+    "confirm": {
+      "bulkDelete": "Are you sure you want to delete {count} task(s)?"
+    },
+    "pagination": {
+      "page": "Page:",
+      "showing": "(showing {count} tasks)",
+      "prev": "Previous",
+      "next": "Next"
+    },
+    "comments": {
+      "title": "Comments",
+      "placeholder": "New comment...",
+      "send": "Send",
+      "edited": "(Edited)"
+    },
+    "category": {
+      "manage": "Manage categories"
+    },
+    "toasts": {
+      "saving": "Saving...",
+      "loadError": "Failed to load tasks.",
+      "createSuccess": "Task created successfully.",
+      "updateSuccess": "Task updated successfully.",
+      "deleteError": "Failed to delete task(s).",
+      "bulkDeleteSuccess": "{count} task(s) deleted successfully.",
+      "summaryUpdated": "Summary updated.",
+      "statusUpdated": "Status updated.",
+      "updateError": "Failed to update task.",
+      "scheduleUpdated": "Schedule updated.",
+      "scheduleUpdateError": "Failed to update schedule.",
+      "scheduleSaveError": "The task was created, but the dates could not be saved."
+    },
+    "errors": {
+      "api": {
+        "401": "Authentication failed. Please log in again.",
+        "403": "You do not have permission to perform this action.",
+        "404": "The requested task or record was not found.",
+        "422": "Validation failed. Please review the form data."
+      },
+      "default": "An unknown error occurred while saving the task."
+    }
   },
   "calendar": {
     "page": {

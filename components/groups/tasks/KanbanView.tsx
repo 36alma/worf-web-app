@@ -1,4 +1,5 @@
 import {useState, useMemo} from 'react';
+import {useTranslations} from 'next-intl';
 import {
   DndContext,
   DragOverlay,
@@ -15,7 +16,8 @@ import {
 import {sortableKeyboardCoordinates} from '@dnd-kit/sortable';
 import TaskColumn from './TaskColumn';
 import TaskCard from './TaskCard';
-import {Task, STATUSES, STATUS_LABELS} from './types';
+import {Task, STATUSES} from './types';
+import {translateTaskStatus} from '@/lib/i18n/tasks';
 
 export interface KanbanViewProps {
   tasks: Task[];
@@ -36,6 +38,7 @@ export default function KanbanView({
   onModifyTaskSummary,
   onTaskMove
 }: KanbanViewProps) {
+  const t = useTranslations('tasks');
   // Local state for optimistic drag & drop
   const [localTasks, setLocalTasks] = useState<Task[]>(tasks);
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -155,7 +158,7 @@ export default function KanbanView({
             <TaskColumn
               key={status}
               id={status}
-              title={STATUS_LABELS[status]}
+              title={translateTaskStatus(t, status)}
               tasks={colTasks}
               wipLimit={status === 'IN_PROGRESS' ? 5 : undefined}
               permissions={permissions}

@@ -215,6 +215,7 @@ export default function TaskDetailSheet({open, onClose, task, groupId, permissio
   const inlineDateCls = "bg-transparent text-[var(--text-primary)] outline-none border-none cursor-pointer font-semibold text-sm w-[180px]";
   const inlineNumberCls = "bg-transparent text-[var(--text-primary)] outline-none border-none font-bold text-center w-16";
 
+  return (
     <SideSheet open={open} onClose={onClose} title={
       <div className="flex items-center gap-3">
         <TaskTypeBadge task_type={task.task_type} issue_key={task.issue_key} size="lg" />

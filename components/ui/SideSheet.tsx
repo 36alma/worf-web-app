@@ -4,7 +4,7 @@ import {ReactNode} from 'react';
 
 export interface SideSheetProps {
   open: boolean;
-  title: string;
+  title: string | ReactNode;
   onClose: () => void;
   children: ReactNode;
 }

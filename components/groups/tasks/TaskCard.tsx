@@ -2,14 +2,13 @@ import {useState, useEffect, useRef} from 'react';
 import {Calendar, GripVertical, Bug, BookOpen, Zap, Layers, CheckSquare} from 'lucide-react';
 import clsx from 'clsx';
 import {Task, PRIORITY_COLORS, TASK_TYPE_LABELS} from './types';
-
-// Task type ikontérkép
+import TaskTypeBadge from './TaskTypeBadge';
 const TASK_TYPE_ICONS: Record<string, React.ReactNode> = {
   BUG: <Bug size={12} className="text-red-500" />,
   STORY: <BookOpen size={12} className="text-blue-500" />,
   EPIC: <Zap size={12} className="text-purple-500" />,
   SUBTASK: <Layers size={12} className="text-teal-500" />,
-  TASK: <CheckSquare size={12} className="text-indigo-500" />,
+  TASK: <CheckSquare size={12} className="text-orange-500" />,
 };
 
 export interface TaskCardProps {
@@ -77,8 +76,8 @@ export default function TaskCard({
       onClick={!isEditing ? onClick : undefined}
       className={clsx(
         'group relative flex cursor-pointer flex-col gap-2.5 rounded-xl border bg-[var(--bg-elevated)] p-4 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-lg',
-        isDragging ? 'border-indigo-500 shadow-xl opacity-90 scale-105' : 'border-[var(--border-subtle)] hover:border-[var(--border-hover)]',
-        isSelected && 'ring-2 ring-indigo-500 border-indigo-500 bg-indigo-50/50 dark:bg-indigo-950/20'
+        isDragging ? 'ring-2 ring-orange-500 border-orange-500 shadow-xl shadow-orange-500/20 opacity-90 scale-105' : 'border-[var(--border-subtle)] hover:border-[var(--border-hover)]',
+        isSelected && 'ring-2 ring-orange-500 border-orange-500 bg-orange-50/50 dark:bg-orange-950/20'
       )}
     >
       {/* Selection Checkbox & Drag Handle */}
@@ -92,32 +91,20 @@ export default function TaskCard({
               onToggleSelection?.();
             }}
             onClick={(e) => e.stopPropagation()}
-            className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+            className="h-4 w-4 rounded border-gray-300 text-orange-500 focus:ring-orange-500 cursor-pointer accent-orange-500"
           />
         )}
       </div>
 
       {/* Top Row: issue_key + task_type + drag handle */}
       <div className="flex items-center justify-between gap-2 pl-6">
-        <div className="flex items-center gap-2">
-          {/* Issue Key badge */}
-          <span className="text-[11px] font-mono font-semibold text-[var(--text-tertiary)] bg-[var(--bg-surface)] border border-[var(--border-subtle)] px-1.5 py-0.5 rounded select-none">
-            {task.issue_key}
-          </span>
-          {/* Task Type icon + label */}
-          {task.task_type && (
-            <span className="flex items-center gap-1 text-[10px] font-semibold text-[var(--text-tertiary)] uppercase tracking-wide">
-              {TASK_TYPE_ICONS[task.task_type] || null}
-              {TASK_TYPE_LABELS[task.task_type as keyof typeof TASK_TYPE_LABELS] || task.task_type}
-            </span>
-          )}
-        </div>
+        <TaskTypeBadge task_type={task.task_type} issue_key={task.issue_key} size="sm" />
 
         {permissions.task.modify && (
           <div
             {...dragListeners}
             onClick={(e) => e.stopPropagation()}
-            className="cursor-grab active:cursor-grabbing text-[var(--text-tertiary)] hover:text-indigo-500 -mt-1 -mr-1 p-1 transition-colors"
+            className="cursor-grab active:cursor-grabbing text-[var(--text-tertiary)] hover:text-orange-500 -mt-1 -mr-1 p-1 transition-colors"
           >
             <GripVertical size={16} />
           </div>
@@ -134,7 +121,7 @@ export default function TaskCard({
             onBlur={saveEdit}
             onKeyDown={handleKeyDown}
             onClick={(e) => e.stopPropagation()}
-            className="w-full rounded border border-indigo-500 bg-transparent px-1 py-0.5 text-[15px] font-semibold text-[var(--text-primary)] focus:outline-none"
+            className="w-full rounded border border-orange-500 bg-transparent px-1 py-0.5 text-[15px] font-semibold text-[var(--text-primary)] focus:outline-none focus:ring-1 focus:ring-orange-500/30"
           />
         ) : (
           <h4
@@ -159,7 +146,7 @@ export default function TaskCard({
         )}
 
         {(task.story_points !== null && task.story_points !== undefined && task.story_points > 0) && (
-          <span className="inline-flex items-center justify-center h-6 min-w-[24px] px-1.5 rounded-full bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300 border border-indigo-200 text-[11px] font-bold tabular-nums" title="Story Points">
+          <span className="inline-flex items-center justify-center h-6 min-w-[24px] px-1.5 rounded-full bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300 border border-orange-200 dark:border-orange-800 text-[11px] font-bold tabular-nums" title="Story Points">
             {task.story_points} SP
           </span>
         )}
@@ -176,9 +163,9 @@ export default function TaskCard({
           </div>
         )}
 
-        {task.assignee_id && (
-          <div className="ml-auto flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-indigo-100 to-purple-100 text-[10px] font-bold text-indigo-800 ring-2 ring-white shadow-sm" title={task.assignee_id}>
-            {task.assignee_id.substring(0, 2).toUpperCase()}
+        {task.assigneer_id?.assigneer_fullname && (
+          <div className="ml-auto flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-orange-100 to-amber-100 dark:from-orange-900/40 dark:to-amber-900/40 text-[10px] font-bold text-orange-800 dark:text-orange-300 ring-2 ring-white dark:ring-zinc-800 shadow-sm" title={task.assigneer_id.assigneer_fullname}>
+            {task.assigneer_id.assigneer_fullname.substring(0, 2).toUpperCase()}
           </div>
         )}
       </div>
@@ -190,7 +177,7 @@ export default function TaskCard({
             <div 
               className={clsx(
                 "h-full transition-all duration-500 ease-out rounded-full",
-                subtasksCompleted === subtasksTotal ? "bg-emerald-500" : "bg-indigo-500"
+                subtasksCompleted === subtasksTotal ? "bg-emerald-500" : "bg-orange-500"
               )}
               style={{ width: `${subtaskPercent}%` }}
             />

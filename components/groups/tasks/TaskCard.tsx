@@ -74,8 +74,9 @@ export default function TaskCard({
   return (
     <div
       onClick={!isEditing ? onClick : undefined}
+      style={{touchAction: 'manipulation'}}
       className={clsx(
-        'group relative flex cursor-pointer flex-col gap-2.5 rounded-xl border bg-[var(--bg-elevated)] p-4 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-lg',
+        'group relative flex cursor-pointer flex-col gap-2.5 rounded-xl border bg-[var(--bg-elevated)] p-4 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-lg active:scale-[0.98]',
         isDragging ? 'ring-2 ring-orange-500 border-orange-500 shadow-xl shadow-orange-500/20 opacity-90 scale-105' : 'border-[var(--border-subtle)] hover:border-[var(--border-hover)]',
         isSelected && 'ring-2 ring-orange-500 border-orange-500 bg-orange-50/50 dark:bg-orange-950/20'
       )}

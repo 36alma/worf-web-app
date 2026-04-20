@@ -54,14 +54,14 @@ export default function FilterSheet({open, onClose, filters, onApplyFilters}: Fi
       <div className="flex flex-col gap-6">
         <div className="flex flex-col gap-3">
           <h3 className="text-sm font-semibold text-[var(--text-primary)]">{t('table.status')}</h3>
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-1">
             {STATUS_OPTIONS.map((status) => (
-              <label key={status} className="flex cursor-pointer items-center gap-2 text-sm text-[var(--text-secondary)]">
+              <label key={status} className="flex cursor-pointer items-center gap-3 rounded-lg px-2 py-2.5 text-sm text-[var(--text-secondary)] transition-colors hover:bg-[var(--bg-hover)] active:bg-[var(--bg-hover)] min-h-[44px]">
                 <input
                   type="checkbox"
                   checked={localFilters.status.includes(status)}
                   onChange={(event) => handleStatusChange(status, event.target.checked)}
-                  className="rounded border-[var(--border-default)] text-orange-500 focus:ring-orange-500 accent-orange-500"
+                  className="h-4 w-4 rounded border-[var(--border-default)] text-orange-500 focus:ring-orange-500 accent-orange-500 shrink-0"
                 />
                 {translateTaskStatus(t, status)}
               </label>
@@ -71,14 +71,14 @@ export default function FilterSheet({open, onClose, filters, onApplyFilters}: Fi
 
         <div className="flex flex-col gap-3">
           <h3 className="text-sm font-semibold text-[var(--text-primary)]">{t('table.priority')}</h3>
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-1">
             {PRIORITY_OPTIONS.map((priority) => (
-              <label key={priority} className="flex cursor-pointer items-center gap-2 text-sm text-[var(--text-secondary)]">
+              <label key={priority} className="flex cursor-pointer items-center gap-3 rounded-lg px-2 py-2.5 text-sm text-[var(--text-secondary)] transition-colors hover:bg-[var(--bg-hover)] active:bg-[var(--bg-hover)] min-h-[44px]">
                 <input
                   type="checkbox"
                   checked={localFilters.priority.includes(priority)}
                   onChange={(event) => handlePriorityChange(priority, event.target.checked)}
-                  className="rounded border-[var(--border-default)] text-orange-500 focus:ring-orange-500 accent-orange-500"
+                  className="h-4 w-4 rounded border-[var(--border-default)] text-orange-500 focus:ring-orange-500 accent-orange-500 shrink-0"
                 />
                 {translateTaskPriority(t, priority)}
               </label>
@@ -95,7 +95,8 @@ export default function FilterSheet({open, onClose, filters, onApplyFilters}: Fi
                 type="date"
                 value={localFilters.dateFrom}
                 onChange={(event) => setLocalFilters((prev) => ({...prev, dateFrom: event.target.value}))}
-                className="rounded-md border border-[var(--border-default)] bg-[var(--bg-surface)] px-3 py-1.5 text-sm text-[var(--text-primary)] focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500"
+                style={{fontSize: '16px'}}
+                className="w-full rounded-xl border border-[var(--border-default)] bg-[var(--bg-surface)] px-3 py-3 text-[var(--text-primary)] focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500 min-h-[44px]"
               />
             </div>
             <div className="flex flex-col gap-1">
@@ -104,22 +105,23 @@ export default function FilterSheet({open, onClose, filters, onApplyFilters}: Fi
                 type="date"
                 value={localFilters.dateTo}
                 onChange={(event) => setLocalFilters((prev) => ({...prev, dateTo: event.target.value}))}
-                className="rounded-md border border-[var(--border-default)] bg-[var(--bg-surface)] px-3 py-1.5 text-sm text-[var(--text-primary)] focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500"
+                style={{fontSize: '16px'}}
+                className="w-full rounded-xl border border-[var(--border-default)] bg-[var(--bg-surface)] px-3 py-3 text-[var(--text-primary)] focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500 min-h-[44px]"
               />
             </div>
           </div>
         </div>
 
-        <div className="mt-4 flex gap-3">
+        <div className="mt-6 flex gap-3">
           <button
             onClick={() => setLocalFilters({search: localFilters.search, myTasksOnly: localFilters.myTasksOnly, status: [], priority: [], dateFrom: '', dateTo: ''})}
-            className="flex-1 rounded-md border border-[var(--border-default)] px-4 py-2 text-sm font-medium text-[var(--text-secondary)] transition-colors hover:bg-[var(--bg-hover)]"
+            className="flex-1 rounded-xl border border-[var(--border-default)] px-4 py-3 text-sm font-medium text-[var(--text-secondary)] transition-colors hover:bg-[var(--bg-hover)] active:bg-[var(--bg-hover)] min-h-[48px]"
           >
             {t('filter.clear')}
           </button>
           <button
             onClick={applyAndClose}
-            className="flex-1 rounded-md bg-orange-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-orange-600"
+            className="flex-1 rounded-xl bg-orange-500 px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-orange-600 active:bg-orange-700 active:scale-95 min-h-[48px]"
           >
             {t('filter.apply')}
           </button>

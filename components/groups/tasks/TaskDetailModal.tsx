@@ -1,6 +1,6 @@
 'use client';
 
-import {useState, useEffect, useCallback, useMemo} from 'react';
+import {useState, useEffect, useCallback, useMemo, useRef} from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
 import * as Tabs from '@radix-ui/react-tabs';
 import {
@@ -55,6 +55,8 @@ export default function TaskDetailModal({
   const [activeTab, setActiveTab] = useState('details');
   const [historyItems, setHistoryItems] = useState<TaskHistoryItem[]>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
+  const dragHandleRef = useRef<HTMLDivElement>(null);
+  const swipeStartY = useRef(0);
 
   useEffect(() => {
     if (task) {
@@ -147,6 +149,13 @@ export default function TaskDetailModal({
 
   if (!task) return null;
 
+  const handleDragHandleTouchStart = (e: React.TouchEvent) => {
+    swipeStartY.current = e.touches[0].clientY;
+  };
+  const handleDragHandleTouchMove = (e: React.TouchEvent) => {
+    if (e.touches[0].clientY - swipeStartY.current > 80) onClose();
+  };
+
   const submitSummary = () => {
     if (!summary.trim()) {
       setSummary(task.summary);
@@ -209,7 +218,33 @@ export default function TaskDetailModal({
     <Dialog.Root open={open} onOpenChange={(nextOpen) => !nextOpen && onClose()}>
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-50 bg-black/50 backdrop-blur-[3px] animate-in fade-in-0 duration-200" />
-        <Dialog.Content className="fixed left-1/2 top-1/2 z-50 flex max-h-[min(90vh,700px)] w-[min(96vw,920px)] -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-elevated)] shadow-2xl animate-in fade-in-0 zoom-in-95 slide-in-from-bottom-2 duration-200">
+
+        {/* Bottom sheet mobilon, centered modal md+-on */}
+        <Dialog.Content className={[
+          // Mobil: bottom sheet
+          'fixed inset-x-0 bottom-0 z-50 flex flex-col',
+          'max-h-[92dvh] bg-[var(--bg-elevated)]',
+          'rounded-t-2xl border border-[var(--border-subtle)] shadow-2xl',
+          'data-[state=open]:animate-in data-[state=open]:slide-in-from-bottom',
+          'data-[state=closed]:animate-out data-[state=closed]:slide-out-to-bottom',
+          'duration-300',
+          // md+: centered modal
+          'md:inset-0 md:m-auto md:bottom-auto md:left-1/2 md:top-1/2',
+          'md:-translate-x-1/2 md:-translate-y-1/2',
+          'md:rounded-2xl md:max-w-[920px] md:w-[min(96vw,920px)]',
+          'md:max-h-[min(90vh,760px)] md:h-auto',
+          'md:data-[state=open]:slide-in-from-bottom-2 md:data-[state=open]:zoom-in-95',
+        ].join(' ')}>
+
+          {/* Drag handle – csak mobilon */}
+          <div
+            ref={dragHandleRef}
+            onTouchStart={handleDragHandleTouchStart}
+            onTouchMove={handleDragHandleTouchMove}
+            className="flex justify-center pt-3 pb-1 md:hidden shrink-0 cursor-grab"
+          >
+            <div className="h-1 w-10 rounded-full bg-white/20" />
+          </div>
 
           {/* ── Header ── */}
           <div className="flex items-center justify-between border-b border-[var(--border-subtle)] px-6 py-4 shrink-0">
@@ -261,38 +296,40 @@ export default function TaskDetailModal({
 
             {/* ── Details Tab ── */}
             <Tabs.Content value="details" className="flex min-h-0 flex-1 flex-col outline-none">
-              <div className="min-h-0 flex-1 overflow-y-auto px-6 py-5 pr-5">
-                <div className="flex flex-col gap-5">
+            {/* Görgethető tartalom + safe-area */}
+            <div className="min-h-0 flex-1 overflow-y-auto px-6 py-5 pr-5 pb-[max(20px,env(safe-area-inset-bottom))]">
+              <div className="flex flex-col gap-5">
 
-                {/* ── Summary (Inline Edit) ── */}
-                <div>
-                  {isEditingSummary ? (
-                    <input
-                      autoFocus
-                      className="w-full text-xl font-bold bg-[var(--bg-primary)] text-[var(--text-primary)] border border-orange-500 rounded-lg px-3 py-2 outline-none ring-2 ring-orange-500/20"
-                      value={summary}
-                      onChange={(e) => setSummary(e.target.value)}
-                      onBlur={submitSummary}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') submitSummary();
-                        if (e.key === 'Escape') { setSummary(task.summary); setIsEditingSummary(false); }
-                      }}
-                    />
-                  ) : (
-                    <h2
-                      onClick={() => canEdit && setIsEditingSummary(true)}
-                      className={clsx(
-                        'text-xl font-bold text-[var(--text-primary)] rounded-lg px-3 py-2 -mx-3 transition-all',
-                        canEdit && 'cursor-text hover:bg-[var(--bg-hover)] border border-transparent hover:border-[var(--border-subtle)]'
-                      )}
-                    >
-                      {task.summary}
-                    </h2>
+            {/* ── Summary (Inline Edit) ── */}
+            <div>
+              {isEditingSummary ? (
+                <input
+                  autoFocus
+                  style={{fontSize: '16px'}}
+                  className="w-full text-xl font-bold bg-[var(--bg-primary)] text-[var(--text-primary)] border border-orange-500 rounded-lg px-3 py-2 outline-none ring-2 ring-orange-500/20"
+                  value={summary}
+                  onChange={(e) => setSummary(e.target.value)}
+                  onBlur={submitSummary}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') submitSummary();
+                    if (e.key === 'Escape') { setSummary(task.summary); setIsEditingSummary(false); }
+                  }}
+                />
+              ) : (
+                <h2
+                  onClick={() => canEdit && setIsEditingSummary(true)}
+                  className={clsx(
+                    'text-xl font-bold text-[var(--text-primary)] rounded-lg px-3 py-2 -mx-3 transition-all',
+                    canEdit && 'cursor-text hover:bg-[var(--bg-hover)] border border-transparent hover:border-[var(--border-subtle)]'
                   )}
-                </div>
+                >
+                  {task.summary}
+                </h2>
+              )}
+            </div>
 
-                {/* ── Main Fields Grid ── */}
-                <div className="grid grid-cols-2 gap-3">
+            {/* ── Main Fields Grid – 1 col mobilon, 2 col sm+ ── */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
 
                   {/* Task Type */}
                   <div className={fieldCardCls}>
@@ -378,8 +415,8 @@ export default function TaskDetailModal({
                   </div>
                 </div>
 
-                {/* ── Reporters and Assignees ── */}
-                <div className="grid grid-cols-2 gap-3">
+            {/* ── Reporters and Assignees – 1 col mobilon, 2 col sm+ ── */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {/* ── Assignee (Combobox) ── */}
                   <div className={fieldCardCls}>
                     <span className={labelCls}>Felelős</span>
@@ -407,8 +444,8 @@ export default function TaskDetailModal({
                   </div>
                 </div>
 
-                {/* ── Dates Grid ── */}
-                <div className="grid grid-cols-3 gap-3">
+            {/* ── Dates Grid – 1 col mobilon, 3 col sm+ ── */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   {/* Started At */}
                   <div className={fieldCardCls}>
                     <div className="flex items-center gap-1.5 mb-1">
@@ -417,7 +454,9 @@ export default function TaskDetailModal({
                     </div>
                     {canEdit ? (
                       <input type="datetime-local" defaultValue={toLocalDatetime(task.started_at)}
-                        onBlur={(e) => handleDateUpdate('started_at', e.target.value)} className={inlineDateCls} />
+                        onBlur={(e) => handleDateUpdate('started_at', e.target.value)}
+                        style={{fontSize: '16px'}}
+                        className={inlineDateCls} />
                     ) : (
                       <span className="font-medium text-sm text-[var(--text-primary)]">
                         {task.started_at ? new Date(task.started_at).toLocaleString([], {year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'}) : '—'}
@@ -433,7 +472,9 @@ export default function TaskDetailModal({
                     </div>
                     {canEdit ? (
                       <input type="datetime-local" defaultValue={toLocalDatetime(task.due_at)}
-                        onBlur={(e) => handleDateUpdate('due_at', e.target.value)} className={inlineDateCls} />
+                        onBlur={(e) => handleDateUpdate('due_at', e.target.value)}
+                        style={{fontSize: '16px'}}
+                        className={inlineDateCls} />
                     ) : (
                       <span className="font-medium text-sm text-[var(--text-primary)]">
                         {task.due_at ? new Date(task.due_at).toLocaleString([], {year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'}) : '—'}
@@ -449,7 +490,9 @@ export default function TaskDetailModal({
                     </div>
                     {canEdit ? (
                       <input type="datetime-local" defaultValue={toLocalDatetime(task.completed_at)}
-                        onBlur={(e) => handleDateUpdate('completed_at', e.target.value)} className={inlineDateCls} />
+                        onBlur={(e) => handleDateUpdate('completed_at', e.target.value)}
+                        style={{fontSize: '16px'}}
+                        className={inlineDateCls} />
                     ) : (
                       <span className="font-medium text-sm text-[var(--text-primary)]">
                         {task.completed_at ? new Date(task.completed_at).toLocaleString([], {year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'}) : '—'}

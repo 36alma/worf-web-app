@@ -144,45 +144,51 @@ export default function KanbanView({
   };
 
   return (
-    <div className="flex flex-1 items-start gap-4 overflow-x-auto pb-4 custom-scrollbar">
-      <DndContext
-        sensors={sensors}
-        collisionDetection={closestCorners}
-        onDragStart={handleDragStart}
-        onDragOver={handleDragOver}
-        onDragEnd={handleDragEnd}
-      >
+    <DndContext
+      sensors={sensors}
+      collisionDetection={closestCorners}
+      onDragStart={handleDragStart}
+      onDragOver={handleDragOver}
+      onDragEnd={handleDragEnd}
+    >
+      {/* Mobile: horizontal snap-scroll; Desktop: flex row */}
+      <div className="flex gap-3 overflow-x-auto snap-x snap-mandatory pb-4 custom-scrollbar
+                      lg:flex-1 lg:items-start lg:gap-4 lg:overflow-visible">
         {STATUSES.map((status) => {
           const colTasks = localTasks.filter((t) => t.status === status);
           return (
-            <TaskColumn
+            <div
               key={status}
-              id={status}
-              title={translateTaskStatus(t, status)}
-              tasks={colTasks}
-              wipLimit={status === 'IN_PROGRESS' ? 5 : undefined}
-              permissions={permissions}
-              onTaskClick={onTaskClick}
-              selectedTaskIds={selectedTaskIds}
-              onToggleSelection={onToggleSelection}
-              onModifyTaskSummary={onModifyTaskSummary}
-            />
-          );
-        })}
-        
-        <DragOverlay dropAnimation={dropAnimationConfig}>
-          {activeTask ? (
-            <div className="opacity-90 scale-105 pointer-events-none">
-              <TaskCard
-                task={activeTask}
+              className="min-w-[88vw] snap-start shrink-0 lg:min-w-0 lg:shrink-0"
+            >
+              <TaskColumn
+                id={status}
+                title={translateTaskStatus(t, status)}
+                tasks={colTasks}
+                wipLimit={status === 'IN_PROGRESS' ? 5 : undefined}
                 permissions={permissions}
-                onClick={() => {}}
-                isDragging
+                onTaskClick={onTaskClick}
+                selectedTaskIds={selectedTaskIds}
+                onToggleSelection={onToggleSelection}
+                onModifyTaskSummary={onModifyTaskSummary}
               />
             </div>
-          ) : null}
-        </DragOverlay>
-      </DndContext>
-    </div>
+          );
+        })}
+      </div>
+
+      <DragOverlay dropAnimation={dropAnimationConfig}>
+        {activeTask ? (
+          <div className="opacity-90 scale-105 pointer-events-none">
+            <TaskCard
+              task={activeTask}
+              permissions={permissions}
+              onClick={() => {}}
+              isDragging
+            />
+          </div>
+        ) : null}
+      </DragOverlay>
+    </DndContext>
   );
 }

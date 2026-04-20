@@ -39,10 +39,10 @@ export default function TaskColumn({
 
   if (isCollapsed) {
     return (
-      <div className="flex h-[75vh] w-12 shrink-0 flex-col items-center gap-4 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] py-4 transition-colors">
+      <div className="flex h-[70svh] w-12 shrink-0 flex-col items-center gap-4 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] py-4 transition-colors">
         <button
           onClick={() => setIsCollapsed(false)}
-          className="text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+          className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] min-h-[44px] min-w-[44px] flex items-center justify-center"
         >
           <ChevronRight size={20} />
         </button>
@@ -60,14 +60,15 @@ export default function TaskColumn({
     <div
       ref={setNodeRef}
       className={clsx(
-        "flex h-[75vh] w-[320px] shrink-0 flex-col gap-4 rounded-xl border p-4 transition-colors",
+        "flex h-[70svh] w-full shrink-0 flex-col gap-4 rounded-xl border p-4 transition-colors lg:h-[75vh] lg:w-[320px]",
         isOver
           ? "border-orange-500 bg-orange-500/5"
           : "border-[var(--border-subtle)] bg-[var(--bg-surface)]",
         isOverWip && !isOver && "border-red-400/50 bg-red-500-[0.02]"
       )}
     >
-      <div className="flex items-center justify-between">
+      {/* Sticky column header */}
+      <div className="sticky top-0 z-10 flex items-center justify-between rounded-t-xl bg-[var(--bg-surface)] pb-2">
         <div className="flex flex-1 items-center gap-2">
           <button
             onClick={() => setIsCollapsed(true)}

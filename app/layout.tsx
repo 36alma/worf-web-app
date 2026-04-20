@@ -2,6 +2,7 @@ import './globals.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import type {Viewport} from 'next';
 import {Analytics} from '@vercel/analytics/next';
+import {SpeedInsights} from '@vercel/speed-insights/next';
 
 export const viewport: Viewport = {
   width: 'device-width',
@@ -15,6 +16,7 @@ export default function RootLayout({children}: {children: React.ReactNode}) {
       <body>
         {children}
         <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );

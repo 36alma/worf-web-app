@@ -1,4 +1,4 @@
-﻿import {useTranslations} from 'next-intl';
+import {useTranslations} from 'next-intl';
 import Badge from '../ui/Badge';
 
 const statusMap: Record<string, {key: string; color: 'slate' | 'indigo' | 'green' | 'red' | 'yellow'}> = {
@@ -12,5 +12,5 @@ const statusMap: Record<string, {key: string; color: 'slate' | 'indigo' | 'green
 export default function TaskStatusBadge({status}: {status: string}) {
   const t = useTranslations('tasks');
   const view = statusMap[status] ?? statusMap.TODO;
-  return <Badge color={view.color}>{t(view.key)}</Badge>;
+  return <Badge color={view.color}>{t(view.key as any)}</Badge>;
 }

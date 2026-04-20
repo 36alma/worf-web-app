@@ -75,6 +75,13 @@ export default function TaskClientWrapper({groupId, permissions}: TaskClientWrap
     dateTo: ''
   });
 
+  // Switch to list view on mobile since Kanban/Timeline are hidden
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.innerWidth < 1024) {
+      setActiveView('list');
+    }
+  }, []);
+
   const fetchGroupUsers = useCallback(async () => {
     setGroupUsersLoading(true);
     try {
@@ -265,7 +272,12 @@ export default function TaskClientWrapper({groupId, permissions}: TaskClientWrap
           <div className="flex rounded-md border border-[var(--border-subtle)] bg-[var(--bg-elevated)] p-1 shadow-sm">
             <button
               onClick={() => setActiveView('kanban')}
-              className={clsx('flex items-center gap-2 rounded border px-3 py-1.5 text-sm font-medium transition-all', activeView === 'kanban' ? 'border-orange-500/50 bg-orange-500/10 text-orange-500 shadow' : 'border-transparent text-[var(--text-tertiary)] hover:text-[var(--text-secondary)]')}
+              className={clsx(
+                'hidden lg:flex items-center gap-2 rounded border px-3 py-1.5 text-sm font-medium transition-all',
+                activeView === 'kanban'
+                  ? 'border-orange-500/50 bg-orange-500/10 text-orange-500 shadow'
+                  : 'border-transparent text-[var(--text-tertiary)] hover:text-[var(--text-secondary)]'
+              )}
             >
               <Columns3 size={15} /> <span className="hidden sm:inline">{t('views.kanban')}</span>
             </button>

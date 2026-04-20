@@ -93,7 +93,8 @@ const normalizeGroups = (payload: unknown): SidebarGroup[] => {
       }
 
       const row = item as Record<string, unknown>;
-      const id = String(row.group_id ?? row.id ?? '').trim();
+      const rawId = String(row.group_id ?? row.id ?? '').trim();
+      const id = normalizeGroupId(rawId);
       if (!id) {
         return null;
       }
@@ -308,8 +309,10 @@ function SidebarContent({ isMobile }: { isMobile?: boolean }) {
                     <Collapsible.Content>
                       <Select.Root value={activeGroupId || '__none__'} onValueChange={(value) => handleGroupSelect(value === '__none__' ? '' : value)}>
                         <Select.Trigger className="workspace-select inline-flex h-[var(--input-height)] w-full items-center justify-between rounded-[var(--radius-md)] border border-[var(--border-default)] bg-[var(--bg-input)] px-3 text-sm text-[var(--text-primary)] hover:border-[var(--border-hover)]">
-                          <Select.Value placeholder={groupsT('team_selector_placeholder')} />
-                          <Select.Icon>
+                          <span className="truncate">
+                            <Select.Value placeholder={groupsT('team_selector_placeholder')} />
+                          </span>
+                          <Select.Icon className="ml-2 flex-shrink-0">
                             <ChevronDown size={14} strokeWidth={1.75} className="chevron text-[var(--text-tertiary)]" />
                           </Select.Icon>
                         </Select.Trigger>

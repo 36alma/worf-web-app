@@ -233,10 +233,10 @@ export default function TaskClientWrapper({groupId, permissions}: TaskClientWrap
 
   return (
     <div className="flex h-full flex-col gap-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <h1 className="text-3xl font-bold tracking-tight text-[var(--text-primary)]">{t('page.title')}</h1>
 
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
           <div className="group relative">
             <Search className="absolute left-2.5 top-2 text-[var(--text-tertiary)] group-focus-within:text-orange-500" size={16} />
             <input
@@ -244,7 +244,7 @@ export default function TaskClientWrapper({groupId, permissions}: TaskClientWrap
               placeholder={t('filter.searchPlaceholder')}
               value={filters.search}
               onChange={(event) => setFilters((prev) => ({...prev, search: event.target.value}))}
-              className="h-8 w-48 rounded border border-[var(--border-subtle)] bg-[var(--bg-elevated)] pl-8 pr-3 text-sm text-[var(--text-primary)] transition-all focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500"
+              className="h-9 w-full sm:w-48 rounded border border-[var(--border-subtle)] bg-[var(--bg-elevated)] pl-8 pr-3 text-sm text-[var(--text-primary)] transition-all focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500"
             />
           </div>
 
@@ -257,7 +257,7 @@ export default function TaskClientWrapper({groupId, permissions}: TaskClientWrap
                 : 'border-[var(--border-default)] bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]'
             )}
           >
-            <Filter size={15} /> {t('filter.filterButton')}
+            <Filter size={15} /> <span className="hidden sm:inline">{t('filter.filterButton')}</span>
           </button>
 
           <div className="mx-1 h-4 w-px bg-[var(--border-subtle)]" />
@@ -283,7 +283,12 @@ export default function TaskClientWrapper({groupId, permissions}: TaskClientWrap
             </button>
             <button
               onClick={() => setActiveView('timeline')}
-              className={clsx('flex items-center gap-2 rounded border px-3 py-1.5 text-sm font-medium transition-all', activeView === 'timeline' ? 'border-orange-500/50 bg-orange-500/10 text-orange-500 shadow' : 'border-transparent text-[var(--text-tertiary)] hover:text-[var(--text-secondary)]')}
+              className={clsx(
+                'hidden lg:flex items-center gap-2 rounded border px-3 py-1.5 text-sm font-medium transition-all',
+                activeView === 'timeline'
+                  ? 'border-orange-500/50 bg-orange-500/10 text-orange-500 shadow'
+                  : 'border-transparent text-[var(--text-tertiary)] hover:text-[var(--text-secondary)]'
+              )}
             >
               <Clock size={15} /> <span className="hidden sm:inline">{t('views.timeline')}</span>
             </button>
@@ -304,7 +309,7 @@ export default function TaskClientWrapper({groupId, permissions}: TaskClientWrap
               onClick={() => setIsFormOpen(true)}
               className="ml-2 flex items-center gap-2 rounded-md bg-orange-500 px-4 py-2 text-sm font-medium text-white transition-all hover:bg-orange-600 hover:shadow-lg hover:shadow-orange-500/20 active:scale-95"
             >
-              <Plus size={16} /> {t('create')}
+              <Plus size={16} /> <span className="sm:inline">{t('create')}</span>
             </button>
           )}
         </div>

@@ -77,10 +77,16 @@ export default function TaskClientWrapper({groupId, permissions}: TaskClientWrap
 
   // Switch to list view on mobile since Kanban/Timeline are hidden
   useEffect(() => {
-    if (typeof window !== 'undefined' && window.innerWidth < 1024) {
-      setActiveView('list');
-    }
-  }, []);
+    const handleResize = () => {
+      if (window.innerWidth < 1024 && (activeView === 'kanban' || activeView === 'timeline')) {
+        setActiveView('list');
+      }
+    };
+
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [activeView]);
 
   const fetchGroupUsers = useCallback(async () => {
     setGroupUsersLoading(true);

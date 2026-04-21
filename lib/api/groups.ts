@@ -160,3 +160,67 @@ export const assignRoleToGroupMember = (data: {
     user_id: data.user_id,
     next_group_role_id: data.group_role_id
   });
+
+// --- NON-ADMIN (GROUP MANAGER) ENDPOINTS ---
+
+export const getGroupRolesNonAdmin = (group_id: string, group_role_id?: string) => {
+  const payload: {group_id: string; group_role_id?: string} = {group_id};
+  if (group_role_id) payload.group_role_id = group_role_id;
+  return apiClient.post('/v1/group/role/get', payload);
+};
+
+export const createGroupRoleNonAdmin = (data: {
+  group_id: string;
+  name: string;
+  description?: string;
+}) => {
+  const payload: {
+    group_id: string;
+    group_role_name: string;
+    group_role_description?: string;
+  } = {
+    group_id: data.group_id,
+    group_role_name: data.name
+  };
+
+  if (data.description) payload.group_role_description = data.description;
+  return apiClient.post('/v1/group/role/create', payload);
+};
+
+export const modifyGroupRoleNonAdmin = (data: {
+  group_id: string;
+  role_id: string;
+  name?: string;
+  description?: string;
+}) => {
+  const payload: {
+    group_id: string;
+    group_role_id: string;
+    group_role_name?: string;
+    group_role_description?: string;
+  } = {
+    group_id: data.group_id,
+    group_role_id: data.role_id
+  };
+
+  if (data.name) payload.group_role_name = data.name;
+  if (data.description) payload.group_role_description = data.description;
+  return apiClient.post('/v1/group/role/modify', payload);
+};
+
+export const deleteGroupRoleNonAdmin = (group_id: string, role_id: string) =>
+  apiClient.post('/v1/group/role/delete', {group_id, group_role_id: role_id});
+
+export const getAllPermissionsNonAdmin = () =>
+  apiClient.post('/v1/group/permission/get/all', {});
+
+export const setFixedRolePermissionsNonAdmin = (data: {
+  group_id: string;
+  group_role_id: string;
+  permission_ids: string[];
+}) =>
+  apiClient.post('/v1/group/role/permission/set/fixed', {
+    group_id: data.group_id,
+    group_role_id: data.group_role_id,
+    group_permission_ids: data.permission_ids
+  });

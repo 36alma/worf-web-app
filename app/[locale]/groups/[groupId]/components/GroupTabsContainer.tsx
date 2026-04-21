@@ -6,12 +6,14 @@ import { GroupGeneralTab } from './GroupGeneralTab';
 import { GroupMembersTab } from './GroupMembersTab';
 import { GroupRolesTab } from './GroupRolesTab';
 import { Settings, Users, Shield } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 interface GroupTabsContainerProps {
   groupData?: any;
 }
 
 export function GroupTabsContainer({ groupData }: GroupTabsContainerProps) {
+  const t = useTranslations('group_detail.tabs');
   const { hasPermission } = useGroupPermission();
   const canGetRoles = hasPermission('group.role.get');
 
@@ -26,14 +28,14 @@ export function GroupTabsContainer({ groupData }: GroupTabsContainerProps) {
               className="justify-start px-4 py-3 h-auto text-base text-gray-400 font-medium data-[state=active]:bg-orange-500/10 data-[state=active]:text-orange-500 data-[state=active]:shadow-none rounded-none border-l-2 border-transparent data-[state=active]:border-orange-500 hover:bg-white/5 transition-colors"
             >
               <Settings className="w-5 h-5 mr-3" />
-              Általános
+              {t('general')}
             </TabsTrigger>
             <TabsTrigger 
               value="members" 
               className="justify-start px-4 py-3 h-auto text-base text-gray-400 font-medium data-[state=active]:bg-orange-500/10 data-[state=active]:text-orange-500 data-[state=active]:shadow-none rounded-none border-l-2 border-transparent data-[state=active]:border-orange-500 hover:bg-white/5 transition-colors"
             >
               <Users className="w-5 h-5 mr-3" />
-              Tagok
+              {t('members')}
             </TabsTrigger>
             {canGetRoles && (
               <TabsTrigger 
@@ -41,7 +43,7 @@ export function GroupTabsContainer({ groupData }: GroupTabsContainerProps) {
                 className="justify-start px-4 py-3 h-auto text-base text-gray-400 font-medium data-[state=active]:bg-orange-500/10 data-[state=active]:text-orange-500 data-[state=active]:shadow-none rounded-none border-l-2 border-transparent data-[state=active]:border-orange-500 hover:bg-white/5 transition-colors"
               >
                 <Shield className="w-5 h-5 mr-3" />
-                Szerepkörök
+                {t('roles')}
               </TabsTrigger>
             )}
           </TabsList>

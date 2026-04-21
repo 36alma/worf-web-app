@@ -224,3 +224,45 @@ export const setFixedRolePermissionsNonAdmin = (data: {
     group_role_id: data.group_role_id,
     group_permission_ids: data.permission_ids
   });
+
+export const addGroupMemberRoleNonAdmin = (data: {
+  group_id: string;
+  user_id: string;
+  group_role_id: string;
+}) => apiClient.post('/v1/group/member/role/add', data);
+
+export const modifyGroupMemberRoleNonAdmin = (data: {
+  group_id: string;
+  user_id: string;
+  group_role_id: string;
+}) => apiClient.post('/v1/group/member/role/modify', data);
+
+export const removeGroupMemberRoleNonAdmin = (data: {
+  group_id: string;
+  user_id: string;
+  group_role_id?: string;
+}) => apiClient.post('/v1/group/member/role/remove', data);
+
+export const setGroupMemberRoleNonAdmin = async (data: {
+  group_id: string;
+  user_id: string;
+  current_group_role_id?: string | null;
+  next_group_role_id?: string | null;
+}) => {
+  const base = {group_id: data.group_id, user_id: data.user_id};
+  const currentRoleId = data.current_group_role_id ?? null;
+  const nextRoleId = data.next_group_role_id ?? null;
+
+  if (!nextRoleId) {
+    if (!currentRoleId) {
+      return Promise.resolve();
+    }
+    return removeGroupMemberRoleNonAdmin({...base, group_role_id: currentRoleId});
+  }
+
+  if (!currentRoleId) {
+    return addGroupMemberRoleNonAdmin({...base, group_role_id: nextRoleId});
+  }
+
+  return modifyGroupMemberRoleNonAdmin({...base, group_role_id: nextRoleId});
+};

@@ -74,7 +74,7 @@ export function GroupMembersTab() {
       setMembers(data);
     } catch (err) {
       console.error('Failed to fetch members', err);
-      toast.error(t('loading_error') || 'Nem sikerült betölteni a tagokat');
+      toast.error(t('error'));
     }
   }, [groupId, t]);
 

@@ -199,75 +199,85 @@ export function GroupRolesTab() {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6 animate-in fade-in duration-300">
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-medium text-[var(--text-primary)]">Szerepkörök</h2>
+        <div>
+          <h2 className="text-lg font-medium text-white mb-1">Szerepkörök</h2>
+          <p className="text-sm text-gray-400">A csoportban elérhető szerepkörök és jogosultságaik kezelése.</p>
+        </div>
         {canCreate && (
-          <Button onClick={openCreateModal} startIcon={<ShieldPlus size={16} />} className="p-2">
+          <Button 
+            onClick={openCreateModal} 
+            startIcon={<ShieldPlus size={16} />} 
+            className="bg-orange-500 hover:bg-orange-600 text-white border-none shadow-lg shadow-orange-500/20"
+          >
             Új Szerepkör
           </Button>
         )}
       </div>
 
-      <div className="overflow-hidden rounded-[var(--radius-lg)] border-[0.5px] border-[var(--border-subtle)] bg-[var(--bg-surface)]">
+      <div className="overflow-hidden rounded-xl border border-white/10 bg-[#111]">
         <table className="min-w-full text-left text-sm">
-          <thead className="border-b border-[var(--border-subtle)] bg-[var(--bg-surface)]">
+          <thead className="border-b border-white/10 bg-white/5">
             <tr>
-              <th className="px-4 py-3 font-medium text-[var(--text-tertiary)]">Megnevezés</th>
-              <th className="px-4 py-3 font-medium text-[var(--text-tertiary)] hidden sm:table-cell">Leírás</th>
-              {(canModify || canDelete || canSetPerms) && <th className="px-4 py-3 text-right">Műveletek</th>}
+              <th className="px-6 py-4 font-medium text-gray-400">Megnevezés</th>
+              <th className="px-6 py-4 font-medium text-gray-400 hidden sm:table-cell">Leírás</th>
+              {(canModify || canDelete || canSetPerms) && <th className="px-6 py-4 text-right">Műveletek</th>}
             </tr>
           </thead>
-          <tbody>
+          <tbody className="divide-y divide-white/5">
             {isLoading ? (
               <tr>
-                <td colSpan={3} className="px-4 py-8 text-center text-[var(--text-tertiary)]">
-                  Betöltés...
+                <td colSpan={3} className="px-6 py-12 text-center text-gray-500">
+                  <div className="flex justify-center items-center gap-2">
+                    <div className="w-4 h-4 rounded-full border-2 border-orange-500 border-t-transparent animate-spin" />
+                    Betöltés...
+                  </div>
                 </td>
               </tr>
             ) : roles.length === 0 ? (
               <tr>
-                <td colSpan={3} className="px-4 py-8 text-center text-[var(--text-tertiary)]">
+                <td colSpan={3} className="px-6 py-12 text-center text-gray-500">
                   Nincsenek létrehozott szerepkörök.
                 </td>
               </tr>
             ) : (
               roles.map((role, i) => (
-                <tr key={role.id || role.group_role_id || i} className="border-b border-[var(--border-subtle)] last:border-none hover:bg-[var(--bg-hover)] transition-colors">
-                  <td className="px-4 py-3 text-[var(--text-primary)] font-medium">
+                <tr key={role.id || role.group_role_id || i} className="hover:bg-white/5 transition-colors">
+                  <td className="px-6 py-4 text-white font-medium">
                     {role.name || role.group_role_name}
                   </td>
-                  <td className="px-4 py-3 text-[var(--text-secondary)] hidden sm:table-cell">
+                  <td className="px-6 py-4 text-gray-400 hidden sm:table-cell">
                     {role.description || role.group_role_description || '-'}
                   </td>
                   {(canModify || canDelete || canSetPerms) && (
-                    <td className="px-4 py-3 text-right">
+                    <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-1">
                         {canSetPerms && (
                           <button
                             onClick={() => openPermissionsSheet(role)}
-                            className="inline-flex h-8 w-8 items-center justify-center rounded-[var(--radius-md)] text-[var(--text-tertiary)] hover:bg-[var(--bg-active)] hover:text-[var(--text-primary)] transition-colors"
+                            className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-gray-400 hover:bg-orange-500/10 hover:text-orange-500 transition-colors"
                             title="Jogosultságok beállítása"
                           >
-                            <Settings size={16} strokeWidth={1.75} />
+                            <Settings size={18} strokeWidth={1.75} />
                           </button>
                         )}
                         {canModify && (
                           <button
                             onClick={() => openEditModal(role)}
-                            className="inline-flex h-8 w-8 items-center justify-center rounded-[var(--radius-md)] text-[var(--text-tertiary)] hover:bg-[var(--bg-active)] hover:text-[var(--text-primary)] transition-colors"
+                            className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-gray-400 hover:bg-orange-500/10 hover:text-orange-500 transition-colors"
                             title="Szerkesztés"
                           >
-                            <Edit2 size={16} strokeWidth={1.75} />
+                            <Edit2 size={18} strokeWidth={1.75} />
                           </button>
                         )}
                         {canDelete && (
                           <button
                             onClick={() => setRoleToDelete(role)}
-                            className="inline-flex h-8 w-8 items-center justify-center rounded-[var(--radius-md)] text-[var(--text-tertiary)] hover:bg-red-500/10 hover:text-red-500 transition-colors"
+                            className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-gray-400 hover:bg-red-500/10 hover:text-red-500 transition-colors"
                             title="Törlés"
                           >
-                            <Trash2 size={16} strokeWidth={1.75} />
+                            <Trash2 size={18} strokeWidth={1.75} />
                           </button>
                         )}
                       </div>
@@ -289,8 +299,8 @@ export function GroupRolesTab() {
         >
           <form onSubmit={handleSaveRole} className="space-y-5">
             <div className="space-y-4">
-              <div className="space-y-1.5">
-                <label htmlFor="roleName" className="text-sm font-medium text-[var(--text-secondary)]">Nev</label>
+              <div className="space-y-2">
+                <label htmlFor="roleName" className="text-sm font-medium text-gray-300">Név</label>
                 <input
                   id="roleName"
                   autoFocus
@@ -299,26 +309,35 @@ export function GroupRolesTab() {
                   onChange={(e) => setRoleName(e.target.value)}
                   placeholder="Pl. Moderátor"
                   required
-                  className="w-full rounded-[var(--radius-md)] border-[0.5px] border-[var(--border-subtle)] bg-[var(--bg-surface)] px-3 py-2 text-sm text-[var(--text-primary)] outline-none transition-all placeholder:text-[var(--text-tertiary)] focus:border-[var(--primary)] focus:ring-1 focus:ring-[var(--primary)]"
+                  className="w-full bg-[#111] border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-orange-500 focus:border-orange-500 transition-all"
                 />
               </div>
-              <div className="space-y-1.5">
-                <label htmlFor="roleDesc" className="text-sm font-medium text-[var(--text-secondary)]">Leírás (Opcionális)</label>
+              <div className="space-y-2">
+                <label htmlFor="roleDesc" className="text-sm font-medium text-gray-300">Leírás (Opcionális)</label>
                 <input
                   id="roleDesc"
                   type="text"
                   value={roleDesc}
                   onChange={(e) => setRoleDesc(e.target.value)}
-                  placeholder="Mire jogosít fel ez a szerepkört?"
-                  className="w-full rounded-[var(--radius-md)] border-[0.5px] border-[var(--border-subtle)] bg-[var(--bg-surface)] px-3 py-2 text-sm text-[var(--text-primary)] outline-none transition-all placeholder:text-[var(--text-tertiary)] focus:border-[var(--primary)] focus:ring-1 focus:ring-[var(--primary)]"
+                  placeholder="Mire jogosít fel ez a szerepkör?"
+                  className="w-full bg-[#111] border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-orange-500 focus:border-orange-500 transition-all"
                 />
               </div>
             </div>
-            <div className="flex justify-end gap-2">
-              <Button type="button" variant="secondary" className="p-2" onClick={() => setIsRoleModalOpen(false)}>
+            <div className="flex justify-end gap-3 pt-2">
+              <Button 
+                type="button" 
+                variant="secondary" 
+                className="bg-white/5 hover:bg-white/10 border-white/10 text-white" 
+                onClick={() => setIsRoleModalOpen(false)}
+              >
                 Mégse
               </Button>
-              <Button type="submit" variant="primary" className="p-2" disabled={!roleName.trim() || isSubmittingRole}>
+              <Button 
+                type="submit" 
+                className="bg-orange-500 hover:bg-orange-600 text-white border-none disabled:bg-orange-500/50" 
+                disabled={!roleName.trim() || isSubmittingRole}
+              >
                 {isSubmittingRole ? 'Mentés...' : 'Mentés'}
               </Button>
             </div>
@@ -349,21 +368,24 @@ export function GroupRolesTab() {
           <div className="flex flex-col h-full -mx-5 px-5">
             <div className="flex-1 overflow-y-auto pb-6">
               {isLoadingPerms ? (
-                <div className="py-10 text-center text-[var(--text-tertiary)]">Jogosultságok betöltése...</div>
+                <div className="py-10 text-center text-gray-500 flex flex-col items-center justify-center gap-3">
+                  <div className="w-6 h-6 rounded-full border-2 border-orange-500 border-t-transparent animate-spin" />
+                  Jogosultságok betöltése...
+                </div>
               ) : allPerms.length === 0 ? (
-                <div className="py-10 text-center text-[var(--text-tertiary)]">Nem találhatók kiosztható jogok.</div>
+                <div className="py-10 text-center text-gray-500">Nem találhatók kiosztható jogok.</div>
               ) : (
-                <div className="space-y-3">
+                <div className="space-y-3 mt-4">
                   {allPerms.map((perm) => {
                     const permId = perm.id || perm.group_permission_id || perm.name;
                     return (
-                      <div key={permId} className="flex items-center justify-between gap-4 p-3 rounded-lg border-[0.5px] border-[var(--border-subtle)] bg-[var(--bg-surface)] transition-colors hover:bg-[var(--bg-hover)]">
-                        <div className="flex flex-col">
-                          <span className="text-sm font-medium text-[var(--text-primary)]">
+                      <div key={permId} className="flex items-center justify-between gap-4 p-4 rounded-xl border border-white/10 bg-[#111] transition-colors hover:bg-white/5">
+                        <div className="flex flex-col pr-4">
+                          <span className="text-sm font-medium text-white">
                             {perm.label || perm.name || perm.group_permission_name}
                           </span>
                           {(perm.description || perm.name) && (
-                            <span className="text-xs text-[var(--text-tertiary)] mt-0.5">
+                            <span className="text-xs text-gray-400 mt-1">
                               {perm.description || perm.name}
                             </span>
                           )}
@@ -371,6 +393,7 @@ export function GroupRolesTab() {
                         <Switch
                           checked={selectedPermIds.has(permId)}
                           onCheckedChange={(checked) => togglePermission(permId, checked)}
+                          className="data-[state=checked]:bg-orange-500"
                         />
                       </div>
                     );
@@ -379,13 +402,13 @@ export function GroupRolesTab() {
               )}
             </div>
 
-            <div className="sticky bottom-0 pt-4 pb-2 border-t border-[var(--border-subtle)] bg-[var(--bg-surface)]">
+            <div className="sticky bottom-0 pt-4 pb-2 border-t border-white/10 bg-[#1a1a1a]">
               <Button 
                 onClick={handleSavePermissions} 
-                className="w-full justify-center p-2.5" 
+                className="w-full justify-center p-3 bg-orange-500 hover:bg-orange-600 text-white border-none shadow-lg shadow-orange-500/20 disabled:bg-orange-500/50" 
                 disabled={isLoadingPerms || isSavingPerms}
               >
-                {isSavingPerms ? 'Mentés...' : 'Változtatások Mentése'}
+                {isSavingPerms ? 'Mentés folyamatban...' : 'Változtatások Mentése'}
               </Button>
             </div>
           </div>

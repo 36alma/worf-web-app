@@ -58,7 +58,10 @@ export function GroupRolesTab() {
     try {
       setIsLoading(true);
       const res = await getGroupRolesNonAdmin(groupId);
-      const data = Array.isArray(res.data) ? res.data : res.data?.roles || res.data?.data || [];
+      // Fix: look for group_roles in the payload
+      const data = Array.isArray(res.data) 
+        ? res.data 
+        : res.data?.group_roles || res.data?.roles || res.data?.data || [];
       setRoles(data);
     } catch (err) {
       console.error('Failed to fetch roles', err);
@@ -96,19 +99,19 @@ export function GroupRolesTab() {
 
   const openEditModal = (role: any) => {
     setActingRole(role);
-    setRoleName(role.name || role.group_role_name || '');
-    setRoleDesc(role.description || role.group_role_description || '');
+    setRoleName(role.group_role_name || role.name || '');
+    setRoleDesc(role.group_role_description || role.description || '');
     setIsRoleModalOpen(true);
   };
 
   const openPermissionsSheet = (role: any) => {
     setRoleForPerms(role);
     
-    // Set initially checked perms based on role.permissions array (expected to contain ID or object with ID)
+    // Set initially checked perms based on role.group_permissions array
     const activeIds = new Set<string>();
-    const rolePermArray = role.permissions || role.group_permissions || [];
+    const rolePermArray = role.group_permissions || role.permissions || [];
     rolePermArray.forEach((p: any) => {
-      const pId = typeof p === 'string' ? p : p.id || p.group_permission_id;
+      const pId = typeof p === 'string' ? p : p.group_permission_id || p.id;
       if (pId) activeIds.add(pId);
     });
     setSelectedPermIds(activeIds);
@@ -127,7 +130,7 @@ export function GroupRolesTab() {
         // Edit
         await modifyGroupRoleNonAdmin({
           group_id: groupId,
-          role_id: actingRole.id || actingRole.group_role_id,
+          role_id: actingRole.group_role_id || actingRole.id,
           name: roleName.trim(),
           description: roleDesc.trim() || undefined
         });
@@ -155,7 +158,7 @@ export function GroupRolesTab() {
     if (!roleToDelete) return;
     try {
       setIsDeleting(true);
-      await deleteGroupRoleNonAdmin(groupId, roleToDelete.id || roleToDelete.group_role_id);
+      await deleteGroupRoleNonAdmin(groupId, roleToDelete.group_role_id || roleToDelete.id);
       toast.success('Szerepkör törölve');
       setRoleToDelete(null);
       fetchRoles();
@@ -180,12 +183,12 @@ export function GroupRolesTab() {
       setIsSavingPerms(true);
       await setFixedRolePermissionsNonAdmin({
         group_id: groupId,
-        group_role_id: roleForPerms.id || roleForPerms.group_role_id,
+        group_role_id: roleForPerms.group_role_id || roleForPerms.id,
         permission_ids: Array.from(selectedPermIds)
       });
       toast.success('Jogosultságok elmentve');
       setIsPermsSheetOpen(false);
-      fetchRoles(); // Frissíti a listát, hogy az új jogok a cache objektumban meglegyenek
+      fetchRoles(); // Refresh the list so new permissions are cached
     } catch (err) {
       console.error(err);
       toast.error('Nem sikerült elmenteni a jogokat');
@@ -243,12 +246,12 @@ export function GroupRolesTab() {
               </tr>
             ) : (
               roles.map((role, i) => (
-                <tr key={role.id || role.group_role_id || i} className="hover:bg-white/5 transition-colors">
+                <tr key={role.group_role_id || role.id || i} className="hover:bg-white/5 transition-colors">
                   <td className="px-6 py-4 text-white font-medium">
-                    {role.name || role.group_role_name}
+                    {role.group_role_name || role.name}
                   </td>
                   <td className="px-6 py-4 text-gray-400 hidden sm:table-cell">
-                    {role.description || role.group_role_description || '-'}
+                    {role.group_role_description || role.description || '-'}
                   </td>
                   {(canModify || canDelete || canSetPerms) && (
                     <td className="px-6 py-4 text-right">
@@ -350,7 +353,7 @@ export function GroupRolesTab() {
         <ConfirmDialog
           open={!!roleToDelete}
           title="Szerepkör Törlése"
-          message={`Biztosan törölni szeretnéd a(z) "${roleToDelete?.name || roleToDelete?.group_role_name}" szerepkört? Ez a művelet nem vonható vissza, és a hozzárendelt felhasználók elveszítik ezen jogosultságaikat.`}
+          message={`Biztosan törölni szeretnéd a(z) "${roleToDelete?.group_role_name || roleToDelete?.name}" szerepkört? Ez a művelet nem vonható vissza, és a hozzárendelt felhasználók elveszítik ezen jogosultságaikat.`}
           cancelLabel="Mégse"
           confirmLabel={isDeleting ? 'Törlés...' : 'Törlés'}
           onCancel={() => setRoleToDelete(null)}
@@ -362,7 +365,7 @@ export function GroupRolesTab() {
       {canSetPerms && (
         <SideSheet
           open={isPermsSheetOpen}
-          title={`Jogosultságok: ${roleForPerms?.name || roleForPerms?.group_role_name}`}
+          title={`Jogosultságok: ${roleForPerms?.group_role_name || roleForPerms?.name}`}
           onClose={() => setIsPermsSheetOpen(false)}
         >
           <div className="flex flex-col h-full -mx-5 px-5">
@@ -377,16 +380,16 @@ export function GroupRolesTab() {
               ) : (
                 <div className="space-y-3 mt-4">
                   {allPerms.map((perm) => {
-                    const permId = perm.id || perm.group_permission_id || perm.name;
+                    const permId = perm.group_permission_id || perm.id || perm.name;
                     return (
                       <div key={permId} className="flex items-center justify-between gap-4 p-4 rounded-xl border border-white/10 bg-[#111] transition-colors hover:bg-white/5">
                         <div className="flex flex-col pr-4">
                           <span className="text-sm font-medium text-white">
-                            {perm.label || perm.name || perm.group_permission_name}
+                            {perm.group_permission_name || perm.label || perm.name}
                           </span>
-                          {(perm.description || perm.name) && (
+                          {(perm.group_permission_description || perm.description || perm.name) && (
                             <span className="text-xs text-gray-400 mt-1">
-                              {perm.description || perm.name}
+                              {perm.group_permission_description || perm.description || perm.name}
                             </span>
                           )}
                         </div>

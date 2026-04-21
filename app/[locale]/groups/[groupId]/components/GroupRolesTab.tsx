@@ -80,7 +80,7 @@ export function GroupRolesTab() {
     if (!canGetPerms) return;
     try {
       setIsLoadingPerms(true);
-      const res = await getAllPermissionsNonAdmin();
+      const res = await getAllPermissionsNonAdmin(groupId);
       const permsData = Array.isArray(res.data) ? res.data : res.data?.permissions || res.data?.data || [];
       setAllPerms(permsData);
     } catch (err) {

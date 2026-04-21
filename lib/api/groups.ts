@@ -211,8 +211,8 @@ export const modifyGroupRoleNonAdmin = (data: {
 export const deleteGroupRoleNonAdmin = (group_id: string, role_id: string) =>
   apiClient.post('/v1/group/role/delete', {group_id, group_role_id: role_id});
 
-export const getAllPermissionsNonAdmin = () =>
-  apiClient.post('/v1/group/permission/get/all', {});
+export const getAllPermissionsNonAdmin = (group_id: string) =>
+  apiClient.post('/v1/group/permission/get/all', {group_id});
 
 export const setFixedRolePermissionsNonAdmin = (data: {
   group_id: string;

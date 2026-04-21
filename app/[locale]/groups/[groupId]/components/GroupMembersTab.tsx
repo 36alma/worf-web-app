@@ -27,8 +27,10 @@ import {
 } from '@/components/ui/select';
 import toast from 'react-hot-toast';
 import { Search, UserPlus2, UserCheck } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 export function GroupMembersTab() {
+  const t = useTranslations('group_detail.members');
   const { groupId, hasPermission } = useGroupPermission();
   const { systemPermissions } = usePermissionStore();
   const { user } = useAuthStore();
@@ -72,9 +74,9 @@ export function GroupMembersTab() {
       setMembers(data);
     } catch (err) {
       console.error('Failed to fetch members', err);
-      toast.error('Nem sikerült betölteni a tagokat');
+      toast.error(t('loading_error') || 'Nem sikerült betölteni a tagokat');
     }
-  }, [groupId]);
+  }, [groupId, t]);
 
   const fetchRoles = useCallback(async () => {
     try {
@@ -121,12 +123,12 @@ export function GroupMembersTab() {
     try {
       setIsAdding(true);
       await addUserToGroup(groupId, userId);
-      toast.success('Tag sikeresen hozzáadva');
+      toast.success(t('add_success'));
       fetchMembers();
       // Keep modal open or close? User might want to add more.
       // For now, let's just update the list.
     } catch (err: any) {
-      const msg = err.response?.data?.detail || 'Hiba történt a tag hozzáadásakor';
+      const msg = err.response?.data?.detail || t('error') || 'Hiba történt a tag hozzáadásakor';
       toast.error(msg);
       console.error(err);
     } finally {
@@ -141,11 +143,11 @@ export function GroupMembersTab() {
     try {
       setIsRemoving(true);
       await removeUserFromGroup(groupId, userId);
-      toast.success('Tag sikeresen eltávolítva');
+      toast.success(t('remove_success'));
       setMemberToRemove(null);
       fetchMembers();
     } catch (err: any) {
-      const msg = err.response?.data?.detail || 'Hiba történt a tag eltávolításakor';
+      const msg = err.response?.data?.detail || t('error') || 'Hiba történt a tag eltávolításakor';
       toast.error(msg);
       console.error(err);
     } finally {
@@ -161,10 +163,10 @@ export function GroupMembersTab() {
         user_id: userId,
         group_role_id: newRoleId
       });
-      toast.success('Szerepkör sikeresen módosítva');
+      toast.success(t('role_success'));
       fetchMembers();
     } catch (err: any) {
-      const msg = err.response?.data?.detail || 'Hiba történt a szerepkör módosításakor';
+      const msg = err.response?.data?.detail || t('error') || 'Hiba történt a szerepkör módosításakor';
       toast.error(msg);
       console.error(err);
     } finally {
@@ -199,9 +201,9 @@ export function GroupMembersTab() {
         <div>
           <h2 className="text-xl font-semibold text-white flex items-center gap-2">
             <Users className="text-orange-500" size={20} />
-            Csoport Tagok
+            {t('title')}
           </h2>
-          <p className="text-sm text-gray-400 mt-1">A csoport tagjainak kezelése és jogosultságaik kiosztása.</p>
+          <p className="text-sm text-gray-400 mt-1">{t('description')}</p>
         </div>
         {canAdd && (
           <Button 
@@ -209,7 +211,7 @@ export function GroupMembersTab() {
             startIcon={<UserPlus size={18} />} 
             className="bg-orange-500 hover:bg-orange-600 text-white border-none shadow-lg shadow-orange-500/20 px-6"
           >
-            Tag Hozzáadása
+            {t('add_button')}
           </Button>
         )}
       </div>
@@ -219,8 +221,8 @@ export function GroupMembersTab() {
           <table className="min-w-full text-left text-sm">
             <thead className="border-b border-white/10 bg-white/5">
               <tr>
-                <th className="px-6 py-4 font-semibold text-gray-400 uppercase tracking-wider text-xs">Felhasználó</th>
-                <th className="px-6 py-4 font-semibold text-gray-400 uppercase tracking-wider text-xs">Szerepkör</th>
+                <th className="px-6 py-4 font-semibold text-gray-400 uppercase tracking-wider text-xs">{t('table_user')}</th>
+                <th className="px-6 py-4 font-semibold text-gray-400 uppercase tracking-wider text-xs">{t('table_role')}</th>
                 <th className="w-20 px-6 py-4 text-right"></th>
               </tr>
             </thead>
@@ -230,7 +232,7 @@ export function GroupMembersTab() {
                   <td colSpan={3} className="px-6 py-24 text-center">
                     <div className="flex flex-col items-center gap-3">
                       <Loader2 className="w-8 h-8 text-orange-500 animate-spin" />
-                      <span className="text-gray-500 font-medium">Tagok betöltése...</span>
+                      <span className="text-gray-500 font-medium">{t('loading')}</span>
                     </div>
                   </td>
                 </tr>
@@ -239,8 +241,8 @@ export function GroupMembersTab() {
                   <td colSpan={3} className="px-6 py-24 text-center">
                     <div className="flex flex-col items-center gap-2 opacity-40">
                       <Users size={48} className="text-gray-500 mb-2" />
-                      <p className="text-gray-400 font-medium text-base">Nincsenek tagok a csoportban</p>
-                      <p className="text-gray-500 text-sm">Vegyél fel új tagokat a fenti gombbal.</p>
+                      <p className="text-gray-400 font-medium text-base">{t('empty')}</p>
+                      <p className="text-gray-500 text-sm">{t('empty_hint')}</p>
                     </div>
                   </td>
                 </tr>
@@ -274,7 +276,7 @@ export function GroupMembersTab() {
                             onValueChange={(val) => handleRoleChange(userId, val)}
                           >
                             <SelectTrigger className="h-9 bg-[#1a1a1a] border-white/5 hover:border-white/10 transition-all">
-                              <SelectValue placeholder="Válassz szerepkört" />
+                              <SelectValue placeholder={t('role_placeholder')} />
                               {isUpdating && <Loader2 size={14} className="ml-2 animate-spin text-orange-500" />}
                             </SelectTrigger>
                             <SelectContent className="bg-[#1c1c1c] border-white/10">
@@ -292,7 +294,7 @@ export function GroupMembersTab() {
                           <button
                             onClick={() => setMemberToRemove(member)}
                             className="inline-flex h-9 w-9 items-center justify-center rounded-xl text-gray-500 hover:bg-red-500/10 hover:text-red-500 transition-all active:scale-90"
-                            title="Tag eltávolítása"
+                            title={t('remove_title')}
                           >
                             <Trash2 size={18} strokeWidth={1.75} />
                           </button>
@@ -311,7 +313,7 @@ export function GroupMembersTab() {
       {canAdd && (
         <Modal 
           open={isAddModalOpen} 
-          title="Tag Hozzáadása" 
+          title={t('add_modal_title')} 
           onClose={() => setIsAddModalOpen(false)}
         >
           <div className="space-y-6 pt-2">
@@ -319,7 +321,7 @@ export function GroupMembersTab() {
               <div className="relative">
                 <Input
                   autoFocus
-                  placeholder="Keresés név vagy email alapján..."
+                  placeholder={t('search_placeholder')}
                   value={userSearchTerm}
                   onChange={(e) => setUserSearchTerm(e.target.value)}
                   className="bg-[#0c0c0c]"
@@ -330,11 +332,11 @@ export function GroupMembersTab() {
                 {isLoadingUsers ? (
                   <div className="flex flex-col items-center py-10 gap-3 opacity-50">
                     <Loader2 className="w-6 h-6 text-orange-500 animate-spin" />
-                    <span className="text-xs text-gray-500">Felhasználók betöltése...</span>
+                    <span className="text-xs text-gray-500">{t('loading_users')}</span>
                   </div>
                 ) : usersToDisplay.length === 0 ? (
                   <div className="text-center py-10 text-gray-500 text-sm italic">
-                    Nem található több felhasználó.
+                    {t('no_more_users')}
                   </div>
                 ) : (
                   usersToDisplay.map((u) => {
@@ -363,7 +365,7 @@ export function GroupMembersTab() {
                           className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-orange-500/10 text-orange-500 text-xs font-semibold hover:bg-orange-500 hover:text-white transition-all disabled:opacity-50"
                         >
                           <UserPlus2 size={14} />
-                          Hozzáadás
+                          {t('add_button')}
                         </button>
                       </div>
                     );
@@ -379,7 +381,7 @@ export function GroupMembersTab() {
                 className="bg-white/5 hover:bg-white/10 border-white/10 text-white" 
                 onClick={() => setIsAddModalOpen(false)}
               >
-                Bezárás
+                {t('close')}
               </Button>
             </div>
           </div>
@@ -390,10 +392,10 @@ export function GroupMembersTab() {
       {canRemove && (
         <ConfirmDialog
           open={!!memberToRemove}
-          title="Tag Eltávolítása"
-          message={`Biztosan el szeretnéd távolítani ezt a felhasználót a csoportból (${memberToRemove?.fullname || memberToRemove?.name || memberToRemove?.user_name || memberToRemove?.id || memberToRemove?.user_id})? Ez a művelet nem vonható vissza.`}
+          title={t('remove_title')}
+          message={t('remove_confirm_message', { name: memberToRemove?.fullname || memberToRemove?.name || memberToRemove?.user_name || memberToRemove?.id || memberToRemove?.user_id })}
           cancelLabel="Mégse"
-          confirmLabel={isRemoving ? 'Eltávolítás...' : 'Igen, eltávolítás'}
+          confirmLabel={isRemoving ? t('deleting') : t('remove_confirm_button') || 'Eltávolítás'}
           onCancel={() => setMemberToRemove(null)}
           onConfirm={handleRemoveMember}
         />

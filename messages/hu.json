@@ -62,12 +62,32 @@
     "footer_privacy": "Adatvédelem"
   },
   "dashboard": {
-    "title": "Dashboard",
+    "title": "Vezérlőpult",
     "welcome": "Üdv a WORF adminban",
     "active_groups": "Aktív csoportok",
     "open_tasks": "Nyitott feladatok",
     "upcoming_events": "Közelgő események",
-    "empty_hint": "A panelek a backend adatok integrálása után töltődnek fel."
+    "vs_last_month": "az előző hónaphoz képest",
+    "no_change": "Nincs változás",
+    "no_events_scheduled": "Nincsenek ütemezett események",
+    "welcome_description": "A vezérlőpult készen áll. Kezdj csoportok létrehozásával, feladatok kiosztásával vagy események ütemezésével, hogy a widgetek életre keljenek.",
+    "create_first_group": "Első csoport létrehozása",
+    "read_documentation": "Dokumentáció megtekintése",
+    "recent_activity": "Legutóbbi tevékenységek",
+    "view_all": "Összes megtekintése",
+    "no_recent_activity": "Nincsenek legutóbbi tevékenységek",
+    "activity_hint": "A csapatod tevékenységei itt fognak megjelenni",
+    "quick_actions": "Gyors műveletek",
+    "actions": {
+      "create_group": "Csoport létrehozása",
+      "create_group_desc": "Új csapatcsoport hozzáadása",
+      "add_task": "Feladat hozzáadása",
+      "add_task_desc": "Új feladat létrehozása",
+      "schedule_event": "Esemény ütemezése",
+      "schedule_event_desc": "Hozzáadás a naptárhoz",
+      "create_post": "Bejegyzés írása",
+      "create_post_desc": "Új poszt létrehozása"
+    }
   },
   "groups": {
     "title": "Csoportok",

@@ -1,4 +1,34 @@
+import { useState, useEffect, useMemo } from 'react';
 import { useTranslations } from 'next-intl';
+import { 
+  Lock, 
+  Calendar, 
+  FileText, 
+  CheckSquare, 
+  Users, 
+  Settings, 
+  ShieldPlus, 
+  Edit2, 
+  Trash2, 
+  ChevronDown, 
+  ChevronRight, 
+  Search, 
+  Check 
+} from 'lucide-react';
+import { useGroupPermission } from '@/components/providers/GroupPermissionContext';
+import { 
+  getGroupRolesNonAdmin, 
+  createGroupRoleNonAdmin, 
+  modifyGroupRoleNonAdmin, 
+  deleteGroupRoleNonAdmin, 
+  getAllPermissionsNonAdmin, 
+  setFixedRolePermissionsNonAdmin 
+} from '@/lib/api/groups';
+import Button from '@/components/ui/Button';
+import Modal from '@/components/ui/Modal';
+import ConfirmDialog from '@/components/ui/ConfirmDialog';
+import SideSheet from '@/components/ui/SideSheet';
+import toast from 'react-hot-toast';
 
 // Categorize permissions by their names
 const categorizePermissions = (permissions: any[]) => {
@@ -167,7 +197,7 @@ export function GroupRolesTab() {
       fetchRoles();
     } catch (err) {
       console.error(err);
-      toast.error(t('error') || 'Hiba történt a mentés során');
+      toast.error(t('error'));
     } finally {
       setIsSubmittingRole(false);
     }
@@ -183,7 +213,7 @@ export function GroupRolesTab() {
       fetchRoles();
     } catch (err) {
       console.error(err);
-      toast.error(t('error') || 'Hiba történt a törlés során');
+      toast.error(t('error'));
     } finally {
       setIsDeleting(false);
     }
@@ -219,7 +249,7 @@ export function GroupRolesTab() {
       fetchRoles();
     } catch (err) {
       console.error(err);
-      toast.error(t('error') || 'Nem sikerült elmenteni a jogokat');
+      toast.error(t('error'));
     } finally {
       setIsSavingPerms(false);
     }
@@ -300,7 +330,7 @@ export function GroupRolesTab() {
                           <button
                             onClick={() => openPermissionsSheet(role)}
                             className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-gray-400 hover:bg-orange-500/10 hover:text-orange-500 transition-colors"
-                            title={t('permissions_title_hint') || 'Jogosultságok beállítása'}
+                            title={t('permissions_title_hint')}
                           >
                             <Settings size={18} strokeWidth={1.75} />
                           </button>
@@ -373,7 +403,7 @@ export function GroupRolesTab() {
                 className="bg-white/5 hover:bg-white/10 border-white/10 text-white" 
                 onClick={() => setIsRoleModalOpen(false)}
               >
-                {t('cancel') || 'Mégse'}
+                {t('cancel')}
               </Button>
               <Button 
                 type="submit" 
@@ -393,7 +423,7 @@ export function GroupRolesTab() {
           title={t('delete_title')}
           message={t('delete_confirm', { name: roleToDelete?.group_role_name || roleToDelete?.name })}
           cancelLabel="Mégse"
-          confirmLabel={isDeleting ? t('deleting') : t('delete_button') || 'Törlés'}
+          confirmLabel={isDeleting ? t('deleting') : t('delete_button')}
           onCancel={() => setRoleToDelete(null)}
           onConfirm={handleDeleteRole}
         />
@@ -441,7 +471,7 @@ export function GroupRolesTab() {
                           <div className="flex items-center gap-3">
                             {isExpanded ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
                             <CategoryIcon size={18} className="text-orange-500" />
-                            <span className="font-medium text-sm text-white">{t(`categories.${category.key}`)}</span>
+                            <span className="font-medium text-sm text-white">{t(`categories.${category.key}` as any)}</span>
                           </div>
                           <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-white/10 text-gray-400">
                             {selectedInCat}/{category.permissions.length}

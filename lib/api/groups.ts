@@ -12,6 +12,8 @@ export const deleteGroup = (group_id: string) => apiClient.post('/v1/group/delet
 export const modifyGroupBase = (data: {group_id: string; name?: string; description?: string}) =>
   apiClient.post('/v1/group/modifygroupbase', data);
 
+export const getGroup = (group_id: string) => apiClient.post('/v1/group/getgroup', {group_id});
+
 export const getAdminGroupMembers = (group_id: string) => apiClient.post('/v1/group/admin/getusers', {group_id});
 
 export const getGroupMembers = (group_id: string) => apiClient.post('/v1/group/getusers', {group_id});

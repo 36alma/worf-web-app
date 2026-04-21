@@ -175,16 +175,23 @@ export function GroupMembersTab() {
   // Filter users not in group
   const usersToDisplay = allUsers
     .filter(u => {
-      const uid = u.user_id || u.id;
-      const isAlreadyMember = members.some(m => (m.user_id || m.id) === uid);
+      const uid = u.id || u.user_id;
+      const uEmail = u.email;
+      
+      // Check if already a member by ID or Email
+      const isAlreadyMember = members.some(m => 
+        (m.user_id || m.id) === uid || 
+        (m.email && m.email === uEmail)
+      );
+      
       const matchesSearch = 
-        (u.full_name || u.name || '').toLowerCase().includes(userSearchTerm.toLowerCase()) ||
-        (u.username || '').toLowerCase().includes(userSearchTerm.toLowerCase()) ||
-        uid.toLowerCase().includes(userSearchTerm.toLowerCase());
+        (u.fullname || u.name || '').toLowerCase().includes(userSearchTerm.toLowerCase()) ||
+        (u.email || '').toLowerCase().includes(userSearchTerm.toLowerCase()) ||
+        (uid || '').toLowerCase().includes(userSearchTerm.toLowerCase());
       
       return !isAlreadyMember && matchesSearch;
     })
-    .slice(0, 50); // Limit display for performance
+    .slice(0, 50);
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
@@ -247,14 +254,14 @@ export function GroupMembersTab() {
                       <td className="px-6 py-5">
                         <div className="flex items-center gap-3">
                           <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500/20 to-orange-600/5 flex items-center justify-center text-orange-500 border border-orange-500/10 font-bold text-sm">
-                            {(member.name || member.user_name || '?').charAt(0).toUpperCase()}
+                            {(member.name || member.user_name || member.fullname || '?').charAt(0).toUpperCase()}
                           </div>
                           <div className="min-w-0">
                             <div className="font-semibold text-white truncate max-w-[200px]">
-                              {member.name || member.user_name || 'Ismeretlen'}
+                              {member.name || member.user_name || member.fullname || 'Ismeretlen'}
                             </div>
                             <div className="text-[10px] text-gray-500 font-mono mt-0.5 truncate max-w-[150px]">
-                              {userId}
+                              {member.email || userId}
                             </div>
                           </div>
                         </div>
@@ -310,13 +317,12 @@ export function GroupMembersTab() {
           <div className="space-y-6 pt-2">
             <div className="space-y-4">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
                 <Input
                   autoFocus
-                  placeholder="Felhasználó keresése név vagy ID alapján..."
+                  placeholder="Keresés név vagy email alapján..."
                   value={userSearchTerm}
                   onChange={(e) => setUserSearchTerm(e.target.value)}
-                  className="bg-[#0c0c0c] pl-10"
+                  className="bg-[#0c0c0c]"
                 />
               </div>
 
@@ -332,7 +338,7 @@ export function GroupMembersTab() {
                   </div>
                 ) : (
                   usersToDisplay.map((u) => {
-                    const uid = u.user_id || u.id;
+                    const uid = u.id || u.user_id;
                     return (
                       <div 
                         key={uid} 
@@ -340,14 +346,14 @@ export function GroupMembersTab() {
                       >
                         <div className="flex items-center gap-3">
                           <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-gray-400 font-bold text-xs">
-                            {(u.full_name || u.name || u.username || '?').charAt(0).toUpperCase()}
+                            {(u.fullname || u.name || u.username || '?').charAt(0).toUpperCase()}
                           </div>
                           <div className="min-w-0">
                             <div className="text-sm font-medium text-white truncate">
-                              {u.full_name || u.name || u.username || 'Ismeretlen'}
+                              {u.fullname || u.name || u.username || 'Ismeretlen'}
                             </div>
-                            <div className="text-[10px] text-gray-500 font-mono truncate">
-                              {uid}
+                            <div className="text-[10px] text-gray-500 truncate">
+                              {u.email || 'Nincs email'}
                             </div>
                           </div>
                         </div>
@@ -385,7 +391,7 @@ export function GroupMembersTab() {
         <ConfirmDialog
           open={!!memberToRemove}
           title="Tag Eltávolítása"
-          message={`Biztosan el szeretnéd távolítani ezt a felhasználót a csoportból (${memberToRemove?.name || memberToRemove?.user_name || memberToRemove?.id || memberToRemove?.user_id})? Ez a művelet nem vonható vissza.`}
+          message={`Biztosan el szeretnéd távolítani ezt a felhasználót a csoportból (${memberToRemove?.fullname || memberToRemove?.name || memberToRemove?.user_name || memberToRemove?.id || memberToRemove?.user_id})? Ez a művelet nem vonható vissza.`}
           cancelLabel="Mégse"
           confirmLabel={isRemoving ? 'Eltávolítás...' : 'Igen, eltávolítás'}
           onCancel={() => setMemberToRemove(null)}

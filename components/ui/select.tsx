@@ -21,7 +21,7 @@ const SelectTrigger = React.forwardRef<
       'flex h-9 w-full items-center justify-between gap-2 rounded-lg border border-[var(--border-subtle)]',
       'bg-[var(--bg-primary)] px-3 py-2 text-sm text-[var(--text-primary)]',
       'outline-none transition-all duration-150',
-      'focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20',
+      'focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20',
       'disabled:cursor-not-allowed disabled:opacity-50',
       'placeholder:text-[var(--text-tertiary)]',
       '[&>span]:line-clamp-1',
@@ -131,7 +131,7 @@ const SelectItem = React.forwardRef<
     className={clsx(
       'relative flex w-full cursor-pointer select-none items-center rounded-md py-2 pl-8 pr-3 text-sm',
       'text-[var(--text-primary)] outline-none transition-colors',
-      'focus:bg-indigo-500/10 focus:text-indigo-600 dark:focus:text-indigo-400',
+      'focus:bg-orange-500/10 focus:text-orange-500',
       'data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
       className
     )}
@@ -139,7 +139,7 @@ const SelectItem = React.forwardRef<
   >
     <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
       <SelectPrimitive.ItemIndicator>
-        <Check size={14} className="text-indigo-500" />
+        <Check size={14} className="text-orange-500" />
       </SelectPrimitive.ItemIndicator>
     </span>
     <SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>

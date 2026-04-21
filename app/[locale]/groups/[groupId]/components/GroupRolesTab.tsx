@@ -1,76 +1,44 @@
-'use client';
-
-import { useEffect, useState, useMemo } from 'react';
-import { 
-  Settings, 
-  ShieldPlus, 
-  Trash2, 
-  Edit2, 
-  Search, 
-  ChevronDown, 
-  ChevronRight, 
-  Lock, 
-  Calendar, 
-  FileText, 
-  CheckSquare, 
-  Users, 
-  Check, 
-  X 
-} from 'lucide-react';
-import { useGroupPermission } from '@/components/providers/GroupPermissionContext';
-import {
-  getGroupRolesNonAdmin,
-  createGroupRoleNonAdmin,
-  modifyGroupRoleNonAdmin,
-  deleteGroupRoleNonAdmin,
-  getAllPermissionsNonAdmin,
-  setFixedRolePermissionsNonAdmin
-} from '@/lib/api/groups';
-import Button from '@/components/ui/Button';
-import Modal from '@/components/ui/Modal';
-import ConfirmDialog from '@/components/ui/ConfirmDialog';
-import SideSheet from '@/components/ui/SideSheet';
-import { Switch } from '@/components/ui/Switch';
-import toast from 'react-hot-toast';
+import { useTranslations } from 'next-intl';
 
 // Categorize permissions by their names
 const categorizePermissions = (permissions: any[]) => {
   const categories: Record<string, { icon: any, perms: any[] }> = {
-    'Szerepkörök': { icon: Lock, perms: [] },
-    'Naptár': { icon: Calendar, perms: [] },
-    'Bejegyzések': { icon: FileText, perms: [] },
-    'Feladatok': { icon: CheckSquare, perms: [] },
-    'Tagok & Csoport': { icon: Users, perms: [] },
-    'Egyéb': { icon: Settings, perms: [] }
+    'roles': { icon: Lock, perms: [] },
+    'calendar': { icon: Calendar, perms: [] },
+    'posts': { icon: FileText, perms: [] },
+    'tasks': { icon: CheckSquare, perms: [] },
+    'members': { icon: Users, perms: [] },
+    'other': { icon: Settings, perms: [] }
   };
 
   permissions.forEach((permission) => {
     const name = (permission.group_permission_name || permission.name || '').toLowerCase();
     if (name.includes('role')) {
-      categories['Szerepkörök'].perms.push(permission);
+      categories['roles'].perms.push(permission);
     } else if (name.includes('calendar') || name.includes('event')) {
-      categories['Naptár'].perms.push(permission);
+      categories['calendar'].perms.push(permission);
     } else if (name.includes('post')) {
-      categories['Bejegyzések'].perms.push(permission);
+      categories['posts'].perms.push(permission);
     } else if (name.includes('task')) {
-      categories['Feladatok'].perms.push(permission);
+      categories['tasks'].perms.push(permission);
     } else if (name.includes('user') || name.includes('member') || name.includes('group')) {
-      categories['Tagok & Csoport'].perms.push(permission);
+      categories['members'].perms.push(permission);
     } else {
-      categories['Egyéb'].perms.push(permission);
+      categories['other'].perms.push(permission);
     }
   });
 
   return Object.entries(categories)
     .filter(([, cat]) => cat.perms.length > 0)
-    .map(([name, cat]) => ({
-      name,
+    .map(([key, cat]) => ({
+      key,
       icon: cat.icon,
       permissions: cat.perms
     }));
 };
 
 export function GroupRolesTab() {
+  const t = useTranslations('group_detail.roles');
   const { groupId, hasPermission } = useGroupPermission();
 
   const [roles, setRoles] = useState<any[]>([]);
@@ -97,7 +65,7 @@ export function GroupRolesTab() {
   
   // Search and Categories
   const [searchQuery, setSearchQuery] = useState('');
-  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set(['Szerepkörök', 'Feladatok']));
+  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set(['roles', 'tasks']));
 
   const canGetRoles = hasPermission('group.role.get');
   const canCreate = hasPermission('group.role.create');
@@ -186,20 +154,20 @@ export function GroupRolesTab() {
           name: roleName.trim(),
           description: roleDesc.trim() || undefined
         });
-        toast.success('Szerepkör frissítve');
+        toast.success(t('success_modify'));
       } else {
         await createGroupRoleNonAdmin({
           group_id: groupId,
           name: roleName.trim(),
           description: roleDesc.trim() || undefined
         });
-        toast.success('Szerepkör létrehozva');
+        toast.success(t('success_create'));
       }
       setIsRoleModalOpen(false);
       fetchRoles();
     } catch (err) {
       console.error(err);
-      toast.error('Hiba történt a mentés során');
+      toast.error(t('error') || 'Hiba történt a mentés során');
     } finally {
       setIsSubmittingRole(false);
     }
@@ -210,12 +178,12 @@ export function GroupRolesTab() {
     try {
       setIsDeleting(true);
       await deleteGroupRoleNonAdmin(groupId, roleToDelete.group_role_id || roleToDelete.id);
-      toast.success('Szerepkör törölve');
+      toast.success(t('success_delete'));
       setRoleToDelete(null);
       fetchRoles();
     } catch (err) {
       console.error(err);
-      toast.error('Hiba történt a törlés során');
+      toast.error(t('error') || 'Hiba történt a törlés során');
     } finally {
       setIsDeleting(false);
     }
@@ -228,11 +196,11 @@ export function GroupRolesTab() {
     setSelectedPermIds(next);
   };
 
-  const toggleCategory = (categoryName: string) => {
+  const toggleCategory = (categoryKey: string) => {
     setExpandedCategories((prev) => {
       const next = new Set(prev);
-      if (next.has(categoryName)) next.delete(categoryName);
-      else next.add(categoryName);
+      if (next.has(categoryKey)) next.delete(categoryKey);
+      else next.add(categoryKey);
       return next;
     });
   };
@@ -246,12 +214,12 @@ export function GroupRolesTab() {
         group_role_id: roleForPerms.group_role_id || roleForPerms.id,
         permission_ids: Array.from(selectedPermIds)
       });
-      toast.success('Jogosultságok elmentve');
+      toast.success(t('success_perms'));
       setIsPermsSheetOpen(false);
       fetchRoles();
     } catch (err) {
       console.error(err);
-      toast.error('Nem sikerült elmenteni a jogokat');
+      toast.error(t('error') || 'Nem sikerült elmenteni a jogokat');
     } finally {
       setIsSavingPerms(false);
     }
@@ -277,8 +245,8 @@ export function GroupRolesTab() {
     <div className="space-y-6 animate-in fade-in duration-300">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-lg font-medium text-white mb-1">Szerepkörök</h2>
-          <p className="text-sm text-gray-400">A csoportban elérhető szerepkörök és jogosultságaik kezelése.</p>
+          <h2 className="text-lg font-medium text-white mb-1">{t('title')}</h2>
+          <p className="text-sm text-gray-400">{t('description')}</p>
         </div>
         {canCreate && (
           <Button 
@@ -286,7 +254,7 @@ export function GroupRolesTab() {
             startIcon={<ShieldPlus size={16} />} 
             className="bg-orange-500 hover:bg-orange-600 text-white border-none shadow-lg shadow-orange-500/20"
           >
-            Új Szerepkör
+            {t('add_button')}
           </Button>
         )}
       </div>
@@ -295,9 +263,9 @@ export function GroupRolesTab() {
         <table className="min-w-full text-left text-sm">
           <thead className="border-b border-white/10 bg-white/5">
             <tr>
-              <th className="px-6 py-4 font-medium text-gray-400">Megnevezés</th>
-              <th className="px-6 py-4 font-medium text-gray-400 hidden sm:table-cell">Leírás</th>
-              {(canModify || canDelete || canSetPerms) && <th className="px-6 py-4 text-right">Műveletek</th>}
+              <th className="px-6 py-4 font-medium text-gray-400">{t('table_name')}</th>
+              <th className="px-6 py-4 font-medium text-gray-400 hidden sm:table-cell">{t('table_desc')}</th>
+              {(canModify || canDelete || canSetPerms) && <th className="px-6 py-4 text-right">{t('table_actions')}</th>}
             </tr>
           </thead>
           <tbody className="divide-y divide-white/5">
@@ -306,14 +274,14 @@ export function GroupRolesTab() {
                 <td colSpan={3} className="px-6 py-12 text-center text-gray-500">
                   <div className="flex justify-center items-center gap-2">
                     <div className="w-4 h-4 rounded-full border-2 border-orange-500 border-t-transparent animate-spin" />
-                    Betöltés...
+                    {t('loading')}
                   </div>
                 </td>
               </tr>
             ) : roles.length === 0 ? (
               <tr>
                 <td colSpan={3} className="px-6 py-12 text-center text-gray-500">
-                  Nincsenek létrehozott szerepkörök.
+                  {t('empty')}
                 </td>
               </tr>
             ) : (
@@ -332,7 +300,7 @@ export function GroupRolesTab() {
                           <button
                             onClick={() => openPermissionsSheet(role)}
                             className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-gray-400 hover:bg-orange-500/10 hover:text-orange-500 transition-colors"
-                            title="Jogosultságok beállítása"
+                            title={t('permissions_title_hint') || 'Jogosultságok beállítása'}
                           >
                             <Settings size={18} strokeWidth={1.75} />
                           </button>
@@ -341,7 +309,7 @@ export function GroupRolesTab() {
                           <button
                             onClick={() => openEditModal(role)}
                             className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-gray-400 hover:bg-orange-500/10 hover:text-orange-500 transition-colors"
-                            title="Szerkesztés"
+                            title={t('edit_title')}
                           >
                             <Edit2 size={18} strokeWidth={1.75} />
                           </button>
@@ -350,7 +318,7 @@ export function GroupRolesTab() {
                           <button
                             onClick={() => setRoleToDelete(role)}
                             className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-gray-400 hover:bg-red-500/10 hover:text-red-500 transition-colors"
-                            title="Törlés"
+                            title={t('delete_title')}
                           >
                             <Trash2 size={18} strokeWidth={1.75} />
                           </button>
@@ -368,32 +336,32 @@ export function GroupRolesTab() {
       {(canCreate || canModify) && (
         <Modal
           open={isRoleModalOpen}
-          title={actingRole ? 'Szerepkör Szerkesztése' : 'Új Szerepkör'}
+          title={actingRole ? t('edit_title') : t('create_title')}
           onClose={() => setIsRoleModalOpen(false)}
         >
           <form onSubmit={handleSaveRole} className="space-y-5">
             <div className="space-y-4">
               <div className="space-y-2">
-                <label htmlFor="roleName" className="text-sm font-medium text-gray-300">Név</label>
+                <label htmlFor="roleName" className="text-sm font-medium text-gray-300">{t('name_label')}</label>
                 <input
                   id="roleName"
                   autoFocus
                   type="text"
                   value={roleName}
                   onChange={(e) => setRoleName(e.target.value)}
-                  placeholder="Pl. Moderátor"
+                  placeholder={t('name_placeholder')}
                   required
                   className="w-full bg-[#111] border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-orange-500 focus:border-orange-500 transition-all"
                 />
               </div>
               <div className="space-y-2">
-                <label htmlFor="roleDesc" className="text-sm font-medium text-gray-300">Leírás (Opcionális)</label>
+                <label htmlFor="roleDesc" className="text-sm font-medium text-gray-300">{t('desc_label')}</label>
                 <input
                   id="roleDesc"
                   type="text"
                   value={roleDesc}
                   onChange={(e) => setRoleDesc(e.target.value)}
-                  placeholder="Mire jogosít fel ez a szerepkör?"
+                  placeholder={t('desc_placeholder')}
                   className="w-full bg-[#111] border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-orange-500 focus:border-orange-500 transition-all"
                 />
               </div>
@@ -405,14 +373,14 @@ export function GroupRolesTab() {
                 className="bg-white/5 hover:bg-white/10 border-white/10 text-white" 
                 onClick={() => setIsRoleModalOpen(false)}
               >
-                Mégse
+                {t('cancel') || 'Mégse'}
               </Button>
               <Button 
                 type="submit" 
                 className="bg-orange-500 hover:bg-orange-600 text-white border-none disabled:bg-orange-500/50" 
                 disabled={!roleName.trim() || isSubmittingRole}
               >
-                {isSubmittingRole ? 'Mentés...' : 'Mentés'}
+                {isSubmittingRole ? t('saving') : t('save_button')}
               </Button>
             </div>
           </form>
@@ -422,10 +390,10 @@ export function GroupRolesTab() {
       {canDelete && (
         <ConfirmDialog
           open={!!roleToDelete}
-          title="Szerepkör Törlése"
-          message={`Biztosan törölni szeretnéd a(z) "${roleToDelete?.group_role_name || roleToDelete?.name}" szerepkört?`}
+          title={t('delete_title')}
+          message={t('delete_confirm', { name: roleToDelete?.group_role_name || roleToDelete?.name })}
           cancelLabel="Mégse"
-          confirmLabel={isDeleting ? 'Törlés...' : 'Törlés'}
+          confirmLabel={isDeleting ? t('deleting') : t('delete_button') || 'Törlés'}
           onCancel={() => setRoleToDelete(null)}
           onConfirm={handleDeleteRole}
         />
@@ -434,7 +402,7 @@ export function GroupRolesTab() {
       {canSetPerms && (
         <SideSheet
           open={isPermsSheetOpen}
-          title={`Jogosultságok: ${roleForPerms?.group_role_name || roleForPerms?.name}`}
+          title={t('permissions_title', { name: roleForPerms?.group_role_name || roleForPerms?.name })}
           onClose={() => setIsPermsSheetOpen(false)}
         >
           <div className="flex flex-col h-full -mx-5 px-5">
@@ -443,7 +411,7 @@ export function GroupRolesTab() {
                 <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
                 <input
                   type="text"
-                  placeholder="Jogosultságok keresése..."
+                  placeholder={t('permissions_search')}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="w-full bg-[#111] border border-white/10 rounded-lg pl-10 pr-4 py-2 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-orange-500 transition-all"
@@ -453,27 +421,27 @@ export function GroupRolesTab() {
               {isLoadingPerms ? (
                 <div className="py-10 text-center text-gray-500 flex flex-col items-center justify-center gap-3">
                   <div className="w-6 h-6 rounded-full border-2 border-orange-500 border-t-transparent animate-spin" />
-                  Betöltés...
+                  {t('loading')}
                 </div>
               ) : categorizedPermissions.length === 0 ? (
-                <div className="py-10 text-center text-gray-500">Nem találhatók jogosultságok.</div>
+                <div className="py-10 text-center text-gray-500">{t('permissions_none')}</div>
               ) : (
                 <div className="space-y-4 mt-2">
                   {categorizedPermissions.map((category) => {
-                    const isExpanded = expandedCategories.has(category.name);
+                    const isExpanded = expandedCategories.has(category.key);
                     const CategoryIcon = category.icon;
                     const selectedInCat = category.permissions.filter(p => selectedPermIds.has(p.group_permission_id || p.id)).length;
 
                     return (
-                      <div key={category.name} className="border border-white/5 rounded-xl overflow-hidden bg-white/5">
+                      <div key={category.key} className="border border-white/5 rounded-xl overflow-hidden bg-white/5">
                         <button
-                          onClick={() => toggleCategory(category.name)}
+                          onClick={() => toggleCategory(category.key)}
                           className="w-full flex items-center justify-between p-4 hover:bg-white/5 transition-colors"
                         >
                           <div className="flex items-center gap-3">
                             {isExpanded ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
                             <CategoryIcon size={18} className="text-orange-500" />
-                            <span className="font-medium text-sm text-white">{category.name}</span>
+                            <span className="font-medium text-sm text-white">{t(`categories.${category.key}`)}</span>
                           </div>
                           <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-white/10 text-gray-400">
                             {selectedInCat}/{category.permissions.length}
@@ -528,7 +496,7 @@ export function GroupRolesTab() {
                 className="w-full justify-center p-3 bg-orange-500 hover:bg-orange-600 text-white border-none shadow-lg shadow-orange-500/20 disabled:bg-orange-500/50" 
                 disabled={isLoadingPerms || isSavingPerms}
               >
-                {isSavingPerms ? 'Mentés folyamatban...' : 'Változtatások Mentése'}
+                {isSavingPerms ? t('permissions_saving') : t('permissions_save')}
               </Button>
             </div>
           </div>

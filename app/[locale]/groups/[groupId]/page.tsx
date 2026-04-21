@@ -1,34 +1,83 @@
 'use client';
 
+import {useEffect, useState} from 'react';
 import {useGroupPermission} from '@/components/providers/GroupPermissionContext';
 import {GroupTabsContainer} from './components/GroupTabsContainer';
+import {getUserGroups, getGroupMembers} from '@/lib/api/groups';
 
-/**
- * Group detail page.
- * Uses the GroupPermissionContext to access the clean groupId.
- * Silent Policy: while loading, shows skeleton; if no permissions, shows empty state.
- */
 export default function GroupDetailPage() {
-  const {groupId, isLoading} = useGroupPermission();
+  const {groupId, isLoading: permissionsLoading} = useGroupPermission();
+  const [groupData, setGroupData] = useState<any>(null);
+  const [memberCount, setMemberCount] = useState<number>(0);
+  const [isLoadingMetadata, setIsLoadingMetadata] = useState(true);
 
-  if (isLoading) {
+  useEffect(() => {
+    if (!groupId) return;
+    
+    const fetchMetadata = async () => {
+      try {
+        setIsLoadingMetadata(true);
+        // Fetch groups
+        const groupsRes = await getUserGroups();
+        const groups = Array.isArray(groupsRes.data) ? groupsRes.data : groupsRes.data?.data || [];
+        const currentGroup = groups.find((g: any) => g.id === groupId || g.group_id === groupId);
+        if (currentGroup) setGroupData(currentGroup);
+
+        // Fetch members for count
+        const membersRes = await getGroupMembers(groupId);
+        const members = Array.isArray(membersRes.data) ? membersRes.data : membersRes.data?.users || membersRes.data?.data || [];
+        setMemberCount(members.length);
+      } catch (error) {
+        console.error('Failed to fetch group metadata:', error);
+      } finally {
+        setIsLoadingMetadata(false);
+      }
+    };
+
+    fetchMetadata();
+  }, [groupId]);
+
+  if (permissionsLoading || isLoadingMetadata) {
     return (
-      <div className="space-y-3">
-        <div className="h-8 w-48 animate-pulse rounded-lg bg-[var(--bg-elevated)]" />
-        <div className="h-32 w-full animate-pulse rounded-xl bg-[var(--bg-elevated)]" />
+      <div className="space-y-6 max-w-5xl mx-auto mt-6">
+        <div className="h-24 w-full animate-pulse rounded-xl bg-[var(--bg-elevated)]" />
+        <div className="flex gap-6">
+          <div className="w-48 h-64 animate-pulse rounded-xl bg-[var(--bg-elevated)]" />
+          <div className="flex-1 h-96 animate-pulse rounded-xl bg-[var(--bg-elevated)]" />
+        </div>
       </div>
     );
   }
 
+  // Get first letter of group name for monogram
+  const groupName = groupData?.name || groupData?.group_name || 'Csoport';
+  const monogram = groupName.charAt(0).toUpperCase();
+  // Format creation date if available
+  const createdDate = groupData?.created_at 
+    ? new Date(groupData.created_at).toLocaleDateString('hu-HU', { year: 'numeric', month: 'long', day: 'numeric' })
+    : 'Ismeretlen';
+
   return (
-    <section className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h1 className="display-font text-2xl font-semibold text-[var(--text-primary)]">
-          Csoport Beállítások
-        </h1>
+    <div className="max-w-6xl mx-auto space-y-6 mt-4">
+      {/* Page Header */}
+      <div className="flex items-center gap-4 bg-[#1a1a1a] border border-white/5 p-6 rounded-xl">
+        <div className="flex items-center justify-center w-16 h-16 rounded-xl bg-orange-500 text-white text-2xl font-bold shadow-lg shadow-orange-500/20">
+          {monogram}
+        </div>
+        <div className="flex flex-col">
+          <h1 className="text-2xl font-bold text-white tracking-tight">
+            {groupName}
+          </h1>
+          <div className="flex items-center gap-2 text-sm text-gray-400 mt-1">
+            <span>Létrehozva: {createdDate}</span>
+            <span>&middot;</span>
+            <span>{memberCount} tag</span>
+          </div>
+        </div>
       </div>
       
-      <GroupTabsContainer />
-    </section>
+      {/* Tabs / Sidebar Layout */}
+      <GroupTabsContainer groupData={groupData} />
+    </div>
   );
 }

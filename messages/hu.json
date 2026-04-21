@@ -971,6 +971,7 @@
       "delete_title": "Szerepkör Törlése",
       "delete_confirm": "Biztosan törölni szeretnéd a(z) \"{name}\" szerepkört?",
       "permissions_title": "Jogosultságok: {name}",
+      "permissions_title_hint": "Jogosultságok beállítása",
       "permissions_search": "Jogosultságok keresése...",
       "permissions_none": "Nem találhatók jogosultságok.",
       "permissions_save": "Változtatások Mentése",
@@ -986,7 +987,11 @@
         "tasks": "Feladatok",
         "members": "Tagok & Csoport",
         "other": "Egyéb"
-      }
+      },
+      "error": "Hiba történt a művelet során",
+      "cancel": "Mégse",
+      "deleting": "Törlés...",
+      "delete_button": "Törlés"
     },
     "tabs": {
       "general": "Általános",

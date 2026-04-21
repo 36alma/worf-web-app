@@ -1,6 +1,7 @@
 'use client';
 
 import {useGroupPermission} from '@/components/providers/GroupPermissionContext';
+import {GroupTabsContainer} from './components/GroupTabsContainer';
 
 /**
  * Group detail page.
@@ -21,12 +22,13 @@ export default function GroupDetailPage() {
 
   return (
     <section className="space-y-4">
-      <h1 className="display-font text-2xl font-semibold text-[var(--text-primary)]">
-        Csoport
-      </h1>
-      <div className="surface rounded-xl p-4 text-sm text-[var(--text-secondary)]">
-        Group ID: {groupId}
+      <div className="flex items-center justify-between">
+        <h1 className="display-font text-2xl font-semibold text-[var(--text-primary)]">
+          Csoport Beállítások
+        </h1>
       </div>
+      
+      <GroupTabsContainer />
     </section>
   );
 }

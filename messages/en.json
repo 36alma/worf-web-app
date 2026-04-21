@@ -971,6 +971,7 @@
       "delete_title": "Delete Role",
       "delete_confirm": "Are you sure you want to delete the role \"{name}\"?",
       "permissions_title": "Permissions: {name}",
+      "permissions_title_hint": "Manage permissions",
       "permissions_search": "Search permissions...",
       "permissions_none": "No permissions found.",
       "permissions_save": "Save Changes",
@@ -986,7 +987,11 @@
         "tasks": "Tasks",
         "members": "Members & Group",
         "other": "Other"
-      }
+      },
+      "error": "An error occurred during the operation",
+      "cancel": "Cancel",
+      "deleting": "Deleting...",
+      "delete_button": "Delete"
     },
     "tabs": {
       "general": "General",

@@ -3,7 +3,7 @@
 import {useEffect, useState} from 'react';
 import {useGroupPermission} from '@/components/providers/GroupPermissionContext';
 import {GroupTabsContainer} from './components/GroupTabsContainer';
-import {getUserGroups, getGroupMembers} from '@/lib/api/groups';
+import {getGroup, getGroupMembers} from '@/lib/api/groups';
 
 export default function GroupDetailPage() {
   const {groupId, isLoading: permissionsLoading} = useGroupPermission();
@@ -17,11 +17,10 @@ export default function GroupDetailPage() {
     const fetchMetadata = async () => {
       try {
         setIsLoadingMetadata(true);
-        // Fetch groups
-        const groupsRes = await getUserGroups();
-        const groups = Array.isArray(groupsRes.data) ? groupsRes.data : groupsRes.data?.data || [];
-        const currentGroup = groups.find((g: any) => g.id === groupId || g.group_id === groupId);
-        if (currentGroup) setGroupData(currentGroup);
+        // Fetch group data
+        const groupRes = await getGroup(groupId);
+        const group = groupRes.data?.data || groupRes.data;
+        if (group) setGroupData(group);
 
         // Fetch members for count
         const membersRes = await getGroupMembers(groupId);

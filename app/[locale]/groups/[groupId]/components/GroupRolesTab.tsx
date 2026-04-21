@@ -1,7 +1,22 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { Settings, ShieldPlus, Trash2, Edit2 } from 'lucide-react';
+import { useEffect, useState, useMemo } from 'react';
+import { 
+  Settings, 
+  ShieldPlus, 
+  Trash2, 
+  Edit2, 
+  Search, 
+  ChevronDown, 
+  ChevronRight, 
+  Lock, 
+  Calendar, 
+  FileText, 
+  CheckSquare, 
+  Users, 
+  Check, 
+  X 
+} from 'lucide-react';
 import { useGroupPermission } from '@/components/providers/GroupPermissionContext';
 import {
   getGroupRolesNonAdmin,
@@ -17,6 +32,43 @@ import ConfirmDialog from '@/components/ui/ConfirmDialog';
 import SideSheet from '@/components/ui/SideSheet';
 import { Switch } from '@/components/ui/Switch';
 import toast from 'react-hot-toast';
+
+// Categorize permissions by their names
+const categorizePermissions = (permissions: any[]) => {
+  const categories: Record<string, { icon: any, perms: any[] }> = {
+    'Szerepkörök': { icon: Lock, perms: [] },
+    'Naptár': { icon: Calendar, perms: [] },
+    'Bejegyzések': { icon: FileText, perms: [] },
+    'Feladatok': { icon: CheckSquare, perms: [] },
+    'Tagok & Csoport': { icon: Users, perms: [] },
+    'Egyéb': { icon: Settings, perms: [] }
+  };
+
+  permissions.forEach((permission) => {
+    const name = (permission.group_permission_name || permission.name || '').toLowerCase();
+    if (name.includes('role')) {
+      categories['Szerepkörök'].perms.push(permission);
+    } else if (name.includes('calendar') || name.includes('event')) {
+      categories['Naptár'].perms.push(permission);
+    } else if (name.includes('post')) {
+      categories['Bejegyzések'].perms.push(permission);
+    } else if (name.includes('task')) {
+      categories['Feladatok'].perms.push(permission);
+    } else if (name.includes('user') || name.includes('member') || name.includes('group')) {
+      categories['Tagok & Csoport'].perms.push(permission);
+    } else {
+      categories['Egyéb'].perms.push(permission);
+    }
+  });
+
+  return Object.entries(categories)
+    .filter(([, cat]) => cat.perms.length > 0)
+    .map(([name, cat]) => ({
+      name,
+      icon: cat.icon,
+      permissions: cat.perms
+    }));
+};
 
 export function GroupRolesTab() {
   const { groupId, hasPermission } = useGroupPermission();
@@ -42,6 +94,10 @@ export function GroupRolesTab() {
   const [selectedPermIds, setSelectedPermIds] = useState<Set<string>>(new Set());
   const [isLoadingPerms, setIsLoadingPerms] = useState(false);
   const [isSavingPerms, setIsSavingPerms] = useState(false);
+  
+  // Search and Categories
+  const [searchQuery, setSearchQuery] = useState('');
+  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set(['Szerepkörök', 'Feladatok']));
 
   const canGetRoles = hasPermission('group.role.get');
   const canCreate = hasPermission('group.role.create');
@@ -58,7 +114,6 @@ export function GroupRolesTab() {
     try {
       setIsLoading(true);
       const res = await getGroupRolesNonAdmin(groupId);
-      // Fix: look for group_roles in the payload
       const data = Array.isArray(res.data) 
         ? res.data 
         : res.data?.group_roles || res.data?.roles || res.data?.data || [];
@@ -106,8 +161,6 @@ export function GroupRolesTab() {
 
   const openPermissionsSheet = (role: any) => {
     setRoleForPerms(role);
-    
-    // Set initially checked perms based on role.group_permissions array
     const activeIds = new Set<string>();
     const rolePermArray = role.group_permissions || role.permissions || [];
     rolePermArray.forEach((p: any) => {
@@ -115,7 +168,7 @@ export function GroupRolesTab() {
       if (pId) activeIds.add(pId);
     });
     setSelectedPermIds(activeIds);
-
+    setSearchQuery('');
     setIsPermsSheetOpen(true);
     if (allPerms.length === 0) fetchAllPermissions();
   };
@@ -127,7 +180,6 @@ export function GroupRolesTab() {
     try {
       setIsSubmittingRole(true);
       if (actingRole) {
-        // Edit
         await modifyGroupRoleNonAdmin({
           group_id: groupId,
           role_id: actingRole.group_role_id || actingRole.id,
@@ -136,7 +188,6 @@ export function GroupRolesTab() {
         });
         toast.success('Szerepkör frissítve');
       } else {
-        // Create
         await createGroupRoleNonAdmin({
           group_id: groupId,
           name: roleName.trim(),
@@ -177,6 +228,15 @@ export function GroupRolesTab() {
     setSelectedPermIds(next);
   };
 
+  const toggleCategory = (categoryName: string) => {
+    setExpandedCategories((prev) => {
+      const next = new Set(prev);
+      if (next.has(categoryName)) next.delete(categoryName);
+      else next.add(categoryName);
+      return next;
+    });
+  };
+
   const handleSavePermissions = async () => {
     if (!roleForPerms) return;
     try {
@@ -188,7 +248,7 @@ export function GroupRolesTab() {
       });
       toast.success('Jogosultságok elmentve');
       setIsPermsSheetOpen(false);
-      fetchRoles(); // Refresh the list so new permissions are cached
+      fetchRoles();
     } catch (err) {
       console.error(err);
       toast.error('Nem sikerült elmenteni a jogokat');
@@ -197,9 +257,21 @@ export function GroupRolesTab() {
     }
   };
 
-  if (!canGetRoles) {
-    return null; // Silent Policy: nem is jelenítjük meg, ha nincs Get joga
-  }
+  const filteredPermissions = useMemo(() => {
+    if (!searchQuery) return allPerms;
+    const q = searchQuery.toLowerCase();
+    return allPerms.filter(p => 
+      (p.group_permission_name || p.name || '').toLowerCase().includes(q) ||
+      (p.group_permission_description || p.description || '').toLowerCase().includes(q)
+    );
+  }, [allPerms, searchQuery]);
+
+  const categorizedPermissions = useMemo(
+    () => categorizePermissions(filteredPermissions),
+    [filteredPermissions]
+  );
+
+  if (!canGetRoles) return null;
 
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
@@ -293,7 +365,6 @@ export function GroupRolesTab() {
         </table>
       </div>
 
-      {/* Szerepkör Létrehozás / Szerkesztés Modál */}
       {(canCreate || canModify) && (
         <Modal
           open={isRoleModalOpen}
@@ -348,12 +419,11 @@ export function GroupRolesTab() {
         </Modal>
       )}
 
-      {/* Törlés Megerősítés */}
       {canDelete && (
         <ConfirmDialog
           open={!!roleToDelete}
           title="Szerepkör Törlése"
-          message={`Biztosan törölni szeretnéd a(z) "${roleToDelete?.group_role_name || roleToDelete?.name}" szerepkört? Ez a művelet nem vonható vissza, és a hozzárendelt felhasználók elveszítik ezen jogosultságaikat.`}
+          message={`Biztosan törölni szeretnéd a(z) "${roleToDelete?.group_role_name || roleToDelete?.name}" szerepkört?`}
           cancelLabel="Mégse"
           confirmLabel={isDeleting ? 'Törlés...' : 'Törlés'}
           onCancel={() => setRoleToDelete(null)}
@@ -361,7 +431,6 @@ export function GroupRolesTab() {
         />
       )}
 
-      {/* Jogosultságok Beállítása Sheet */}
       {canSetPerms && (
         <SideSheet
           open={isPermsSheetOpen}
@@ -370,34 +439,82 @@ export function GroupRolesTab() {
         >
           <div className="flex flex-col h-full -mx-5 px-5">
             <div className="flex-1 overflow-y-auto pb-6">
+              <div className="relative my-4">
+                <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
+                <input
+                  type="text"
+                  placeholder="Jogosultságok keresése..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full bg-[#111] border border-white/10 rounded-lg pl-10 pr-4 py-2 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-orange-500 transition-all"
+                />
+              </div>
+
               {isLoadingPerms ? (
                 <div className="py-10 text-center text-gray-500 flex flex-col items-center justify-center gap-3">
                   <div className="w-6 h-6 rounded-full border-2 border-orange-500 border-t-transparent animate-spin" />
-                  Jogosultságok betöltése...
+                  Betöltés...
                 </div>
-              ) : allPerms.length === 0 ? (
-                <div className="py-10 text-center text-gray-500">Nem találhatók kiosztható jogok.</div>
+              ) : categorizedPermissions.length === 0 ? (
+                <div className="py-10 text-center text-gray-500">Nem találhatók jogosultságok.</div>
               ) : (
-                <div className="space-y-3 mt-4">
-                  {allPerms.map((perm) => {
-                    const permId = perm.group_permission_id || perm.id || perm.name;
+                <div className="space-y-4 mt-2">
+                  {categorizedPermissions.map((category) => {
+                    const isExpanded = expandedCategories.has(category.name);
+                    const CategoryIcon = category.icon;
+                    const selectedInCat = category.permissions.filter(p => selectedPermIds.has(p.group_permission_id || p.id)).length;
+
                     return (
-                      <div key={permId} className="flex items-center justify-between gap-4 p-4 rounded-xl border border-white/10 bg-[#111] transition-colors hover:bg-white/5">
-                        <div className="flex flex-col pr-4">
-                          <span className="text-sm font-medium text-white">
-                            {perm.group_permission_name || perm.label || perm.name}
+                      <div key={category.name} className="border border-white/5 rounded-xl overflow-hidden bg-white/5">
+                        <button
+                          onClick={() => toggleCategory(category.name)}
+                          className="w-full flex items-center justify-between p-4 hover:bg-white/5 transition-colors"
+                        >
+                          <div className="flex items-center gap-3">
+                            {isExpanded ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
+                            <CategoryIcon size={18} className="text-orange-500" />
+                            <span className="font-medium text-sm text-white">{category.name}</span>
+                          </div>
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-white/10 text-gray-400">
+                            {selectedInCat}/{category.permissions.length}
                           </span>
-                          {(perm.group_permission_description || perm.description || perm.name) && (
-                            <span className="text-xs text-gray-400 mt-1">
-                              {perm.group_permission_description || perm.description || perm.name}
-                            </span>
-                          )}
-                        </div>
-                        <Switch
-                          checked={selectedPermIds.has(permId)}
-                          onCheckedChange={(checked) => togglePermission(permId, checked)}
-                          className="data-[state=checked]:bg-orange-500"
-                        />
+                        </button>
+
+                        {isExpanded && (
+                          <div className="p-3 pt-0 space-y-2 border-t border-white/5 bg-[#111]/50">
+                            {category.permissions.map((perm) => {
+                              const permId = perm.group_permission_id || perm.id || perm.name;
+                              const isChecked = selectedPermIds.has(permId);
+                              return (
+                                <button
+                                  key={permId}
+                                  onClick={() => togglePermission(permId, !isChecked)}
+                                  className={`w-full flex items-start justify-between p-3 rounded-lg border transition-all ${
+                                    isChecked 
+                                      ? 'border-orange-500/50 bg-orange-500/5' 
+                                      : 'border-white/5 bg-[#111]/30 hover:border-white/10'
+                                  }`}
+                                >
+                                  <div className="flex flex-col text-left pr-4">
+                                    <span className={`text-xs font-medium ${isChecked ? 'text-orange-500' : 'text-white'}`}>
+                                      {perm.group_permission_name || perm.label || perm.name}
+                                    </span>
+                                    {(perm.group_permission_description || perm.description) && (
+                                      <span className="text-[10px] text-gray-500 mt-1 line-clamp-2">
+                                        {perm.group_permission_description || perm.description}
+                                      </span>
+                                    )}
+                                  </div>
+                                  <div className={`mt-0.5 flex-shrink-0 w-4 h-4 rounded border flex items-center justify-center transition-colors ${
+                                    isChecked ? 'bg-orange-500 border-orange-500' : 'border-white/20'
+                                  }`}>
+                                    {isChecked && <Check size={10} className="text-white font-bold" />}
+                                  </div>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        )}
                       </div>
                     );
                   })}

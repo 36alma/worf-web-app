@@ -81,7 +81,7 @@ export function GroupRolesTab() {
     try {
       setIsLoadingPerms(true);
       const res = await getAllPermissionsNonAdmin(groupId);
-      const permsData = Array.isArray(res.data) ? res.data : res.data?.permissions || res.data?.data || [];
+      const permsData = Array.isArray(res.data) ? res.data : res.data?.group_permissions || res.data?.permissions || res.data?.data || [];
       setAllPerms(permsData);
     } catch (err) {
       console.error('Failed to fetch permissions', err);

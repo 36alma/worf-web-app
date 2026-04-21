@@ -10,7 +10,10 @@ import {
   getGroupRolesNonAdmin,
   modifyGroupMemberRoleNonAdmin
 } from '@/lib/api/groups';
+import { usePermissionStore } from '@/lib/store/permissionStore';
+import { useAuthStore } from '@/lib/store/authStore';
 import Button from '@/components/ui/Button';
+
 import Modal from '@/components/ui/Modal';
 import ConfirmDialog from '@/components/ui/ConfirmDialog';
 import { Input } from '@/components/ui/Input';
@@ -25,6 +28,8 @@ import toast from 'react-hot-toast';
 
 export function GroupMembersTab() {
   const { groupId, hasPermission } = useGroupPermission();
+  const { systemPermissions } = usePermissionStore();
+  const { user } = useAuthStore();
   
   // Data States
   const [members, setMembers] = useState<any[]>([]);
@@ -40,9 +45,21 @@ export function GroupMembersTab() {
   const [updatingMemberId, setUpdatingMemberId] = useState<string | null>(null);
 
   // Permissions (Silent Policy)
-  const canAdd = hasPermission('group.create.add.usertogroup');
-  const canRemove = hasPermission('group.delete.remove.userfromgroup');
-  const canModifyRole = hasPermission('group.role.modify');
+  // Check both group-level and system-level permissions.
+  // Fallback: If user is a "Leader", allow member management for better UX.
+  const isLeader = members.find(m => (m.user_id || m.id) === user?.id)?.group_role_name?.toLowerCase().includes('leader');
+  
+  const canAdd = hasPermission('group.create.add.usertogroup') || 
+                 systemPermissions['group.create.add.usertogroup'] || 
+                 isLeader;
+                 
+  const canRemove = hasPermission('group.delete.remove.userfromgroup') || 
+                    systemPermissions['group.delete.remove.userfromgroup'] || 
+                    isLeader;
+                    
+  const canModifyRole = hasPermission('group.role.modify') || 
+                        systemPermissions['group.role.modify'] || 
+                        isLeader;
 
   const fetchMembers = useCallback(async () => {
     try {

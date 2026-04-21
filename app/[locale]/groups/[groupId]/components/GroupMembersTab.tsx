@@ -79,56 +79,68 @@ export function GroupMembersTab() {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6 animate-in fade-in duration-300">
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-medium text-[var(--text-primary)]">Csoport Tagok</h2>
+        <div>
+          <h2 className="text-lg font-medium text-white mb-1">Csoport Tagok</h2>
+          <p className="text-sm text-gray-400">A csoport tagjainak és szerepköreinek kezelése.</p>
+        </div>
         {canAdd && (
-          <Button onClick={() => setIsAddModalOpen(true)} startIcon={<UserPlus size={16} />} className="p-2">
+          <Button 
+            onClick={() => setIsAddModalOpen(true)} 
+            startIcon={<UserPlus size={16} />} 
+            className="bg-orange-500 hover:bg-orange-600 text-white border-none shadow-lg shadow-orange-500/20"
+          >
             Új Tag
           </Button>
         )}
       </div>
 
-      <div className="overflow-hidden rounded-[var(--radius-lg)] border-[0.5px] border-[var(--border-subtle)] bg-[var(--bg-surface)]">
+      <div className="overflow-hidden rounded-xl border border-white/10 bg-[#111]">
         <table className="min-w-full text-left text-sm">
-          <thead className="border-b border-[var(--border-subtle)] bg-[var(--bg-surface)]">
+          <thead className="border-b border-white/10 bg-white/5">
             <tr>
-              <th className="px-4 py-3 font-medium text-[var(--text-tertiary)]">Név / ID</th>
-              <th className="px-4 py-3 font-medium text-[var(--text-tertiary)]">Szerepkör</th>
-              {canRemove && <th className="w-10 px-4 py-3 text-right"></th>}
+              <th className="px-6 py-4 font-medium text-gray-400">Név / ID</th>
+              <th className="px-6 py-4 font-medium text-gray-400">Szerepkör</th>
+              {canRemove && <th className="w-16 px-6 py-4 text-right"></th>}
             </tr>
           </thead>
-          <tbody>
+          <tbody className="divide-y divide-white/5">
             {isLoading ? (
               <tr>
-                <td colSpan={canRemove ? 3 : 2} className="px-4 py-8 text-center text-[var(--text-tertiary)]">
-                  Betöltés...
+                <td colSpan={canRemove ? 3 : 2} className="px-6 py-12 text-center text-gray-500">
+                  <div className="flex justify-center items-center gap-2">
+                    <div className="w-4 h-4 rounded-full border-2 border-orange-500 border-t-transparent animate-spin" />
+                    Betöltés...
+                  </div>
                 </td>
               </tr>
             ) : members.length === 0 ? (
               <tr>
-                <td colSpan={canRemove ? 3 : 2} className="px-4 py-8 text-center text-[var(--text-tertiary)]">
+                <td colSpan={canRemove ? 3 : 2} className="px-6 py-12 text-center text-gray-500">
                   Nincsenek tagok a csoportban.
                 </td>
               </tr>
             ) : (
               members.map((member, i) => (
-                <tr key={member.id || member.user_id || i} className="border-b border-[var(--border-subtle)] last:border-none hover:bg-[var(--bg-hover)] transition-colors">
-                  <td className="px-4 py-3 text-[var(--text-primary)]">
-                    <div className="font-medium">{member.name || member.user_name || 'Ismeretlen'}</div>
-                    <div className="text-xs text-[var(--text-tertiary)] opacity-75">{member.id || member.user_id}</div>
+                <tr key={member.id || member.user_id || i} className="hover:bg-white/5 transition-colors">
+                  <td className="px-6 py-4 text-white">
+                    <div className="font-medium text-base">{member.name || member.user_name || 'Ismeretlen'}</div>
+                    <div className="text-xs text-gray-500 mt-1 font-mono">{member.id || member.user_id}</div>
                   </td>
-                  <td className="px-4 py-3 text-[var(--text-secondary)]">
-                    {member.group_role_name || '-'}
+                  <td className="px-6 py-4 text-gray-300">
+                    <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-white/10 text-xs font-medium border border-white/10">
+                      {member.group_role_name || 'Alapértelmezett'}
+                    </span>
                   </td>
                   {canRemove && (
-                    <td className="px-4 py-3 text-right">
+                    <td className="px-6 py-4 text-right">
                       <button
                         onClick={() => setMemberToRemove(member)}
-                        className="inline-flex h-8 w-8 items-center justify-center rounded-[var(--radius-md)] text-[var(--text-tertiary)] hover:bg-red-500/10 hover:text-red-500 transition-colors"
+                        className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-gray-500 hover:bg-red-500/10 hover:text-red-500 transition-colors"
                         title="Tag eltávolítása"
                       >
-                        <Trash2 size={16} strokeWidth={1.75} />
+                        <Trash2 size={18} strokeWidth={1.75} />
                       </button>
                     </td>
                   )}
@@ -144,7 +156,7 @@ export function GroupMembersTab() {
         <Modal open={isAddModalOpen} title="Új Tag Hozzáadása" onClose={() => setIsAddModalOpen(false)}>
           <form onSubmit={handleAddMember} className="space-y-5">
             <div className="space-y-2">
-              <label htmlFor="user_id" className="text-sm font-medium text-[var(--text-secondary)]">
+              <label htmlFor="user_id" className="text-sm font-medium text-gray-300">
                 Felhasználó ID
               </label>
               <input
@@ -154,14 +166,23 @@ export function GroupMembersTab() {
                 value={newUserId}
                 onChange={(e) => setNewUserId(e.target.value)}
                 placeholder="Pl. user-1234-abcd"
-                className="w-full rounded-[var(--radius-md)] border-[0.5px] border-[var(--border-subtle)] bg-[var(--bg-surface)] px-3 py-2 text-sm text-[var(--text-primary)] outline-none transition-all placeholder:text-[var(--text-tertiary)] focus:border-[var(--primary)] focus:ring-1 focus:ring-[var(--primary)]"
+                className="w-full bg-[#111] border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-orange-500 focus:border-orange-500 transition-all"
               />
             </div>
-            <div className="flex justify-end gap-2">
-              <Button type="button" variant="secondary" className="p-2" onClick={() => setIsAddModalOpen(false)}>
+            <div className="flex justify-end gap-3 pt-2">
+              <Button 
+                type="button" 
+                variant="secondary" 
+                className="bg-white/5 hover:bg-white/10 border-white/10 text-white" 
+                onClick={() => setIsAddModalOpen(false)}
+              >
                 Mégse
               </Button>
-              <Button type="submit" variant="primary" className="p-2" disabled={!newUserId.trim() || isAdding}>
+              <Button 
+                type="submit" 
+                className="bg-orange-500 hover:bg-orange-600 text-white border-none disabled:bg-orange-500/50" 
+                disabled={!newUserId.trim() || isAdding}
+              >
                 {isAdding ? 'Hozzáadás...' : 'Hozzáadás'}
               </Button>
             </div>
@@ -174,7 +195,7 @@ export function GroupMembersTab() {
         <ConfirmDialog
           open={!!memberToRemove}
           title="Tag Eltávolítása"
-          message={`Biztosan el szeretnéd távolítani ezt a felhasználót a csoportból (${memberToRemove?.name || memberToRemove?.id || memberToRemove?.user_id})? Ezt a műveletet később vissza lehet vonni újbóli hozzáadással.`}
+          message={`Biztosan el szeretnéd távolítani ezt a felhasználót a csoportból (${memberToRemove?.name || memberToRemove?.id || memberToRemove?.user_id})?`}
           cancelLabel="Mégse"
           confirmLabel={isRemoving ? 'Eltávolítás...' : 'Eltávolítás'}
           onCancel={() => setMemberToRemove(null)}

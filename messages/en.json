@@ -63,11 +63,31 @@
   },
   "dashboard": {
     "title": "Dashboard",
-    "welcome": "Welcome to WORF admin",
+    "welcome": "Welcome to WORF Admin",
     "active_groups": "Active groups",
     "open_tasks": "Open tasks",
     "upcoming_events": "Upcoming events",
-    "empty_hint": "Widgets will be populated after backend data integration."
+    "vs_last_month": "vs last month",
+    "no_change": "No change",
+    "no_events_scheduled": "No events scheduled",
+    "welcome_description": "Your dashboard is ready. Start by creating groups, assigning tasks, or scheduling events to see your widgets come alive.",
+    "create_first_group": "Create first group",
+    "read_documentation": "Read documentation",
+    "recent_activity": "Recent activity",
+    "view_all": "View all",
+    "no_recent_activity": "No recent activity",
+    "activity_hint": "Actions from your team will appear here",
+    "quick_actions": "Quick actions",
+    "actions": {
+      "create_group": "Create group",
+      "create_group_desc": "Add a new team group",
+      "add_task": "Add task",
+      "add_task_desc": "Create a new task",
+      "schedule_event": "Schedule event",
+      "schedule_event_desc": "Add to calendar",
+      "create_post": "Create post",
+      "create_post_desc": "Write a new post"
+    }
   },
   "groups": {
     "title": "Groups",

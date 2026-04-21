@@ -8,7 +8,8 @@ import {
   addUserToGroup, 
   removeUserFromGroup, 
   getGroupRolesNonAdmin,
-  modifyGroupMemberRoleNonAdmin
+  modifyGroupMemberRoleNonAdmin,
+  getAllUsersPre
 } from '@/lib/api/groups';
 import { usePermissionStore } from '@/lib/store/permissionStore';
 import { useAuthStore } from '@/lib/store/authStore';
@@ -25,6 +26,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import toast from 'react-hot-toast';
+import { Search, UserPlus2, UserCheck } from 'lucide-react';
 
 export function GroupMembersTab() {
   const { groupId, hasPermission } = useGroupPermission();
@@ -34,15 +36,17 @@ export function GroupMembersTab() {
   // Data States
   const [members, setMembers] = useState<any[]>([]);
   const [roles, setRoles] = useState<any[]>([]);
+  const [allUsers, setAllUsers] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   // UI States
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [newUserId, setNewUserId] = useState('');
+  const [userSearchTerm, setUserSearchTerm] = useState('');
   const [isAdding, setIsAdding] = useState(false);
   const [memberToRemove, setMemberToRemove] = useState<any | null>(null);
   const [isRemoving, setIsRemoving] = useState(false);
   const [updatingMemberId, setUpdatingMemberId] = useState<string | null>(null);
+  const [isLoadingUsers, setIsLoadingUsers] = useState(false);
 
   // Permissions (Silent Policy)
   // Check both group-level and system-level permissions.
@@ -84,6 +88,19 @@ export function GroupMembersTab() {
     }
   }, [groupId]);
 
+  const fetchAllUsers = useCallback(async () => {
+    try {
+      setIsLoadingUsers(true);
+      const res = await getAllUsersPre();
+      const data = res.data?.message || res.data?.users || res.data || [];
+      setAllUsers(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error('Failed to fetch all users', err);
+    } finally {
+      setIsLoadingUsers(false);
+    }
+  }, []);
+
   const initData = useCallback(async () => {
     setIsLoading(true);
     await Promise.all([fetchMembers(), fetchRoles()]);
@@ -94,18 +111,20 @@ export function GroupMembersTab() {
     initData();
   }, [initData]);
 
-  const handleAddMember = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const userId = newUserId.trim();
-    if (!userId) return;
+  useEffect(() => {
+    if (isAddModalOpen) {
+      fetchAllUsers();
+    }
+  }, [isAddModalOpen, fetchAllUsers]);
 
+  const handleAddMember = async (userId: string) => {
     try {
       setIsAdding(true);
       await addUserToGroup(groupId, userId);
       toast.success('Tag sikeresen hozzáadva');
-      setIsAddModalOpen(false);
-      setNewUserId('');
       fetchMembers();
+      // Keep modal open or close? User might want to add more.
+      // For now, let's just update the list.
     } catch (err: any) {
       const msg = err.response?.data?.detail || 'Hiba történt a tag hozzáadásakor';
       toast.error(msg);
@@ -152,6 +171,20 @@ export function GroupMembersTab() {
       setUpdatingMemberId(null);
     }
   };
+
+  // Filter users not in group
+  const usersToDisplay = allUsers
+    .filter(u => {
+      const uid = u.user_id || u.id;
+      const isAlreadyMember = members.some(m => (m.user_id || m.id) === uid);
+      const matchesSearch = 
+        (u.full_name || u.name || '').toLowerCase().includes(userSearchTerm.toLowerCase()) ||
+        (u.username || '').toLowerCase().includes(userSearchTerm.toLowerCase()) ||
+        uid.toLowerCase().includes(userSearchTerm.toLowerCase());
+      
+      return !isAlreadyMember && matchesSearch;
+    })
+    .slice(0, 50); // Limit display for performance
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
@@ -274,43 +307,76 @@ export function GroupMembersTab() {
           title="Tag Hozzáadása" 
           onClose={() => setIsAddModalOpen(false)}
         >
-          <form onSubmit={handleAddMember} className="space-y-6 pt-2">
-            <div className="space-y-2">
-              <label htmlFor="user_id" className="text-sm font-medium text-gray-300">
-                Felhasználó Azonosító (ID)
-              </label>
-              <Input
-                id="user_id"
-                autoFocus
-                placeholder="Pl. user-1234-abcd"
-                value={newUserId}
-                onChange={(e) => setNewUserId(e.target.value)}
-                required
-                className="bg-[#0c0c0c]"
-              />
-              <p className="text-[11px] text-gray-500">
-                Add meg a felhasználó egyedi azonosítóját a csoporthoz való csatlakozáshoz.
-              </p>
+          <div className="space-y-6 pt-2">
+            <div className="space-y-4">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
+                <Input
+                  autoFocus
+                  placeholder="Felhasználó keresése név vagy ID alapján..."
+                  value={userSearchTerm}
+                  onChange={(e) => setUserSearchTerm(e.target.value)}
+                  className="bg-[#0c0c0c] pl-10"
+                />
+              </div>
+
+              <div className="max-h-[350px] overflow-y-auto space-y-2 pr-1 custom-scrollbar">
+                {isLoadingUsers ? (
+                  <div className="flex flex-col items-center py-10 gap-3 opacity-50">
+                    <Loader2 className="w-6 h-6 text-orange-500 animate-spin" />
+                    <span className="text-xs text-gray-500">Felhasználók betöltése...</span>
+                  </div>
+                ) : usersToDisplay.length === 0 ? (
+                  <div className="text-center py-10 text-gray-500 text-sm italic">
+                    Nem található több felhasználó.
+                  </div>
+                ) : (
+                  usersToDisplay.map((u) => {
+                    const uid = u.user_id || u.id;
+                    return (
+                      <div 
+                        key={uid} 
+                        className="flex items-center justify-between p-3 rounded-xl bg-white/5 border border-white/5 hover:border-orange-500/30 hover:bg-orange-500/5 transition-all group"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-gray-400 font-bold text-xs">
+                            {(u.full_name || u.name || u.username || '?').charAt(0).toUpperCase()}
+                          </div>
+                          <div className="min-w-0">
+                            <div className="text-sm font-medium text-white truncate">
+                              {u.full_name || u.name || u.username || 'Ismeretlen'}
+                            </div>
+                            <div className="text-[10px] text-gray-500 font-mono truncate">
+                              {uid}
+                            </div>
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => handleAddMember(uid)}
+                          disabled={isAdding}
+                          className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-orange-500/10 text-orange-500 text-xs font-semibold hover:bg-orange-500 hover:text-white transition-all disabled:opacity-50"
+                        >
+                          <UserPlus2 size={14} />
+                          Hozzáadás
+                        </button>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
             </div>
             
-            <div className="flex justify-end gap-3 pt-2">
+            <div className="flex justify-end pt-2">
               <Button 
                 type="button" 
                 variant="secondary" 
                 className="bg-white/5 hover:bg-white/10 border-white/10 text-white" 
                 onClick={() => setIsAddModalOpen(false)}
               >
-                Mégse
-              </Button>
-              <Button 
-                type="submit" 
-                className="bg-orange-500 hover:bg-orange-600 text-white border-none min-w-[120px] shadow-lg shadow-orange-500/20" 
-                disabled={!newUserId.trim() || isAdding}
-              >
-                {isAdding ? <Loader2 size={18} className="animate-spin" /> : 'Hozzáadás'}
+                Bezárás
               </Button>
             </div>
-          </form>
+          </div>
         </Modal>
       )}
 

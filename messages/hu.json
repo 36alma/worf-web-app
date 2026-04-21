@@ -945,6 +945,9 @@
       "remove_success": "Tag sikeresen eltávolítva",
       "role_success": "Szerepkör sikeresen módosítva",
       "remove_confirm_message": "Biztosan el szeretnéd távolítani ezt a felhasználót a csoportból ({name})? Ez a művelet nem vonható vissza.",
+      "remove_confirm_button": "Eltávolítás",
+      "deleting": "Törlés...",
+      "error": "Hiba történt a művelet során",
       "close": "Bezárás"
     },
     "roles": {

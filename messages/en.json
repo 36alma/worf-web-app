@@ -945,6 +945,9 @@
       "remove_success": "Member removed successfully",
       "role_success": "Role updated successfully",
       "remove_confirm_message": "Are you sure you want to remove this user from the group ({name})? This action cannot be undone.",
+      "remove_confirm_button": "Remove",
+      "deleting": "Deleting...",
+      "error": "An error occurred during the operation",
       "close": "Close"
     },
     "roles": {

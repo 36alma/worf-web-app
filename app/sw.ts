@@ -18,11 +18,11 @@ declare const self: ServiceWorkerGlobalScope;
 // the explicit NetworkOnly rules defined below.
 // ═══════════════════════════════════════════════════════════════
 const safeDefaultCache = defaultCache.filter((entry) => {
-  if (!("urlPattern" in entry)) {
+  if (!("matcher" in entry)) {
     return true;
   }
 
-  const pattern = entry.urlPattern;
+  const pattern = entry.matcher;
   if (pattern instanceof RegExp) {
     // Drop rules whose regex would match /api/ or /v1/ paths
     return !pattern.test("/api/proxy/test") && !pattern.test("/v1/test");
@@ -42,22 +42,22 @@ const serwist = new Serwist({
     // Using NetworkOnly ensures zero cache interaction.
     // ═══════════════════════════════════════════════════════════
     {
-      urlPattern: /\/api\/.*/i,
+      matcher: /\/api\/.*/i,
       handler: new NetworkOnly(),
       method: "GET",
     },
     {
-      urlPattern: /\/api\/.*/i,
+      matcher: /\/api\/.*/i,
       handler: new NetworkOnly(),
       method: "POST",
     },
     {
-      urlPattern: /\/v1\/.*/i,
+      matcher: /\/v1\/.*/i,
       handler: new NetworkOnly(),
       method: "GET",
     },
     {
-      urlPattern: /\/v1\/.*/i,
+      matcher: /\/v1\/.*/i,
       handler: new NetworkOnly(),
       method: "POST",
     },

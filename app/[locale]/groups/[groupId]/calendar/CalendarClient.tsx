@@ -7,7 +7,8 @@ import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import type {EventResizeDoneArg} from '@fullcalendar/interaction';
 import allLocales from '@fullcalendar/core/locales-all';
-import type {DateSelectArg, EventClickArg, EventDropArg} from '@fullcalendar/core';
+import type {DateClickArg} from '@fullcalendar/interaction';
+import type {DateSelectArg, DatesSetArg, EventClickArg, EventDropArg} from '@fullcalendar/core';
 import {CalendarDays, Plus} from 'lucide-react';
 import Button from '@/components/ui/Button';
 import ConfirmDialog from '@/components/ui/ConfirmDialog';
@@ -32,6 +33,11 @@ interface CalendarClientProps {
   groupId: string;
   locale: string;
 }
+
+const MOBILE_BREAKPOINT = 768;
+const MOBILE_DEFAULT_VIEW: CalendarViewMode = 'timeGridDay';
+const DESKTOP_DEFAULT_VIEW: CalendarViewMode = 'dayGridMonth';
+const DOUBLE_TAP_DELAY_MS = 300;
 
 const getCalendarCopy = (locale: SupportedLocale): CalendarCopy =>
   locale === 'hu'
@@ -223,9 +229,15 @@ const EmptyState = ({
 
 export default function CalendarClient({groupId, locale}: CalendarClientProps) {
   const normalizedLocale: SupportedLocale = locale === 'en' ? 'en' : 'hu';
+  const decodedGroupId = decodeURIComponent(groupId);
   const copy = getCalendarCopy(normalizedLocale);
   const calendarRef = useRef<FullCalendar | null>(null);
-  const [currentView, setCurrentView] = useState<CalendarViewMode>('dayGridMonth');
+  const lastDateTapRef = useRef<{cellKey: string; timestamp: number}>({
+    cellKey: '',
+    timestamp: 0
+  });
+  const [isMobile, setIsMobile] = useState(false);
+  const [currentView, setCurrentView] = useState<CalendarViewMode>(DESKTOP_DEFAULT_VIEW);
   const [eventView, setEventView] = useState<GroupCalendarEventItem | null>(null);
   const [eventFormOpen, setEventFormOpen] = useState(false);
   const [calendarFormOpen, setCalendarFormOpen] = useState(false);
@@ -237,12 +249,12 @@ export default function CalendarClient({groupId, locale}: CalendarClientProps) {
   const [calendarDeleteOpen, setCalendarDeleteOpen] = useState(false);
 
   const permissions = useCalendarPermissions({
-    groupId,
+    groupId: decodedGroupId,
     locale: normalizedLocale
   });
 
   const calendarData = useCalendarData({
-    groupId,
+    groupId: decodedGroupId,
     locale: normalizedLocale,
     enabled: permissions.canRead,
     copy
@@ -256,18 +268,26 @@ export default function CalendarClient({groupId, locale}: CalendarClientProps) {
       return;
     }
 
-    const mediaQuery = window.matchMedia('(max-width: 768px)');
-    const syncView = () => {
-      const nextView: CalendarViewMode = mediaQuery.matches ? 'timeGridDay' : 'dayGridMonth';
-      setCurrentView(nextView);
-      calendarRef.current?.getApi().changeView(nextView);
+    const syncViewport = () => {
+      const nextIsMobile = window.innerWidth < MOBILE_BREAKPOINT;
+
+      setIsMobile((previousIsMobile) => {
+        if (previousIsMobile === nextIsMobile) {
+          return previousIsMobile;
+        }
+
+        const nextView = nextIsMobile ? MOBILE_DEFAULT_VIEW : DESKTOP_DEFAULT_VIEW;
+        setCurrentView(nextView);
+        calendarRef.current?.getApi().changeView(nextView);
+        return nextIsMobile;
+      });
     };
 
-    syncView();
-    mediaQuery.addEventListener('change', syncView);
+    syncViewport();
+    window.addEventListener('resize', syncViewport);
 
     return () => {
-      mediaQuery.removeEventListener('change', syncView);
+      window.removeEventListener('resize', syncViewport);
     };
   }, []);
 
@@ -316,6 +336,38 @@ export default function CalendarClient({groupId, locale}: CalendarClientProps) {
     selection.view.calendar.unselect();
   };
 
+  const handleDateClick = (dateClick: DateClickArg) => {
+    if (!isMobile || !permissions.canManageEvents || !calendarData.activeCalendarId) {
+      return;
+    }
+
+    const now = Date.now();
+    const cellKey = `${dateClick.dateStr}::${dateClick.allDay ? 'all-day' : 'timed'}::${dateClick.view.type}`;
+    const previousTap = lastDateTapRef.current;
+    const isDoubleTap =
+      previousTap.cellKey === cellKey && now - previousTap.timestamp <= DOUBLE_TAP_DELAY_MS;
+
+    lastDateTapRef.current = {
+      cellKey,
+      timestamp: now
+    };
+
+    if (!isDoubleTap) {
+      return;
+    }
+
+    lastDateTapRef.current = {
+      cellKey: '',
+      timestamp: 0
+    };
+
+    openCreateEvent({
+      startAt: dateClick.date.toISOString(),
+      endAt: null,
+      allDay: dateClick.allDay
+    });
+  };
+
   const handleEventClick = (eventClick: EventClickArg) => {
     const source = eventClick.event.extendedProps.source as GroupCalendarEventItem | undefined;
 
@@ -361,6 +413,22 @@ export default function CalendarClient({groupId, locale}: CalendarClientProps) {
       eventResize.revert();
     }
   };
+
+  const handleDatesSet = (dateInfo: DatesSetArg) => {
+    setCurrentView(dateInfo.view.type as CalendarViewMode);
+  };
+
+  const headerToolbar = isMobile
+    ? {
+        left: 'prev,next today',
+        center: 'title',
+        right: 'timeGridDay,dayGridMonth'
+      }
+    : {
+        left: 'prev,next today',
+        center: 'title',
+        right: 'dayGridMonth,timeGridWeek,timeGridDay'
+      };
 
   if (permissions.isLoading) {
     return <CalendarShellSkeleton copy={copy} />;
@@ -455,17 +523,12 @@ export default function CalendarClient({groupId, locale}: CalendarClientProps) {
             <Skeleton className="h-[680px] w-full" />
           ) : (
             <FullCalendar
-              key={currentView}
               ref={calendarRef}
               locales={allLocales}
               locale={normalizedLocale}
               plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
               initialView={currentView}
-              headerToolbar={{
-                left: 'prev,next today',
-                center: 'title',
-                right: 'dayGridMonth,timeGridWeek,timeGridDay'
-              }}
+              headerToolbar={headerToolbar}
               buttonText={{
                 today: copy.today,
                 month: copy.month,
@@ -473,13 +536,19 @@ export default function CalendarClient({groupId, locale}: CalendarClientProps) {
                 day: copy.day
               }}
               editable={permissions.canManageEvents}
+              eventStartEditable={permissions.canManageEvents}
+              eventDurationEditable={permissions.canManageEvents}
               droppable={permissions.canManageEvents}
               selectable={permissions.canManageEvents}
+              eventLongPressDelay={400}
+              selectLongPressDelay={400}
               selectMirror
               nowIndicator
               height="auto"
               events={calendarData.events.map(toFullCalendarEvent)}
               select={handleDateSelect}
+              dateClick={handleDateClick}
+              datesSet={handleDatesSet}
               eventClick={handleEventClick}
               eventDrop={handleEventDrop}
               eventResize={handleEventResize}

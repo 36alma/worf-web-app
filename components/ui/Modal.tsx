@@ -16,8 +16,8 @@ export default function Modal({open, title, badge, onClose, children}: ModalProp
     <Dialog.Root open={open} onOpenChange={(nextOpen) => !nextOpen && onClose()}>
       <Dialog.Portal>
         <Dialog.Overlay className="dialog-overlay fixed inset-0 z-50 bg-black/60 backdrop-blur-[2px]" />
-        <Dialog.Content className="dialog-content fixed left-1/2 top-1/2 z-50 w-[min(92vw,720px)] -translate-x-1/2 -translate-y-1/2 rounded-[var(--radius-lg)] border-[0.5px] border-[var(--border-subtle)] bg-[var(--bg-elevated)] p-6 shadow-2xl">
-          <div className="mb-5 flex items-center justify-between gap-3">
+        <Dialog.Content className="dialog-content fixed left-1/2 top-1/2 z-50 flex max-h-[92dvh] w-[min(92vw,720px)] -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-[var(--radius-lg)] border-[0.5px] border-[var(--border-subtle)] bg-[var(--bg-elevated)] shadow-2xl">
+          <div className="mb-0 flex items-center justify-between gap-3 border-b border-[var(--border-subtle)] px-4 py-4 md:px-6">
             <div className="flex min-w-0 items-center gap-2.5">
               <Dialog.Title className="truncate text-base font-semibold text-[var(--text-primary)]">
                 {title}
@@ -38,7 +38,9 @@ export default function Modal({open, title, badge, onClose, children}: ModalProp
               </button>
             </Dialog.Close>
           </div>
-          {children}
+          <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4 pb-[max(16px,env(safe-area-inset-bottom))] md:px-6 md:py-6">
+            {children}
+          </div>
         </Dialog.Content>
       </Dialog.Portal>
     </Dialog.Root>

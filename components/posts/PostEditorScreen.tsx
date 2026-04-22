@@ -3,8 +3,8 @@
 import Link from 'next/link';
 import * as Label from '@radix-ui/react-label';
 import * as Select from '@radix-ui/react-select';
-import {ArrowLeft, Check, ChevronDown, Eye, FileText, Globe, Loader2, PenLine, Save, Send, Tag, Type} from 'lucide-react';
-import {FormEvent, useEffect, useMemo, useState} from 'react';
+import {ArrowLeft, ChevronDown, Eye, FileText, Globe, Loader2, PenLine, Save, Send, Tag, Type} from 'lucide-react';
+import {FormEvent, useEffect, useMemo, useRef, useState} from 'react';
 import {useLocale, useTranslations} from 'next-intl';
 import {useRouter} from 'next/navigation';
 import toast from 'react-hot-toast';
@@ -23,7 +23,6 @@ import {
 } from '@/lib/api/posts';
 
 type RawObject = Record<string, unknown>;
-type PostStatus = 'draft' | 'published' | 'scheduled';
 
 interface PostCategory {
   id: string;
@@ -34,7 +33,10 @@ interface Snapshot {
   title: string;
   body: string;
   categoryId: string;
-  status: PostStatus;
+}
+
+interface LocalDraftSnapshot extends Snapshot {
+  savedAt: string;
 }
 
 interface PostEditorScreenProps {
@@ -108,14 +110,12 @@ const normalizeSinglePost = (payload: unknown): Snapshot => {
   const source = readData(payload);
 
   if (!source || typeof source !== 'object') {
-    return {title: '', body: '', categoryId: '', status: 'draft'};
+    return {title: '', body: '', categoryId: ''};
   }
 
   const root = source as RawObject;
   const nestedPost = root.post && typeof root.post === 'object' ? (root.post as RawObject) : root;
   const nestedCategory = root.category && typeof root.category === 'object' ? (root.category as RawObject) : null;
-  const statusValue = String(nestedPost.status ?? root.status ?? root.post_status ?? 'draft').toLowerCase();
-  const normalizedStatus: PostStatus = statusValue === 'published' || statusValue === 'scheduled' ? statusValue : 'draft';
 
   return {
     title: String(nestedPost.title ?? root.title ?? ''),
@@ -129,16 +129,14 @@ const normalizeSinglePost = (payload: unknown): Snapshot => {
         root.post_category_id ??
         root.category_id ??
         ''
-    ),
-    status: normalizedStatus
+    )
   };
 };
 
 const trimSnapshot = (value: Snapshot): Snapshot => ({
   title: value.title.trim(),
   body: value.body.trim(),
-  categoryId: value.categoryId,
-  status: value.status
+  categoryId: value.categoryId
 });
 
 export default function PostEditorScreen({scope, groupId = '', postId = ''}: PostEditorScreenProps) {
@@ -167,6 +165,10 @@ export default function PostEditorScreen({scope, groupId = '', postId = ''}: Pos
   const backHref = scope === 'group' ? `/${locale}/groups/${encodeURIComponent(groupId)}/posts` : `/${locale}/posts`;
   const previewHref =
     scope === 'group' ? `/${locale}/groups/${encodeURIComponent(groupId)}/posts/${encodeURIComponent(resolvedPostId)}` : `/${locale}/posts/${encodeURIComponent(resolvedPostId)}`;
+  const draftStorageKey = useMemo(() => {
+    const targetId = isEdit ? resolvedPostId : 'new';
+    return `worf:post-editor:draft:${scope}:${groupId || 'global'}:${targetId}`;
+  }, [groupId, isEdit, resolvedPostId, scope]);
 
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -174,14 +176,14 @@ export default function PostEditorScreen({scope, groupId = '', postId = ''}: Pos
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
   const [categoryId, setCategoryId] = useState('');
-  const [status, setStatus] = useState<PostStatus>('draft');
-  const [initialSnapshot, setInitialSnapshot] = useState<Snapshot>({title: '', body: '', categoryId: '', status: 'draft'});
+  const [initialSnapshot, setInitialSnapshot] = useState<Snapshot>({title: '', body: '', categoryId: ''});
   const [lastSavedAt, setLastSavedAt] = useState('');
   const [unsavedOpen, setUnsavedOpen] = useState(false);
   const [pendingNavigation, setPendingNavigation] = useState('');
-  const [saveIntent, setSaveIntent] = useState<'draft' | 'published' | null>(null);
+  const [saveIntent, setSaveIntent] = useState<'draft' | 'publish' | null>(null);
+  const draftRestoredRef = useRef(false);
 
-  const currentSnapshot = useMemo(() => trimSnapshot({title, body, categoryId, status}), [title, body, categoryId, status]);
+  const currentSnapshot = useMemo(() => trimSnapshot({title, body, categoryId}), [title, body, categoryId]);
   const hasChanges = useMemo(() => JSON.stringify(currentSnapshot) !== JSON.stringify(trimSnapshot(initialSnapshot)), [currentSnapshot, initialSnapshot]);
   const canSubmit = useMemo(() => title.trim().length > 0 && body.trim().length > 0, [title, body]);
 
@@ -208,11 +210,10 @@ export default function PostEditorScreen({scope, groupId = '', postId = ''}: Pos
             setTitle(normalized.title);
             setBody(normalized.body);
             setCategoryId(normalized.categoryId);
-            setStatus(normalized.status);
             setInitialSnapshot(normalized);
           }
         } else if (mounted) {
-          const fresh: Snapshot = {title: '', body: '', categoryId: '', status: 'draft'};
+          const fresh: Snapshot = {title: '', body: '', categoryId: ''};
           setInitialSnapshot(fresh);
         }
       } catch {
@@ -230,6 +231,43 @@ export default function PostEditorScreen({scope, groupId = '', postId = ''}: Pos
       mounted = false;
     };
   }, [editT, groupId, isEdit, resolvedPostId, scope]);
+
+  useEffect(() => {
+    draftRestoredRef.current = false;
+  }, [draftStorageKey]);
+
+  useEffect(() => {
+    if (loading || draftRestoredRef.current || typeof window === 'undefined') {
+      return;
+    }
+
+    draftRestoredRef.current = true;
+
+    const savedDraft = window.localStorage.getItem(draftStorageKey);
+    if (!savedDraft) {
+      return;
+    }
+
+    try {
+      const parsed = JSON.parse(savedDraft) as Partial<LocalDraftSnapshot>;
+      const restored: Snapshot = {
+        title: typeof parsed.title === 'string' ? parsed.title : '',
+        body: typeof parsed.body === 'string' ? parsed.body : '',
+        categoryId: typeof parsed.categoryId === 'string' ? parsed.categoryId : ''
+      };
+
+      if (JSON.stringify(trimSnapshot(restored)) === JSON.stringify(trimSnapshot(initialSnapshot))) {
+        return;
+      }
+
+      setTitle(restored.title);
+      setBody(restored.body);
+      setCategoryId(restored.categoryId);
+      toast.success(editT('draftRestored'));
+    } catch {
+      window.localStorage.removeItem(draftStorageKey);
+    }
+  }, [draftStorageKey, editT, initialSnapshot, loading]);
 
   useEffect(() => {
     const onBeforeUnload = (event: BeforeUnloadEvent) => {
@@ -272,18 +310,32 @@ export default function PostEditorScreen({scope, groupId = '', postId = ''}: Pos
     );
   };
 
-  const handleSave = async (nextStatus?: 'draft' | 'published') => {
+  const handleLocalDraftSave = () => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    const draftPayload: LocalDraftSnapshot = {
+      ...currentSnapshot,
+      savedAt: new Date().toISOString()
+    };
+
+    window.localStorage.setItem(draftStorageKey, JSON.stringify(draftPayload));
+    setSaveIntent('draft');
+    toast.success(editT('draftSavedLocal'));
+    window.setTimeout(() => setSaveIntent((current) => (current === 'draft' ? null : current)), 600);
+  };
+
+  const handleSave = async () => {
     const trimmedTitle = title.trim();
     const trimmedBody = body.trim();
     if (!trimmedTitle || !trimmedBody) {
       return;
     }
 
-    const persistedStatus: PostStatus = nextStatus ?? status;
-
     try {
       setSubmitting(true);
-      setSaveIntent(nextStatus ?? 'published');
+      setSaveIntent('publish');
 
       if (isEdit) {
         if (scope === 'group' && groupId) {
@@ -292,16 +344,14 @@ export default function PostEditorScreen({scope, groupId = '', postId = ''}: Pos
             post_id: resolvedPostId,
             title: trimmedTitle,
             body: trimmedBody,
-            category_id: categoryId || undefined,
-            status: persistedStatus
+            category_id: categoryId || undefined
           });
         } else {
           await modifyGlobalPost({
             post_id: resolvedPostId,
             title: trimmedTitle,
             body: trimmedBody,
-            category_id: categoryId || undefined,
-            status: persistedStatus
+            category_id: categoryId || undefined
           });
         }
       } else if (scope === 'group' && groupId) {
@@ -309,20 +359,21 @@ export default function PostEditorScreen({scope, groupId = '', postId = ''}: Pos
           group_id: groupId,
           title: trimmedTitle,
           body: trimmedBody,
-          category_id: categoryId || undefined,
-          status: persistedStatus
+          category_id: categoryId || undefined
         });
       } else {
         await createGlobalPost({
           title: trimmedTitle,
           body: trimmedBody,
-          category_id: categoryId || undefined,
-          status: persistedStatus
+          category_id: categoryId || undefined
         });
       }
 
-      setStatus(persistedStatus);
-      completeSave({title: trimmedTitle, body: trimmedBody, categoryId, status: persistedStatus});
+      if (typeof window !== 'undefined') {
+        window.localStorage.removeItem(draftStorageKey);
+      }
+
+      completeSave({title: trimmedTitle, body: trimmedBody, categoryId});
       toast.success(editT('saveSuccess'));
 
       if (!isEdit) {
@@ -339,7 +390,7 @@ export default function PostEditorScreen({scope, groupId = '', postId = ''}: Pos
 
   const onSubmit = async (event: FormEvent) => {
     event.preventDefault();
-    await handleSave('published');
+    await handleSave();
   };
 
   return (
@@ -375,14 +426,19 @@ export default function PostEditorScreen({scope, groupId = '', postId = ''}: Pos
           </p>
         </div>
 
-        <div className="page-actions editor-page-actions flex items-center gap-2">
-          <Button variant="secondary" className="p-2" startIcon={<ArrowLeft size={16} strokeWidth={1.75} />} onClick={() => navigateWithUnsavedGuard(backHref)}>
+        <div className="page-actions editor-page-actions flex flex-wrap items-center gap-2 justify-end">
+          <Button
+            variant="secondary"
+            className="w-full flex-1 p-2 sm:w-auto sm:flex-none"
+            startIcon={<ArrowLeft size={16} strokeWidth={1.75} />}
+            onClick={() => navigateWithUnsavedGuard(backHref)}
+          >
             {actionsT('back')}
           </Button>
           {isEdit && (
             <Button
               variant="secondary"
-              className="p-2"
+              className="w-full flex-1 p-2 sm:w-auto sm:flex-none"
               startIcon={<Eye size={16} strokeWidth={1.75} />}
               onClick={() => window.open(previewHref, '_blank', 'noopener,noreferrer')}
             >
@@ -391,24 +447,27 @@ export default function PostEditorScreen({scope, groupId = '', postId = ''}: Pos
           )}
           <Button
             variant="secondary"
-            className="p-2"
-            startIcon={submitting && saveIntent === 'draft' ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} strokeWidth={1.75} />}
-            onClick={() => void handleSave('draft')}
-            disabled={!canSubmit || loading || submitting}
+            type="button"
+            className="w-full flex-1 p-2 sm:w-auto sm:flex-none"
+            startIcon={saveIntent === 'draft' ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} strokeWidth={1.75} />}
+            onClick={handleLocalDraftSave}
+            disabled={loading || submitting}
           >
             {editT('saveDraft')}
           </Button>
           <Button
             type="submit"
             form="post-editor-form"
-            className="p-2"
+            className="w-full flex-1 p-2 sm:w-auto sm:flex-none"
             disabled={!canSubmit || submitting || loading}
-            startIcon={submitting && saveIntent === 'published' ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} strokeWidth={1.75} />}
+            startIcon={submitting && saveIntent === 'publish' ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} strokeWidth={1.75} />}
           >
-            {status === 'published' ? editT('updatePost') : editT('publishPost')}
+            {isEdit ? editT('updatePost') : editT('publishPost')}
           </Button>
         </div>
       </div>
+
+      <p className="text-sm text-[var(--text-secondary)]">{editT('draftNotice')}</p>
 
       <form id="post-editor-form" className="post-form space-y-6" onSubmit={onSubmit}>
         {loading ? (
@@ -438,7 +497,7 @@ export default function PostEditorScreen({scope, groupId = '', postId = ''}: Pos
                 </div>
               </div>
 
-              <div className="form-row form-row-2col grid gap-4 md:grid-cols-2">
+              <div className="form-row">
                 <div className="form-group">
                   <Label.Root className="form-label mb-2 flex items-center gap-1.5 text-[13px] font-medium text-[var(--text-secondary)]">
                     <Tag size={14} strokeWidth={1.75} />
@@ -462,36 +521,6 @@ export default function PostEditorScreen({scope, groupId = '', postId = ''}: Pos
                               <Select.ItemText>{category.name}</Select.ItemText>
                             </Select.Item>
                           ))}
-                        </Select.Viewport>
-                      </Select.Content>
-                    </Select.Portal>
-                  </Select.Root>
-                </div>
-
-                <div className="form-group">
-                  <Label.Root className="form-label mb-2 flex items-center gap-1.5 text-[13px] font-medium text-[var(--text-secondary)]">
-                    <Check size={14} strokeWidth={1.75} />
-                    {formT('status')}
-                  </Label.Root>
-                  <Select.Root value={status} onValueChange={(value) => setStatus(value as PostStatus)}>
-                    <Select.Trigger className="select-trigger inline-flex h-10 w-full items-center justify-between rounded-[8px] border border-[var(--border-default)] bg-[var(--bg-input)] px-3 text-[14px] text-[var(--text-primary)] outline-none hover:border-[var(--border-hover)] focus:border-[var(--border-focus)]">
-                      <Select.Value />
-                      <Select.Icon>
-                        <ChevronDown size={16} strokeWidth={1.75} />
-                      </Select.Icon>
-                    </Select.Trigger>
-                    <Select.Portal>
-                      <Select.Content className="select-content dropdown-content z-50 min-w-[var(--radix-select-trigger-width)] overflow-hidden rounded-[8px] border border-[var(--border-default)] bg-[var(--bg-elevated)]">
-                        <Select.Viewport className="select-viewport p-1">
-                          <Select.Item value="draft" className="select-item cursor-pointer rounded-[6px] px-3 py-2 text-[13px] text-[var(--text-primary)] outline-none data-[highlighted]:bg-[var(--bg-active)]">
-                            <Select.ItemText>{postsT('status.draft')}</Select.ItemText>
-                          </Select.Item>
-                          <Select.Item value="published" className="select-item cursor-pointer rounded-[6px] px-3 py-2 text-[13px] text-[var(--text-primary)] outline-none data-[highlighted]:bg-[var(--bg-active)]">
-                            <Select.ItemText>{postsT('status.published')}</Select.ItemText>
-                          </Select.Item>
-                          <Select.Item value="scheduled" className="select-item cursor-pointer rounded-[6px] px-3 py-2 text-[13px] text-[var(--text-primary)] outline-none data-[highlighted]:bg-[var(--bg-active)]">
-                            <Select.ItemText>{postsT('status.scheduled')}</Select.ItemText>
-                          </Select.Item>
                         </Select.Viewport>
                       </Select.Content>
                     </Select.Portal>

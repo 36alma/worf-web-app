@@ -27,6 +27,26 @@ const withSerwist = withSerwistInit({
 const nextConfig = {
   reactStrictMode: true,
   transpilePackages: ['serwist', '@serwist/next', '@serwist/window'],
+  webpack: (config) => {
+    config.resolve ??= {};
+    config.resolve.alias ??= {};
+    config.resolve.alias['serwist/internal'] = path.join(
+      __dirname,
+      'node_modules',
+      'serwist',
+      'dist',
+      'index.internal.js'
+    );
+    config.resolve.alias['@serwist/window/internal'] = path.join(
+      __dirname,
+      'node_modules',
+      '@serwist',
+      'window',
+      'dist',
+      'index.internal.js'
+    );
+    return config;
+  },
   turbopack: {
     root: __dirname,
   },

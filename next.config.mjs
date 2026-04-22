@@ -29,13 +29,7 @@ const nextConfig = {
   webpack: (config) => {
     config.resolve ??= {};
     config.resolve.alias ??= {};
-    config.resolve.alias['serwist/internal'] = path.join(
-      __dirname,
-      'node_modules',
-      'serwist',
-      'dist',
-      'index.internal.js'
-    );
+    config.resolve.alias['serwist/internal'] = path.join(__dirname, 'lib', 'serwist-internal-shim.js');
     config.resolve.alias['@serwist/window/internal'] = path.join(
       __dirname,
       'node_modules',

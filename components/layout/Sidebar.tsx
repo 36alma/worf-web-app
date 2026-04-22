@@ -265,6 +265,8 @@ function SidebarContent({ isMobile }: { isMobile?: boolean }) {
       return true;
     } else {
       // Global context - show all items with appropriate permissions
+      if (key === 'groups') return false;
+
       const globalRequirement = navPermissionRequirements[key];
       if (globalRequirement === 'GROUP_ONLY') return false; 
       if (globalRequirement) {

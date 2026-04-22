@@ -26,6 +26,7 @@ const withSerwist = withSerwistInit({
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  transpilePackages: ['serwist', '@serwist/next', '@serwist/window'],
   turbopack: {
     root: __dirname,
   },

@@ -732,6 +732,9 @@
     "set_role_error": "A szerepkör hozzárendelése sikertelen.",
     "roles_readonly_hint": "A rendszer role-ok ezen a képernyőn csak olvashatók.",
     "edit_user_title": "Felhasználó szerkesztése",
+    "delete_user_title": "Felhasználó törlése",
+    "delete_user_confirm": "Biztosan törölni szeretnéd a(z) {name} felhasználót? Ez a művelet nem vonható vissza.",
+    "deleting": "Törlés...",
     "sections": {
       "users": "Felhasználók",
       "groups": "Csoportok",

@@ -292,20 +292,137 @@ export default function AdminUsersManager() {
     }
   };
 
+  const handleEditClick = async (row: AdminUserRow) => {
+    try {
+      const detailRes = await getAdminUserProfile(row.id);
+      setForm(toProfile(detailRes.data, row));
+      setOpenEdit(true);
+    } catch {
+      toast.error(t('load_error'));
+    }
+  };
+
+  const getRoleName = (roleId: string) => {
+    const role = roles.find((r) => r.id === roleId);
+    return role?.name ?? '';
+  };
+
   if (loading) {
     return (
-      <div className="space-y-2">
-        <Skeleton className="h-10 w-full" />
-        <Skeleton className="h-10 w-full" />
-        <Skeleton className="h-10 w-full" />
+      <div className="space-y-3">
+        {/* Desktop skeleton */}
+        <div className="hidden lg:block space-y-2">
+          <Skeleton className="h-10 w-full" />
+          <Skeleton className="h-10 w-full" />
+          <Skeleton className="h-10 w-full" />
+        </div>
+        {/* Mobile skeleton */}
+        <div className="lg:hidden space-y-3">
+          <Skeleton className="h-32 w-full rounded-xl" />
+          <Skeleton className="h-32 w-full rounded-xl" />
+          <Skeleton className="h-32 w-full rounded-xl" />
+        </div>
       </div>
     );
   }
 
   return (
     <div className="space-y-3">
-      <DataTable columns={columns} rows={rows} />
+      {/* ── Desktop: DataTable ── */}
+      <div className="hidden lg:block">
+        <DataTable columns={columns} rows={rows} />
+      </div>
 
+      {/* ── Mobile/Tablet: Card list ── */}
+      <div className="lg:hidden space-y-3">
+        {rows.length === 0 ? (
+          <div className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-8 text-center">
+            <p className="text-sm text-[var(--text-tertiary)]">{t('no_members')}</p>
+          </div>
+        ) : (
+          rows.map((row) => (
+            <div
+              key={row.id}
+              className="group rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-4 transition-colors hover:border-[var(--border-hover)]"
+            >
+              {/* Top row: avatar + name + status */}
+              <div className="flex items-start gap-3">
+                {/* Avatar circle */}
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[var(--accent-subtle)] text-sm font-semibold text-[var(--accent)]">
+                  {(row.full_name || row.username || row.email).charAt(0).toUpperCase()}
+                </div>
+
+                <div className="min-w-0 flex-1">
+                  {/* Name */}
+                  <p className="truncate text-sm font-medium text-[var(--text-primary)]">
+                    {row.full_name || row.username || '—'}
+                  </p>
+                  {/* Email */}
+                  <p className="truncate text-xs text-[var(--text-secondary)]">
+                    {row.email || '—'}
+                  </p>
+                </div>
+
+                {/* Active status badge */}
+                <span
+                  className={`mt-0.5 inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium ${
+                    row.is_active === true
+                      ? 'bg-[var(--badge-green-bg)] text-[var(--badge-green-text)]'
+                      : row.is_active === false
+                        ? 'bg-[rgba(229,72,77,0.12)] text-[var(--error)]'
+                        : 'bg-[var(--badge-gray-bg)] text-[var(--badge-gray-text)]'
+                  }`}
+                >
+                  <span className={`inline-block h-1.5 w-1.5 rounded-full ${
+                    row.is_active === true
+                      ? 'bg-[var(--success)]'
+                      : row.is_active === false
+                        ? 'bg-[var(--error)]'
+                        : 'bg-[var(--text-tertiary)]'
+                  }`} />
+                  {row.is_active === null ? '—' : row.is_active ? t('yes') : t('no')}
+                </span>
+              </div>
+
+              {/* Info row: username + role */}
+              <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 border-t border-[var(--border-subtle)] pt-3 text-xs text-[var(--text-secondary)]">
+                {row.username && (
+                  <span className="inline-flex items-center gap-1">
+                    <span className="text-[var(--text-tertiary)]">@</span>
+                    {row.username}
+                  </span>
+                )}
+                {getRoleName(row.role_id) && (
+                  <span className="inline-flex items-center gap-1.5">
+                    <span className="inline-block h-1.5 w-1.5 rounded-full bg-[var(--accent)]" />
+                    {getRoleName(row.role_id)}
+                  </span>
+                )}
+              </div>
+
+              {/* Actions */}
+              <div className="mt-3 flex gap-2">
+                <button
+                  type="button"
+                  className="flex-1 rounded-lg border border-[var(--border-default)] bg-[var(--bg-elevated)] px-3 py-2 text-xs font-medium text-[var(--text-primary)] transition-colors hover:bg-[var(--bg-active)]"
+                  onClick={() => handleEditClick(row)}
+                >
+                  {t('edit')}
+                </button>
+                <button
+                  type="button"
+                  className="rounded-lg border border-[rgba(229,72,77,0.25)] bg-[rgba(229,72,77,0.06)] px-3 py-2 text-xs font-medium text-[var(--error)] transition-colors hover:bg-[rgba(229,72,77,0.12)]"
+                  onClick={() => setDeleteTarget(row)}
+                >
+                  {t('delete')}
+                </button>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
+      {/* ── Edit Modal ── */}
       <Modal open={openEdit && Boolean(form)} title={t('edit_user_title')} onClose={() => setOpenEdit(false)}>
         {form && (
           <form
@@ -406,6 +523,7 @@ export default function AdminUsersManager() {
         )}
       </Modal>
 
+      {/* ── Delete Confirmation Modal ── */}
       <Modal
         open={Boolean(deleteTarget)}
         title={t('delete_user_title')}

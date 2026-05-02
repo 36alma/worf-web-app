@@ -731,6 +731,9 @@
     "set_role_success": "Role assigned successfully.",
     "set_role_error": "Failed to assign role.",
     "edit_user_title": "Edit user",
+    "delete_user_title": "Delete user",
+    "delete_user_confirm": "Are you sure you want to delete {name}? This action cannot be undone.",
+    "deleting": "Deleting...",
     "roles_readonly_hint": "System roles are read-only on this screen.",
     "sections": {
       "users": "Users",

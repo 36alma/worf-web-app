@@ -202,10 +202,17 @@ export default function AdminGroupsManager() {
 
   if (loading) {
     return (
-      <div className="space-y-2">
-        <Skeleton className="h-10 w-full" />
-        <Skeleton className="h-10 w-full" />
-        <Skeleton className="h-10 w-full" />
+      <div className="space-y-3">
+        <div className="hidden lg:block space-y-2">
+          <Skeleton className="h-10 w-full" />
+          <Skeleton className="h-10 w-full" />
+          <Skeleton className="h-10 w-full" />
+        </div>
+        <div className="lg:hidden space-y-3">
+          <Skeleton className="h-36 w-full rounded-xl" />
+          <Skeleton className="h-36 w-full rounded-xl" />
+          <Skeleton className="h-36 w-full rounded-xl" />
+        </div>
       </div>
     );
   }
@@ -224,7 +231,76 @@ export default function AdminGroupsManager() {
         </Button>
       </div>
 
-      <DataTable columns={columns} rows={rows} />
+      {/* ── Desktop: DataTable ── */}
+      <div className="hidden lg:block">
+        <DataTable columns={columns} rows={rows} />
+      </div>
+
+      {/* ── Mobile/Tablet: Card list ── */}
+      <div className="lg:hidden space-y-3">
+        {rows.length === 0 ? (
+          <div className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-8 text-center">
+            <p className="text-sm text-[var(--text-tertiary)]">—</p>
+          </div>
+        ) : (
+          rows.map((row) => (
+            <div
+              key={row.id}
+              className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-4 transition-colors hover:border-[var(--border-hover)]"
+            >
+              {/* Header: icon + group name */}
+              <div className="flex items-start gap-3">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[var(--accent-subtle)] text-sm font-bold text-[var(--accent)]">
+                  {row.name.charAt(0).toUpperCase()}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium text-[var(--text-primary)]">
+                    {row.name}
+                  </p>
+                  <p className="mt-0.5 line-clamp-2 text-xs text-[var(--text-secondary)]">
+                    {row.description || '—'}
+                  </p>
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div className="mt-3 grid grid-cols-2 gap-2 border-t border-[var(--border-subtle)] pt-3">
+                <button
+                  type="button"
+                  className="rounded-lg border border-[var(--border-default)] bg-[var(--bg-elevated)] px-3 py-2 text-xs font-medium text-[var(--text-primary)] transition-colors hover:bg-[var(--bg-active)]"
+                  onClick={() => {
+                    setForm({id: row.id, name: row.name, description: row.description});
+                    setOpenForm(true);
+                  }}
+                >
+                  {t('edit')}
+                </button>
+                <button
+                  type="button"
+                  className="rounded-lg border border-[var(--border-default)] bg-[var(--bg-elevated)] px-3 py-2 text-xs font-medium text-[var(--text-primary)] transition-colors hover:bg-[var(--bg-active)]"
+                  onClick={() => router.push(`/${locale}/admin/groups/${row.id}/members`)}
+                >
+                  {t('manage_members')}
+                </button>
+                <button
+                  type="button"
+                  className="rounded-lg border border-[var(--border-default)] bg-[var(--bg-elevated)] px-3 py-2 text-xs font-medium text-[var(--text-primary)] transition-colors hover:bg-[var(--bg-active)]"
+                  onClick={() => router.push(`/${locale}/admin/groups/${row.id}/role`)}
+                >
+                  {t('manage_roles')}
+                </button>
+                <button
+                  type="button"
+                  className="rounded-lg border border-[rgba(229,72,77,0.25)] bg-[rgba(229,72,77,0.06)] px-3 py-2 text-xs font-medium text-[var(--error)] transition-colors hover:bg-[rgba(229,72,77,0.12)]"
+                  onClick={() => setDeleteTarget(row)}
+                >
+                  {t('delete')}
+                </button>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
 
       <Modal
         open={openForm}

@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import toast from 'react-hot-toast';
 import { useTranslations } from 'next-intl';
 import type { AxiosError } from 'axios';
-import { getAdminUserProfile, getAdminUsers, getAllSystemRoles, updateAdminUserProfile } from '@/lib/api/admin';
+import { deleteAdminUser, getAdminUserProfile, getAdminUsers, getAllSystemRoles, updateAdminUserProfile } from '@/lib/api/admin';
 import Button from '@/components/ui/Button';
 import DataTable from '@/components/ui/DataTable';
 import Modal from '@/components/ui/Modal';
@@ -168,6 +168,8 @@ export default function AdminUsersManager() {
   const [openEdit, setOpenEdit] = useState(false);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState<EditFormState | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<AdminUserRow | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -200,21 +202,30 @@ export default function AdminUsersManager() {
         key: 'id' as const,
         label: t('columns.actions'),
         render: (value: any, row: AdminUserRow) => (
-          <Button
-            variant="ghost"
-            className='p-2'
-            onClick={async () => {
-              try {
-                const detailRes = await getAdminUserProfile(row.id);
-                setForm(toProfile(detailRes.data, row));
-                setOpenEdit(true);
-              } catch {
-                toast.error(t('load_error'));
-              }
-            }}
-          >
-            {t('edit')}
-          </Button>
+          <div className="flex items-center gap-1">
+            <Button
+              variant="ghost"
+              className='p-2'
+              onClick={async () => {
+                try {
+                  const detailRes = await getAdminUserProfile(row.id);
+                  setForm(toProfile(detailRes.data, row));
+                  setOpenEdit(true);
+                } catch {
+                  toast.error(t('load_error'));
+                }
+              }}
+            >
+              {t('edit')}
+            </Button>
+            <Button
+              variant="ghost"
+              className='p-2 text-red-400 hover:text-red-300'
+              onClick={() => setDeleteTarget(row)}
+            >
+              {t('delete')}
+            </Button>
+          </div>
         )
       }
     ],
@@ -259,6 +270,25 @@ export default function AdminUsersManager() {
       toast.error(isAuthFailure ? t('save_error') : message ? `${t('save_error')} (${message})` : t('save_error'));
     } finally {
       setSaving(false);
+    }
+  };
+
+  const onDelete = async () => {
+    if (!deleteTarget) {
+      return;
+    }
+
+    try {
+      setDeleting(true);
+      await deleteAdminUser(deleteTarget.id);
+      toast.success(t('delete_success'));
+      setDeleteTarget(null);
+      await load();
+    } catch (error) {
+      const message = getApiErrorMessage(error);
+      toast.error(message ? `${t('delete_error')} (${message})` : t('delete_error'));
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -373,6 +403,34 @@ export default function AdminUsersManager() {
               </Button>
             </div>
           </form>
+        )}
+      </Modal>
+
+      <Modal
+        open={Boolean(deleteTarget)}
+        title={t('delete_user_title')}
+        onClose={() => setDeleteTarget(null)}
+      >
+        {deleteTarget && (
+          <div className="space-y-4">
+            <p className="text-sm text-slate-300">
+              {t('delete_user_confirm', {
+                name: deleteTarget.full_name || deleteTarget.username || deleteTarget.email
+              })}
+            </p>
+            <div className="flex justify-end gap-2">
+              <Button className='p-2' variant="ghost" onClick={() => setDeleteTarget(null)}>
+                {t('cancel')}
+              </Button>
+              <Button
+                className='p-2 bg-red-600 hover:bg-red-700 text-white'
+                onClick={onDelete}
+                disabled={deleting}
+              >
+                {deleting ? t('deleting') : t('delete')}
+              </Button>
+            </div>
+          </div>
         )}
       </Modal>
     </div>

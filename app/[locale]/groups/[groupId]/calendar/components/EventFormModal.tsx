@@ -76,19 +76,7 @@ export default function EventFormModal({
       return;
     }
 
-    if (values.repeatEnabled && values.repeatEnds === 'until' && !values.untilAt.trim()) {
-      setError(copy.validationRepeatUntil);
-      return;
-    }
 
-    if (
-      values.repeatEnabled &&
-      values.repeatEnds === 'count' &&
-      (!values.countN.trim() || Number(values.countN) < 1)
-    ) {
-      setError(copy.validationRepeatCount);
-      return;
-    }
 
     setError('');
     await onSubmit(values);
@@ -215,89 +203,7 @@ export default function EventFormModal({
           ) : null}
         </div>
 
-        <div className="space-y-3 rounded-[var(--radius-md)] border border-[var(--border-default)] bg-[var(--bg-input)] p-3">
-          <label className="flex items-center gap-3 text-sm text-[var(--text-primary)]">
-            <input
-              type="checkbox"
-              checked={values.repeatEnabled}
-              onChange={(event) =>
-                setValues((current) => ({...current, repeatEnabled: event.target.checked}))
-              }
-            />
-            {copy.repeatLabel}
-          </label>
 
-          {values.repeatEnabled ? (
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="space-y-1">
-                <label className="text-sm text-[var(--text-secondary)]">{copy.repeatFrequency}</label>
-                <select
-                  value={values.repeatFrequency}
-                  onChange={(event) =>
-                    setValues((current) => ({
-                      ...current,
-                      repeatFrequency: event.target.value as EventFormValues['repeatFrequency']
-                    }))
-                  }
-                  className="h-[var(--input-height)] w-full rounded-[var(--input-radius)] border border-[var(--border-default)] bg-[var(--bg-surface)] px-3 text-sm"
-                >
-                  {Object.entries(copy.repeatFrequencyLabels).map(([value, label]) => (
-                    <option key={value} value={value}>
-                      {label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-sm text-[var(--text-secondary)]">{copy.repeatLabel}</label>
-                <label className="flex items-center gap-2 text-sm text-[var(--text-primary)]">
-                  <input
-                    type="radio"
-                    checked={values.repeatEnds === 'until'}
-                    onChange={() => setValues((current) => ({...current, repeatEnds: 'until'}))}
-                  />
-                  {copy.repeatUntil}
-                </label>
-                <label className="flex items-center gap-2 text-sm text-[var(--text-primary)]">
-                  <input
-                    type="radio"
-                    checked={values.repeatEnds === 'count'}
-                    onChange={() => setValues((current) => ({...current, repeatEnds: 'count'}))}
-                  />
-                  {copy.repeatCount}
-                </label>
-              </div>
-
-              {values.repeatEnds === 'until' ? (
-                <div className="space-y-1">
-                  <label className="text-sm text-[var(--text-secondary)]">{copy.repeatUntil}</label>
-                  <input
-                    type="datetime-local"
-                    value={values.untilAt}
-                    onChange={(event) =>
-                      setValues((current) => ({...current, untilAt: event.target.value}))
-                    }
-                    className="h-[var(--input-height)] w-full rounded-[var(--input-radius)] border border-[var(--border-default)] bg-[var(--bg-surface)] px-3 text-sm"
-                  />
-                </div>
-              ) : (
-                <div className="space-y-1">
-                  <label className="text-sm text-[var(--text-secondary)]">{copy.repeatCount}</label>
-                  <input
-                    type="number"
-                    min={1}
-                    value={values.countN}
-                    onChange={(event) =>
-                      setValues((current) => ({...current, countN: event.target.value}))
-                    }
-                    className="h-[var(--input-height)] w-full rounded-[var(--input-radius)] border border-[var(--border-default)] bg-[var(--bg-surface)] px-3 text-sm"
-                  />
-                </div>
-              )}
-            </div>
-          ) : null}
-        </div>
 
         {error ? <p className="text-sm text-[var(--error)]">{error}</p> : null}
 

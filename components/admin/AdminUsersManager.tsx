@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import toast from 'react-hot-toast';
 import { useTranslations } from 'next-intl';
 import type { AxiosError } from 'axios';
-import { deleteAdminUser, getAdminUserProfile, getAdminUsers, getAllSystemRoles, updateAdminUserProfile } from '@/lib/api/admin';
+import { createAdminUser, deleteAdminUser, getAdminUserProfile, getAdminUsers, getAllSystemRoles, updateAdminUserProfile } from '@/lib/api/admin';
 import Button from '@/components/ui/Button';
 import DataTable from '@/components/ui/DataTable';
 import Modal from '@/components/ui/Modal';
@@ -160,6 +160,24 @@ const getApiErrorMessage = (error: unknown): string | null => {
   return null;
 };
 
+interface CreateFormState {
+  email: string;
+  full_name: string;
+  password: string;
+  role_id: string;
+  is_active: boolean;
+  email_verified: boolean;
+}
+
+const emptyCreateForm: CreateFormState = {
+  email: '',
+  full_name: '',
+  password: '',
+  role_id: '',
+  is_active: true,
+  email_verified: false
+};
+
 export default function AdminUsersManager() {
   const t = useTranslations('admin');
   const [loading, setLoading] = useState(true);
@@ -170,6 +188,9 @@ export default function AdminUsersManager() {
   const [form, setForm] = useState<EditFormState | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<AdminUserRow | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [openCreate, setOpenCreate] = useState(false);
+  const [creating, setCreating] = useState(false);
+  const [createForm, setCreateForm] = useState<CreateFormState>(emptyCreateForm);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -302,6 +323,35 @@ export default function AdminUsersManager() {
     }
   };
 
+  const onCreateUser = async () => {
+    if (!createForm.email || !createForm.full_name || !createForm.password) {
+      toast.error(t('create_error'));
+      return;
+    }
+
+    try {
+      setCreating(true);
+      await createAdminUser({
+        email: createForm.email,
+        full_name: createForm.full_name,
+        password: createForm.password,
+        role_id: createForm.role_id || null,
+        is_active: createForm.is_active,
+        email_verified: createForm.email_verified
+      });
+
+      toast.success(t('create_success'));
+      setOpenCreate(false);
+      setCreateForm(emptyCreateForm);
+      await load();
+    } catch (error) {
+      const message = getApiErrorMessage(error);
+      toast.error(message ? `${t('create_error')} (${message})` : t('create_error'));
+    } finally {
+      setCreating(false);
+    }
+  };
+
   const getRoleName = (roleId: string) => {
     const role = roles.find((r) => r.id === roleId);
     return role?.name ?? '';
@@ -328,6 +378,20 @@ export default function AdminUsersManager() {
 
   return (
     <div className="space-y-3">
+      {/* ── Create User Button ── */}
+      <div className="flex justify-end">
+        <Button
+          className="p-2 px-4 flex items-center gap-2"
+          onClick={() => {
+            setCreateForm(emptyCreateForm);
+            setOpenCreate(true);
+          }}
+        >
+          <span className="text-lg leading-none">+</span>
+          {t('create_user')}
+        </Button>
+      </div>
+
       {/* ── Desktop: DataTable ── */}
       <div className="hidden lg:block">
         <DataTable columns={columns} rows={rows} />
@@ -550,6 +614,89 @@ export default function AdminUsersManager() {
             </div>
           </div>
         )}
+      </Modal>
+
+      {/* ── Create User Modal ── */}
+      <Modal open={openCreate} title={t('create_user_title')} onClose={() => setOpenCreate(false)}>
+        <form
+          className="space-y-3"
+          onSubmit={(event) => {
+            event.preventDefault();
+            onCreateUser();
+          }}
+        >
+          <div>
+            <label className="mb-1 block text-sm text-slate-300">{t('columns.email')} *</label>
+            <input
+              type="email"
+              className="w-full rounded-md border border-[var(--border)] bg-[#0f0f18] px-3 py-2"
+              value={createForm.email}
+              required
+              onChange={(event) => setCreateForm((prev) => ({ ...prev, email: event.target.value }))}
+            />
+          </div>
+          <div>
+            <label className="mb-1 block text-sm text-slate-300">{t('columns.full_name')} *</label>
+            <input
+              className="w-full rounded-md border border-[var(--border)] bg-[#0f0f18] px-3 py-2"
+              value={createForm.full_name}
+              required
+              onChange={(event) => setCreateForm((prev) => ({ ...prev, full_name: event.target.value }))}
+            />
+          </div>
+          <div>
+            <label className="mb-1 block text-sm text-slate-300">{t('columns.password')} *</label>
+            <input
+              type="password"
+              className="w-full rounded-md border border-[var(--border)] bg-[#0f0f18] px-3 py-2"
+              autoComplete="new-password"
+              value={createForm.password}
+              required
+              onChange={(event) => setCreateForm((prev) => ({ ...prev, password: event.target.value }))}
+            />
+          </div>
+          <div>
+            <label className="mb-1 block text-sm text-slate-300">{t('columns.role')}</label>
+            <select
+              className="w-full rounded-md border border-[var(--border)] bg-[#0f0f18] px-3 py-2"
+              value={createForm.role_id}
+              onChange={(event) => setCreateForm((prev) => ({ ...prev, role_id: event.target.value }))}
+            >
+              <option value="">{t('none')}</option>
+              {roles.map((role) => (
+                <option key={role.id} value={role.id}>
+                  {role.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+            <label className="flex items-center gap-2 text-sm text-slate-300">
+              <input
+                type="checkbox"
+                checked={createForm.is_active}
+                onChange={(event) => setCreateForm((prev) => ({ ...prev, is_active: event.target.checked }))}
+              />
+              {t('columns.active')}
+            </label>
+            <label className="flex items-center gap-2 text-sm text-slate-300">
+              <input
+                type="checkbox"
+                checked={createForm.email_verified}
+                onChange={(event) => setCreateForm((prev) => ({ ...prev, email_verified: event.target.checked }))}
+              />
+              {t('columns.email_verified')}
+            </label>
+          </div>
+          <div className="flex justify-end gap-2">
+            <Button className='p-2' variant="ghost" type="button" onClick={() => setOpenCreate(false)}>
+              {t('cancel')}
+            </Button>
+            <Button className='p-2' type="submit" disabled={creating}>
+              {creating ? t('creating') : t('create')}
+            </Button>
+          </div>
+        </form>
       </Modal>
     </div>
   );

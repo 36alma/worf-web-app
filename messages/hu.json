@@ -1,4 +1,4 @@
-{
+﻿{
   "common": {
     "app_name": "WORF",
     "lang_hu": "🇭🇺 Magyar",
@@ -735,6 +735,12 @@
     "delete_user_title": "Felhasználó törlése",
     "delete_user_confirm": "Biztosan törölni szeretnéd a(z) {name} felhasználót? Ez a művelet nem vonható vissza.",
     "deleting": "Törlés...",
+    "create_user": "Új felhasználó",
+    "create_user_title": "Új felhasználó létrehozása",
+    "create_success": "Felhasználó sikeresen létrehozva.",
+    "create_error": "Felhasználó létrehozása sikertelen.",
+    "creating": "Létrehozás...",
+    "create": "Létrehozás",
     "sections": {
       "users": "Felhasználók",
       "groups": "Csoportok",
@@ -1043,5 +1049,3 @@
     }
   }
 }
-
-

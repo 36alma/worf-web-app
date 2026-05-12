@@ -18,8 +18,10 @@ Ez a dokumentum a backend jelenlegi kódja alapján készült (`app/api/v1/*`, `
 | `group.admin.role.management` | Csoport role, group permission és csoporttagon belüli role-kiosztás admin szintű kezelése | `POST /v1/group/admin/role/create`, `POST /v1/group/admin/role/get`, `POST /v1/group/admin/role/modify`, `POST /v1/group/admin/role/delete`, `POST /v1/group/admin/permission/get/all`, `POST /v1/group/admin/member/role/add`, `POST /v1/group/admin/member/role/modify`, `POST /v1/group/admin/member/role/remove`, `POST /v1/group/admin/role/permission/set/fixed` |
 | `user.get.prealluser` | Admin user lista (limitált mezőkkel) | `GET /v1/user/prealluser` |
 | `user.post.edit.admin.userprofil` | Admin user profil szerkesztés | `POST /v1/user/admin/editprofile` |
+| `user.post.create.admin.user` | Admin user létrehozás | `POST /v1/user/admin/create` |
 | `user.get.edit.admin.userprofil` | Admin user profil lekérdezés | `GET /v1/user/admin/editprofile` |
 | `user.post.post.userprofil` | Saját profil szerkesztés + lekérdezés | `POST /v1/user/editprofile`, `GET /v1/user/editprofile` |
+| `user.delete.user` | Felhasználó törlése admin felületről | `POST /v1/user/admin/delete` |
 | `role.get.all.role` | Rendszer szerepkörök listázása | `GET /v1/role/allroles` |
 | `global.calendar.event.create` | Globális naptár esemény létrehozás | `POST /v1/global/calendar/event/create` |
 | `global.calendar.event.modify` | Globális naptár esemény módosítás | `POST /v1/global/calendar/event/modify` |

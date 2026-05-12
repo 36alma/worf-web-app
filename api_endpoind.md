@@ -5205,7 +5205,7 @@ Az endpoint működése lépésenként:
 
 | Név | Típus | Leírás |
 |---|---|---|
-| `id` / `*_id` | `string` | Létrehozott erőforrás azonosítója. |
+| `task_category_id` | `string` | Létrehozott task kategória titkosított azonosítója. |
 
 ## Tipikus hibák
 
@@ -5363,7 +5363,16 @@ Az endpoint működése lépésenként:
 
 | Név | Típus | Leírás |
 |---|---|---|
-| `data` | `object`/`array` | Lekérdezett adatok. |
+| `task_categories` | `array[object]` | Lekérdezett task kategóriák listája. |
+| `task_categories[].id` | `string` | Task kategória titkosított azonosítója. |
+| `task_categories[].name` | `string` | Kategória neve. |
+| `task_categories[].description` | `string/null` | Kategória leírása. |
+| `task_categories[].color` | `string` | Kategória színkódja (hex). |
+| `task_categories[].is_global` | `boolean` | Globális láthatóság jelző. |
+| `task_categories[].group_id` | `string (UUID)` | Kategóriát birtokló csoport UUID-ja. |
+| `task_categories[].created_by` | `string (UUID)/null` | Létrehozó felhasználó UUID-ja. |
+| `task_categories[].created_at` | `string (ISO-8601 datetime)` | Létrehozási idő. |
+| `task_categories[].updated_at` | `string (ISO-8601 datetime)` | Utolsó módosítás ideje. |
 
 ## Tipikus hibák
 
@@ -5440,13 +5449,14 @@ Az endpoint működése lépésenként:
 | `description` | `string` | Nem | Kérésparaméter. |
 | `color` | `string` | Nem | Kérésparaméter. |
 | `is_global` | `boolean` | Nem | Logikai jelzőmező. |
-| `task_group_id` | `string` | Nem | Az adott erőforrás azonosítója. |
+| `task_group_id` | `string (UUID)` | Nem | Cél csoport UUID (ha a kategória csoportját át kell helyezni). |
 
 ## Válasz szerkezet
 
 | Név | Típus | Leírás |
 |---|---|---|
-| `message` | `string`/`object` | Route-függő sikeres válasz. |
+| `task_category_id` | `string` | A módosított task kategória titkosított azonosítója. |
+| `changes` | `array[string]/null` | A ténylegesen módosított mezők listája. |
 
 ## Tipikus hibák
 
@@ -5519,14 +5529,14 @@ Az endpoint működése lépésenként:
 | `content-type` | `string` | Nem | Technikai tartalomtípus mező. |
 | `group_id` | `string` | Igen | Csoport azonosító. |
 | `task_id` | `string` | Igen | Titkosított task azonosító. |
-| `author_id` | `string` | Nem | Az adott erőforrás azonosítója. |
+| `author_id` | `string` | Nem | Opcionális mező; a backend a komment szerzőjét a `Bearer` tokenből állítja be. |
 | `comment` | `string` | Igen | Kérésparaméter. |
 
 ## Válasz szerkezet
 
 | Név | Típus | Leírás |
 |---|---|---|
-| `id` / `*_id` | `string` | Létrehozott erőforrás azonosítója. |
+| `task_comment_id` | `string` | Létrehozott task komment titkosított azonosítója. |
 
 ## Tipikus hibák
 
@@ -5683,7 +5693,15 @@ Az endpoint működése lépésenként:
 
 | Név | Típus | Leírás |
 |---|---|---|
-| `data` | `object`/`array` | Lekérdezett adatok. |
+| `task_comments` | `array[object]` | A task kommentek időrendben (`created_at ASC`). |
+| `task_comments[].id` | `string` | Task komment titkosított azonosítója. |
+| `task_comments[].task_id` | `string` | A kommenthez tartozó task titkosított azonosítója. |
+| `task_comments[].comment` | `string` | Komment szövege. |
+| `task_comments[].author` | `object/null` | Komment szerző adatai (ha elérhető). |
+| `task_comments[].author.author_email` | `string` | Szerző email címe. |
+| `task_comments[].author.author_fullname` | `string` | Szerző teljes neve. |
+| `task_comments[].created_at` | `string (ISO-8601 datetime)` | Létrehozási idő. |
+| `task_comments[].updated_at` | `string (ISO-8601 datetime)` | Utolsó módosítás ideje. |
 
 ## Tipikus hibák
 
@@ -5762,7 +5780,8 @@ Az endpoint működése lépésenként:
 
 | Név | Típus | Leírás |
 |---|---|---|
-| `message` | `string`/`object` | Route-függő sikeres válasz. |
+| `task_comment_id` | `string` | A módosított task komment titkosított azonosítója. |
+| `changes` | `array[string]/null` | A ténylegesen módosított mezők listája. |
 
 ## Tipikus hibák
 
@@ -5839,8 +5858,8 @@ Az endpoint működése lépésenként:
 | `task_type` | `string` | Nem | Kérésparaméter. |
 | `status` | `string` | Nem | Kérésparaméter. |
 | `priority` | `string` | Nem | Kérésparaméter. |
-| `reporter_id` | `string` | Nem | Az adott erőforrás azonosítója. |
-| `assignee_id` | `string` | Nem | Az adott erőforrás azonosítója. |
+| `reporter_id` | `string (UUID)` | Nem | Riporter user UUID. |
+| `assignee_id` | `string (UUID)` | Nem | Felelős user UUID. |
 | `group_id` | `string` | Igen | Csoport azonosító. |
 | `parent_task_id` | `string` | Nem | Titkosított szülő task azonosító. |
 | `story_points` | `integer` | Nem | Kérésparaméter. |
@@ -5849,7 +5868,7 @@ Az endpoint működése lépésenként:
 
 | Név | Típus | Leírás |
 |---|---|---|
-| `id` / `*_id` | `string` | Létrehozott erőforrás azonosítója. |
+| `task_id` | `string` | Létrehozott task titkosított azonosítója. |
 
 ## Tipikus hibák
 
@@ -6012,9 +6031,19 @@ Az endpoint működése lépésenként:
 | `task_type` | `string` | Task típus (`STORY`, `TASK`, `BUG`, `EPIC`, `SUBTASK`). |
 | `status` | `string` | Task státusz (`TODO`, `IN_PROGRESS`, `IN_REVIEW`, `DONE`, `BLOCKED`). |
 | `priority` | `string` | Prioritás. |
+| `story_points` | `integer/null` | Story pont érték. |
+| `due_at` | `string (ISO-8601 datetime)/null` | Tervezett határidő. |
+| `started_at` | `string (ISO-8601 datetime)/null` | Kezdési idő. |
+| `completed_at` | `string (ISO-8601 datetime)/null` | Befejezési idő. |
+| `is_archived` | `boolean` | Archiváltsági állapot. |
+| `reporter` | `object/null` | Riporter adatai (ha van). |
+| `reporter.reporter_email` | `string` | Riporter email címe. |
+| `reporter.reporter_fulname` | `string` | Riporter teljes neve. |
+| `assigneer_id` | `object/null` | Hozzárendelt felhasználó adatai (ha van). |
+| `assigneer_id.assigneer_email` | `string` | Hozzárendelt user email címe. |
+| `assigneer_id.assigneer_fullname` | `string` | Hozzárendelt user teljes neve. |
 | `parent_task_id` | `string/null` | Titkosított szülő task azonosító (ha alfeladat). |
 | `subtasks_total` | `integer` | A taskhoz tartozó közvetlen alfeladatok száma. |
-| `subtasks_completed` | `integer` | A lezárt (vagy `completed_at`-tal rendelkező) alfeladatok száma. |
 | `created_at` | `string (ISO-8601 datetime)` | Létrehozási idő. |
 | `updated_at` | `string (ISO-8601 datetime)` | Utolsó módosítás ideje. |
 
@@ -6094,9 +6123,8 @@ Az endpoint működése lépésenként:
 | `task_type` | `string` | Nem | Kérésparaméter. |
 | `status` | `string` | Nem | Kérésparaméter. |
 | `priority` | `string` | Nem | Kérésparaméter. |
-| `assignee_id` | `string` | Nem | Az adott erőforrás azonosítója. |
-| `reporter_id` | `string` | Nem | Az adott erőforrás azonosítója. |
-| `task_group_id` | `string` | Nem | Az adott erőforrás azonosítója. |
+| `assignee_id` | `string` | Nem | Titkosított felhasználó azonosító. |
+| `reporter_id` | `string` | Nem | Titkosított felhasználó azonosító. |
 | `story_points` | `integer` | Nem | Kérésparaméter. |
 | `due_at` | `string (ISO-8601 datetime)` | Nem | Dátum/idő mező. |
 | `started_at` | `string (ISO-8601 datetime)` | Nem | Dátum/idő mező. |
@@ -6107,7 +6135,8 @@ Az endpoint működése lépésenként:
 
 | Név | Típus | Leírás |
 |---|---|---|
-| `message` | `string`/`object` | Route-függő sikeres válasz. |
+| `task_id` | `string` | A módosított task titkosított azonosítója. |
+| `changes` | `array[string]/null` | A ténylegesen módosított mezők listája. |
 
 ## Tipikus hibák
 
@@ -6181,7 +6210,7 @@ Az endpoint működése lépésenként:
 | `group_id` | `string` | Igen | Csoport azonosító. |
 | `page_number` | `integer` | Igen | Lapozási vagy mennyiségi paraméter. |
 | `load_task_number` | `integer` | Igen | Lapozási vagy mennyiségi paraméter. |
-| `scope` | `string` | Nem | Kérésparaméter. |
+| `scope` | `string` | Nem | Szűrési mód: `all`, `assigned_to_me`, `reported_by_me`. |
 
 ## Válasz szerkezet
 
@@ -6194,9 +6223,15 @@ Az endpoint működése lépésenként:
 | `tasks[].id` | `string` | Titkosított task azonosító. |
 | `tasks[].summary` | `string` | Rövid összefoglaló. |
 | `tasks[].status` | `string` | Task státusz. |
+| `tasks[].story_points` | `integer/null` | Story pont érték. |
+| `tasks[].due_at` | `string (ISO-8601 datetime)/null` | Tervezett határidő. |
+| `tasks[].started_at` | `string (ISO-8601 datetime)/null` | Kezdési idő. |
+| `tasks[].completed_at` | `string (ISO-8601 datetime)/null` | Befejezési idő. |
+| `tasks[].is_archived` | `boolean` | Archiváltsági állapot. |
+| `tasks[].reporter` | `object/null` | Riporter adatai (ha van). |
+| `tasks[].assigneer_id` | `object/null` | Hozzárendelt felhasználó adatai (ha van). |
 | `tasks[].parent_task_id` | `string/null` | Titkosított szülő task azonosító. |
 | `tasks[].subtasks_total` | `integer` | A taskhoz tartozó közvetlen alfeladatok száma. |
-| `tasks[].subtasks_completed` | `integer` | A lezárt (vagy `completed_at`-tal rendelkező) alfeladatok száma. |
 
 ## Tipikus hibák
 
@@ -6278,8 +6313,10 @@ Az endpoint működése lépésenként:
 | `data` | `array[object]` | A task history elemek listája (legújabb elöl). |
 | `data[].id` | `string` | Titkosított history rekord azonosító. |
 | `data[].task_id` | `string` | Érintett task titkosított azonosítója. |
-| `data[].user_id` | `string (UUID)/null` | A módosítást végző user azonosítója. |
-| `data[].action_type` | `string` | Művelettípus (`CREATED`, `STATUS_CHANGED`, stb.). |
+| `data[].user` | `object/null` | A módosítást végző user alap adatai (ha elérhető). |
+| `data[].user.username` | `string` | Felhasználónév. |
+| `data[].user.email` | `string` | Email cím. |
+| `data[].action_type` | `string` | Művelettípus (`CREATED`, `STATUS_CHANGED`, `ASSIGNEE_CHANGED`, `REPORTER_CHANGED`, `SUMMARY_CHANGED`, `DESCRIPTION_CHANGED`, `TYPE_CHANGED`, `PRIORITY_CHANGED`, `STORY_POINTS_CHANGED`, `DUE_AT_CHANGED`, `STARTED_AT_CHANGED`, `COMPLETED_AT_CHANGED`, `ARCHIVE_CHANGED`). |
 | `data[].old_value` | `string/null` | Korábbi érték (ha értelmezett). |
 | `data[].new_value` | `string/null` | Új érték (ha értelmezett). |
 | `data[].created_at` | `string (ISO-8601 datetime)` | Esemény időpontja. |
@@ -6515,6 +6552,171 @@ Az endpoint működése lépésenként:
 | `422` | `Validation failed.` | Bemeneti validációs hiba. |
 | `429` | `Too Many Requests` | Rate limit túllépése. |
 | `500` | `Application error occurred.` | Váratlan szerveroldali hiba. |
+
+---
+
+## Endpoint
+
+- **Név:** User admin create
+- **Metódus:** `POST`
+- **Útvonal:** `/v1/user/admin/create`
+- **Leírás:** Új felhasználó létrehozása admin jogosultsággal.
+
+## Jogosultságok (Permissions)
+
+Az endpoint sikeres hívásához az alábbi feltételeknek egyszerre kell teljesülniük:
+
+1. **Kötelező hálózati fejléc**
+   - A route implementációja jellemzően elvárja az `x-forwarded-for` fejlécet.
+
+2. **Globális jogosultság**
+   - Kötelező permission: `user.post.create.admin.user`.
+
+3. **Token kezelés**
+   - A kérésmodell `Bearer` tokent használ.
+
+## Működés
+
+Az endpoint működése lépésenként:
+
+1. A rendszer beolvassa az `x-forwarded-for` fejlécet.
+2. A request mezőit validálja (`Bearer`, `email`, `full_name`, `password`, opcionálisan `role_id` és státusz mezők).
+3. Globális jogosultság-ellenőrzés fut le.
+4. Ha érkezik `role_id`, a backend ellenőrzi, hogy a megadott szerepkör létezik-e.
+5. A rendszer új felhasználót hoz létre generált `username` mezővel.
+6. Siker esetén a route létrehozási visszajelzést és a létrehozott felhasználó azonosítóját adja vissza.
+
+## Használat
+
+### Kérés formátuma
+
+- **URL:** `/v1/user/admin/create`
+- **Metódus:** `POST`
+- **Header:**
+  - `x-forwarded-for: <client-ip>` (kötelező/ajánlott)
+  - `Content-Type: application/json`
+- **Body/Model:** `CreateUserAdmin`
+
+## Paraméterek
+
+### Header paraméterek
+
+| Név | Típus | Kötelező | Leírás |
+|---|---|---|---|
+| `x-forwarded-for` | `string` | Igen | A kliens IP címe. |
+
+### Body paraméterek
+
+| Név | Típus | Kötelező | Leírás |
+|---|---|---|---|
+| `Bearer` | `string` | Igen | Access token a hitelesítéshez. |
+| `content-type` | `string` | Nem | Technikai tartalomtípus mező. |
+| `username` | `string` | Nem | Opcionális mező a request modellben, a létrehozás során a backend jelenleg saját `username` értéket generál. |
+| `email` | `string (email)` | Igen | A létrehozandó felhasználó email címe. |
+| `full_name` | `string` | Igen | A létrehozandó felhasználó teljes neve. |
+| `is_2fa_enable` | `boolean` | Nem | Opcionális mező a request modellben, létrehozáskor jelenleg nincs külön felhasználva. |
+| `totp_type` | `string (enum)` | Nem | Opcionális mező a request modellben, létrehozáskor jelenleg nincs külön felhasználva. |
+| `telegram_id` | `integer` | Nem | Opcionális mező a request modellben, létrehozáskor jelenleg nincs külön felhasználva. |
+| `password` | `string` | Igen | A létrehozandó felhasználó jelszava. |
+| `is_active` | `boolean` | Nem | Aktív állapot. Hiányában az alapértelmezett érték `true`. |
+| `email_verified` | `boolean` | Nem | Email megerősítettség. Hiányában az alapértelmezett érték `false`. |
+| `role_id` | `string` | Nem | Titkosított szerepkör azonosító. Ha meg van adva, létező role-ra kell mutasson. |
+
+## Válasz szerkezet
+
+| Név | Típus | Leírás |
+|---|---|---|
+| `message` | `string` | Sikeres létrehozás esetén tipikusan: `Felhasznalo letrehozva.` |
+| `user_id` | `string` | A létrehozott felhasználó UUID azonosítója. |
+| `email_verified` | `boolean` | A létrehozott rekord email megerősítettségi állapota. |
+
+## Tipikus hibák
+
+| HTTP kód | `detail` | Mikor fordul elő |
+|---|---|---|
+| `401` | `Authentication failed.` | Hiányzó/hibás token, hiányzó IP fejléc vagy érvénytelen létrehozási adatok. |
+| `403` | `Permission denied.` | A hívó nem rendelkezik a szükséges globális jogosultsággal. |
+| `404` | `Record not found.` | A megadott szerepkör nem található. |
+| `422` | `Validation failed.` | Bemeneti validációs hiba. |
+| `500` | `Application error occurred.` | Váratlan szerveroldali vagy adatbázis hiba. |
+
+---
+
+## Endpoint
+
+- **Név:** User admin delete
+- **Metódus:** `POST`
+- **Útvonal:** `/v1/user/admin/delete`
+- **Leírás:** Felhasználó törlése admin jogosultsággal.
+
+## Jogosultságok (Permissions)
+
+Az endpoint sikeres hívásához az alábbi feltételeknek egyszerre kell teljesülniük:
+
+1. **Kötelező hálózati fejléc**
+   - A route implementációja elvárja az `x-forwarded-for` fejlécet.
+
+2. **Globális jogosultság**
+   - Kötelező permission: `user.delete.user`.
+
+3. **Token kezelés**
+   - A kérésmodell `Bearer` tokent használ.
+
+## Működés
+
+Az endpoint működése lépésenként:
+
+1. A rendszer beolvassa az `x-forwarded-for` fejlécet.
+2. A request mezőit validálja (`Bearer`, `content-type`, `user_id`).
+3. Globális jogosultság-ellenőrzés fut le.
+4. A backend dekódolja a titkosított `user_id` értékét.
+5. A rendszer törli a megadott felhasználót az adatbázisból.
+6. Siker esetén a route `True` értékkel tér vissza.
+
+## Használat
+
+### Kérés formátuma
+
+- **URL:** `/v1/user/admin/delete`
+- **Metódus:** `POST`
+- **Header:**
+  - `x-forwarded-for: <client-ip>` (kötelező)
+  - `Content-Type: application/json`
+- **Rate limit:** `20 kérés / 4 perc`
+- **Body/Model:** `DeleteUser`
+
+## Paraméterek
+
+### Header paraméterek
+
+| Név | Típus | Kötelező | Leírás |
+|---|---|---|---|
+| `x-forwarded-for` | `string` | Igen | A kliens IP címe. |
+
+### Body paraméterek
+
+| Név | Típus | Kötelező | Leírás |
+|---|---|---|---|
+| `Bearer` | `string` | Igen | Access token a hitelesítéshez. |
+| `content-type` | `string` | Nem | Technikai tartalomtípus mező. |
+| `user_id` | `string` | Igen | A törlendő felhasználó titkosított azonosítója. |
+
+## Válasz szerkezet
+
+| Név | Típus | Leírás |
+|---|---|---|
+| `success` | `boolean` | `True`, ha a felhasználó sikeresen törölve lett. |
+
+## Tipikus hibák
+
+| HTTP kód | `detail` | Mikor fordul elő |
+|---|---|---|
+| `401` | `Authentication failed.` | Hiányzó/hibás token vagy hiányzó IP fejléc. |
+| `403` | `Permission denied.` | Hiányzik a `user.delete.user` jogosultság. |
+| `404` | `Record not found.` | A megadott felhasználó nem található. |
+| `422` | `Validation failed.` | Bemeneti validációs hiba vagy hibás `user_id`. |
+| `429` | `Too Many Requests` | Rate limit túllépése. |
+| `500` | `Database error.` / `Application error occurred.` | Váratlan adatbázis- vagy szerveroldali hiba. |
 
 ---
 

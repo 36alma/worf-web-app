@@ -81,6 +81,15 @@ export const updateAdminUserProfile = (data: {
 export const deleteAdminUser = (user_id: string) =>
   apiClient.post('/v1/user/admin/delete', { user_id });
 
+export const createAdminUser = (data: {
+  email: string;
+  full_name: string;
+  password: string;
+  role_id?: string | null;
+  is_active?: boolean;
+  email_verified?: boolean;
+}) => apiClient.post('/v1/user/admin/create', data);
+
 export const getAllSystemRoles = () => apiClient.get('/v1/role/allroles');
 
 export const getAdminGroupMembers = (group_id: string) =>

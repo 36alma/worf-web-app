@@ -191,11 +191,12 @@ export default function AdminUsersManager() {
   const [openCreate, setOpenCreate] = useState(false);
   const [creating, setCreating] = useState(false);
   const [createForm, setCreateForm] = useState<CreateFormState>(emptyCreateForm);
+  const [limit, setLimit] = useState(200);
 
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const [usersRes, rolesRes] = await Promise.all([getAdminUsers(), getAllSystemRoles()]);
+      const [usersRes, rolesRes] = await Promise.all([getAdminUsers(undefined, limit), getAllSystemRoles()]);
       setRows(toUserRows(usersRes));
       setRoles(toRoles(rolesRes.data));
     } catch {
@@ -203,7 +204,7 @@ export default function AdminUsersManager() {
     } finally {
       setLoading(false);
     }
-  }, [t]);
+  }, [t, limit]);
 
   useEffect(() => {
     load();
@@ -378,8 +379,20 @@ export default function AdminUsersManager() {
 
   return (
     <div className="space-y-3">
-      {/* ── Create User Button ── */}
-      <div className="flex justify-end">
+      {/* ── Create User Button & Limit Dropdown ── */}
+      <div className="flex justify-between items-center">
+        <div className="flex items-center gap-2">
+          <label className="text-sm text-[var(--text-secondary)]">Limit:</label>
+          <select
+            className="rounded-md border border-[var(--border)] bg-[var(--bg-surface)] px-2 py-1 text-sm text-[var(--text-primary)]"
+            value={limit}
+            onChange={(e) => setLimit(Number(e.target.value))}
+          >
+            {[10, 50, 100, 150, 200].map((val) => (
+              <option key={val} value={val}>{val}</option>
+            ))}
+          </select>
+        </div>
         <Button
           className="p-2 px-4 flex items-center gap-2"
           onClick={() => {

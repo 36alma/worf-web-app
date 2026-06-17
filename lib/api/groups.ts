@@ -269,5 +269,5 @@ export const setGroupMemberRoleNonAdmin = async (data: {
   return modifyGroupMemberRoleNonAdmin({...base, group_role_id: nextRoleId});
 };
 
-export const getAllUsersPre = () => 
-  apiClient.get('/v1/user/prealluser', { params: { limit: 1000 } });
+export const getAllUsersPre = (limit: number = 200) => 
+  apiClient.get('/v1/user/prealluser', { params: { limit } });

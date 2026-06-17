@@ -49,6 +49,7 @@ export function GroupMembersTab() {
   const [isRemoving, setIsRemoving] = useState(false);
   const [updatingMemberId, setUpdatingMemberId] = useState<string | null>(null);
   const [isLoadingUsers, setIsLoadingUsers] = useState(false);
+  const [limit, setLimit] = useState(200);
 
   // Permissions (Silent Policy)
   // Check both group-level and system-level permissions.
@@ -93,7 +94,7 @@ export function GroupMembersTab() {
   const fetchAllUsers = useCallback(async () => {
     try {
       setIsLoadingUsers(true);
-      const res = await getAllUsersPre();
+      const res = await getAllUsersPre(limit);
       const data = res.data?.message || res.data?.users || res.data || [];
       setAllUsers(Array.isArray(data) ? data : []);
     } catch (err) {
@@ -101,7 +102,7 @@ export function GroupMembersTab() {
     } finally {
       setIsLoadingUsers(false);
     }
-  }, []);
+  }, [limit]);
 
   const initData = useCallback(async () => {
     setIsLoading(true);
@@ -318,14 +319,23 @@ export function GroupMembersTab() {
         >
           <div className="space-y-6 pt-2">
             <div className="space-y-4">
-              <div className="relative">
+              <div className="flex gap-2 relative">
                 <Input
                   autoFocus
                   placeholder={t('search_placeholder')}
                   value={userSearchTerm}
                   onChange={(e) => setUserSearchTerm(e.target.value)}
-                  className="bg-[#0c0c0c]"
+                  className="bg-[#0c0c0c] flex-1"
                 />
+                <select
+                  className="rounded-md border border-white/10 bg-[#0f0f18] px-2 py-1 text-sm text-white"
+                  value={limit}
+                  onChange={(e) => setLimit(Number(e.target.value))}
+                >
+                  {[10, 50, 100, 150, 200].map((val) => (
+                    <option key={val} value={val}>{val}</option>
+                  ))}
+                </select>
               </div>
 
               <div className="max-h-[350px] overflow-y-auto space-y-2 pr-1 custom-scrollbar">

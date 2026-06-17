@@ -2,9 +2,9 @@ import apiClient from './client';
 
 // GET: Fetch all users with optional filtering by user_id
 // Per API docs, uses GET with body parameters (UserPre model)
-export const getAdminUsers = async (user_id?: string) => {
+export const getAdminUsers = async (user_id?: string, limit: number = 200) => {
   const body: {user_id?: string; limit?: number} = {
-    limit: 1000 // Get all users
+    limit // Get users
   };
   
   if (user_id) {

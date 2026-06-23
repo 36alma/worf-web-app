@@ -161,9 +161,10 @@ function SidebarContent({ isMobile }: { isMobile?: boolean }) {
 
   useEffect(() => {
     if (pathGroupId && pathGroupId !== selectedGroupId) {
-      setSelectedGroupId(pathGroupId);
+      const groupName = groups.find(g => g.id === pathGroupId)?.name;
+      setSelectedGroupId(pathGroupId, groupName);
     }
-  }, [pathGroupId, selectedGroupId, setSelectedGroupId]);
+  }, [pathGroupId, selectedGroupId, setSelectedGroupId, groups]);
 
   const activeGroupId = pathGroupId || selectedGroupId;
 
@@ -214,7 +215,8 @@ function SidebarContent({ isMobile }: { isMobile?: boolean }) {
     : 'loaded';
 
   const handleGroupSelect = (groupId: string) => {
-    setSelectedGroupId(groupId);
+    const selectedGroup = groups.find(g => g.id === groupId);
+    setSelectedGroupId(groupId, selectedGroup?.name);
     if (!groupId) {
       if (pathGroupSubSegment === 'calendar') {
         router.push(`/${locale}/calendar`);

@@ -220,6 +220,7 @@ export default function TaskDetailModal({
         <Dialog.Overlay className="fixed inset-0 z-50 bg-black/50 backdrop-blur-[3px] animate-in fade-in-0 duration-200" />
 
         {/* Bottom sheet mobilon, centered modal md+-on */}
+        {/* Bottom sheet mobilon, full screen md+-on */}
         <Dialog.Content className={[
           // Mobil: bottom sheet
           'fixed inset-x-0 bottom-0 z-50 flex flex-col',
@@ -228,12 +229,12 @@ export default function TaskDetailModal({
           'data-[state=open]:animate-in data-[state=open]:slide-in-from-bottom',
           'data-[state=closed]:animate-out data-[state=closed]:slide-out-to-bottom',
           'duration-300',
-          // md+: centered modal
-          'md:inset-0 md:m-auto md:bottom-auto md:left-1/2 md:top-1/2',
-          'md:-translate-x-1/2 md:-translate-y-1/2',
-          'md:rounded-2xl md:max-w-[920px] md:w-[min(96vw,920px)]',
-          'md:max-h-[min(90vh,760px)] md:h-auto',
-          'md:data-[state=open]:slide-in-from-bottom-2 md:data-[state=open]:zoom-in-95',
+          // md+: full screen modal
+          'md:fixed md:inset-0 md:z-50 md:flex md:flex-col',
+          'md:w-screen md:h-screen md:max-h-screen md:max-w-none md:m-0',
+          'md:-translate-x-0 md:-translate-y-0 md:left-0 md:top-0 md:bottom-0 md:right-0',
+          'md:rounded-none md:border-none md:shadow-none',
+          'md:data-[state=open]:slide-in-from-bottom-0 md:data-[state=open]:zoom-in-100',
         ].join(' ')}>
 
           {/* Drag handle – csak mobilon */}
@@ -296,323 +297,329 @@ export default function TaskDetailModal({
 
             {/* ── Details Tab ── */}
             <Tabs.Content value="details" className="flex min-h-0 flex-1 flex-col outline-none">
-            {/* Görgethető tartalom + safe-area */}
-            <div className="min-h-0 flex-1 overflow-y-auto px-6 py-5 pr-5 pb-[max(20px,env(safe-area-inset-bottom))]">
-              <div className="flex flex-col gap-5">
-
-            {/* ── Summary (Inline Edit) ── */}
-            <div>
-              {isEditingSummary ? (
-                <input
-                  autoFocus
-                  style={{fontSize: '16px'}}
-                  className="w-full text-xl font-bold bg-[var(--bg-primary)] text-[var(--text-primary)] border border-orange-500 rounded-lg px-3 py-2 outline-none ring-2 ring-orange-500/20"
-                  value={summary}
-                  onChange={(e) => setSummary(e.target.value)}
-                  onBlur={submitSummary}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') submitSummary();
-                    if (e.key === 'Escape') { setSummary(task.summary); setIsEditingSummary(false); }
-                  }}
-                />
-              ) : (
-                <h2
-                  onClick={() => canEdit && setIsEditingSummary(true)}
-                  className={clsx(
-                    'text-xl font-bold text-[var(--text-primary)] rounded-lg px-3 py-2 -mx-3 transition-all',
-                    canEdit && 'cursor-text hover:bg-[var(--bg-hover)] border border-transparent hover:border-[var(--border-subtle)]'
-                  )}
-                >
-                  {task.summary}
-                </h2>
-              )}
-            </div>
-
-            {/* ── Main Fields Grid – 1 col mobilon, 2 col sm+ ── */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-
-                  {/* Task Type */}
-                  <div className={fieldCardCls}>
-                    <span className={labelCls}>Típus</span>
-                    <div className="flex items-center gap-2">
-                      {TASK_TYPE_ICONS[task.task_type] || null}
-                      {canEdit ? (
-                        <Select value={task.task_type} onValueChange={(val) => handleUpdate('task_type', val)}>
-                          <SelectTrigger className={inlineSelectTriggerCls}>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {TASK_TYPES.map(tt => (
-                              <SelectItem key={tt} value={tt}>{TASK_TYPE_LABELS[tt]}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+              {/* Görgethető tartalom + safe-area */}
+              <div className="min-h-0 flex-1 overflow-y-auto px-6 py-5 pr-5 pb-[max(20px,env(safe-area-inset-bottom))]">
+                <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-8 max-w-7xl mx-auto w-full">
+                  
+                  {/* Left Column: Summary, Description, Subtasks, Comments */}
+                  <div className="flex flex-col gap-6 min-w-0">
+                    {/* ── Summary (Inline Edit) ── */}
+                    <div>
+                      {isEditingSummary ? (
+                        <input
+                          autoFocus
+                          style={{fontSize: '16px'}}
+                          className="w-full text-xl font-bold bg-[var(--bg-primary)] text-[var(--text-primary)] border border-orange-500 rounded-lg px-3 py-2 outline-none ring-2 ring-orange-500/20"
+                          value={summary}
+                          onChange={(e) => setSummary(e.target.value)}
+                          onBlur={submitSummary}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') submitSummary();
+                            if (e.key === 'Escape') { setSummary(task.summary); setIsEditingSummary(false); }
+                          }}
+                        />
                       ) : (
-                        <span className="font-semibold text-sm text-[var(--text-primary)]">
-                          {TASK_TYPE_LABELS[task.task_type as keyof typeof TASK_TYPE_LABELS] || task.task_type}
-                        </span>
+                        <h2
+                          onClick={() => canEdit && setIsEditingSummary(true)}
+                          className={clsx(
+                            'text-xl font-bold text-[var(--text-primary)] rounded-lg px-3 py-2 -mx-3 transition-all',
+                            canEdit && 'cursor-text hover:bg-[var(--bg-hover)] border border-transparent hover:border-[var(--border-subtle)]'
+                          )}
+                        >
+                          {task.summary}
+                        </h2>
                       )}
                     </div>
-                  </div>
 
-                  {/* Status */}
-                  <div className={fieldCardCls}>
-                    <span className={labelCls}>Állapot</span>
-                    {canEdit ? (
-                      <Select value={task.status} onValueChange={(val) => handleUpdate('status', val)}>
-                        <SelectTrigger className={inlineSelectTriggerCls}>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {STATUSES.map(s => (
-                            <SelectItem key={s} value={s}>{STATUS_LABELS[s]}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    ) : (
-                      <span className="font-semibold text-sm text-[var(--text-primary)]">
-                        {STATUS_LABELS[task.status as keyof typeof STATUS_LABELS] || task.status}
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Priority */}
-                  <div className={fieldCardCls}>
-                    <span className={labelCls}>Prioritás</span>
-                    {canEdit ? (
-                      <Select value={task.priority || 'MEDIUM'} onValueChange={(val) => handleUpdate('priority', val)}>
-                        <SelectTrigger className={clsx(inlineSelectTriggerCls, priorityColorCls(task.priority))}>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {PRIORITIES.map(p => (
-                            <SelectItem key={p} value={p}>{PRIORITY_LABELS[p]}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    ) : (
-                      <span className={clsx('font-semibold text-sm', priorityColorCls(task.priority))}>
-                        {PRIORITY_LABELS[task.priority] || task.priority}
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Story Points */}
-                  <div className={fieldCardCls}>
-                    <span className={labelCls}>Story Points</span>
-                    {canEdit ? (
-                      <input
-                        type="number" min="0"
-                        defaultValue={task.story_points ?? ''}
-                        onBlur={(e) => handleNumberUpdate('story_points', e.target.value)}
-                        onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
-                        className={inlineNumberCls}
-                        placeholder="—"
-                      />
-                    ) : (
-                      <span className="font-semibold text-sm text-[var(--text-primary)]">{task.story_points ?? '—'}</span>
-                    )}
-                  </div>
-                </div>
-
-            {/* ── Reporters and Assignees – 1 col mobilon, 2 col sm+ ── */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {/* ── Assignee (Combobox) ── */}
-                  <div className={fieldCardCls}>
-                    <span className={labelCls}>Felelős</span>
-                    <AssigneeCombobox
-                      users={groupUsers}
-                      value={currentAssigneeId}
-                      onChange={(userId) => handleUpdate('assignee_id', userId)}
-                      disabled={!canEdit}
-                      loading={groupUsersLoading}
-                      placeholder={task.assigneer_id?.assigneer_fullname || "Nincs hozzárendelve"}
-                    />
-                  </div>
-
-                  {/* ── Reporter (Combobox) ── */}
-                  <div className={fieldCardCls}>
-                    <span className={labelCls}>Bejelentő</span>
-                    <AssigneeCombobox
-                      users={groupUsers}
-                      value={currentReporterId}
-                      onChange={(userId) => handleUpdate('reporter_id', userId)}
-                      disabled={!canEdit}
-                      loading={groupUsersLoading}
-                      placeholder={task.reporter_id?.reporter_fullname || "Ismeretlen"}
-                    />
-                  </div>
-                </div>
-
-            {/* ── Dates Grid – 1 col mobilon, 3 col sm+ ── */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  {/* Started At */}
-                  <div className={fieldCardCls}>
-                    <div className="flex items-center gap-1.5 mb-1">
-                      <Clock size={12} className="text-blue-500" />
-                      <span className={labelCls + ' !mb-0'}>Elkezdve</span>
-                    </div>
-                    {canEdit ? (
-                      <input type="datetime-local" defaultValue={toLocalDatetime(task.started_at)}
-                        onBlur={(e) => handleDateUpdate('started_at', e.target.value)}
-                        style={{fontSize: '16px'}}
-                        className={inlineDateCls} />
-                    ) : (
-                      <span className="font-medium text-sm text-[var(--text-primary)]">
-                        {task.started_at ? new Date(task.started_at).toLocaleString([], {year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'}) : '—'}
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Due At */}
-                  <div className={fieldCardCls}>
-                    <div className="flex items-center gap-1.5 mb-1">
-                      <Calendar size={12} className="text-amber-500" />
-                      <span className={labelCls + ' !mb-0'}>Határidő</span>
-                    </div>
-                    {canEdit ? (
-                      <input type="datetime-local" defaultValue={toLocalDatetime(task.due_at)}
-                        onBlur={(e) => handleDateUpdate('due_at', e.target.value)}
-                        style={{fontSize: '16px'}}
-                        className={inlineDateCls} />
-                    ) : (
-                      <span className="font-medium text-sm text-[var(--text-primary)]">
-                        {task.due_at ? new Date(task.due_at).toLocaleString([], {year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'}) : '—'}
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Completed At */}
-                  <div className={fieldCardCls}>
-                    <div className="flex items-center gap-1.5 mb-1">
-                      <CalendarCheck size={12} className="text-emerald-500" />
-                      <span className={labelCls + ' !mb-0'}>Befejezve</span>
-                    </div>
-                    {canEdit ? (
-                      <input type="datetime-local" defaultValue={toLocalDatetime(task.completed_at)}
-                        onBlur={(e) => handleDateUpdate('completed_at', e.target.value)}
-                        style={{fontSize: '16px'}}
-                        className={inlineDateCls} />
-                    ) : (
-                      <span className="font-medium text-sm text-[var(--text-primary)]">
-                        {task.completed_at ? new Date(task.completed_at).toLocaleString([], {year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'}) : '—'}
-                      </span>
-                    )}
-                  </div>
-                </div>
-
-                {/* ── Archive Toggle ── */}
-                {canEdit && (
-                  <button
-                    type="button"
-                    onClick={() => handleUpdate('is_archived', !task.is_archived)}
-                    className={clsx(
-                      fieldCardCls,
-                      'flex-row items-center gap-2 cursor-pointer select-none hover:bg-[var(--bg-hover)]',
-                      task.is_archived && 'bg-amber-50 border-amber-200 dark:bg-amber-900/20 dark:border-amber-800'
-                    )}
-                  >
-                    <Archive size={14} className={task.is_archived ? 'text-amber-600' : 'text-[var(--text-tertiary)]'} />
-                    <span className={clsx('font-semibold text-sm', task.is_archived ? 'text-amber-700 dark:text-amber-400' : 'text-[var(--text-primary)]')}>
-                      {task.is_archived ? 'Archiválva ✓' : 'Archiválás'}
-                    </span>
-                  </button>
-                )}
-
-                {/* ── Subtask Progress ── */}
-                {subtasksTotal > 0 && (
-                  <div>
-                    <h3 className="text-xs font-semibold text-[var(--text-tertiary)] uppercase tracking-wider mb-2">
-                      Alfeladatok ({subtasksCompleted}/{subtasksTotal})
-                    </h3>
-                    <div className="flex items-center gap-3">
-                      <div className="flex-1 h-2.5 bg-[var(--bg-primary)] border border-[var(--border-subtle)] rounded-full overflow-hidden">
+                    {/* ── Description ── */}
+                    <div>
+                      <h3 className="flex items-center gap-2 text-xs font-semibold text-[var(--text-tertiary)] uppercase tracking-wider mb-2">
+                        <AlignLeft size={14} /> Leírás
+                      </h3>
+                      {isEditingDesc ? (
+                        <div className="flex flex-col gap-2.5">
+                          <textarea
+                            autoFocus
+                            className="w-full min-h-[120px] rounded-lg border border-orange-500 ring-2 ring-orange-500/20 bg-[var(--bg-primary)] px-4 py-3 text-sm text-[var(--text-primary)] outline-none resize-y"
+                            value={description}
+                            onChange={(e) => setDescription(e.target.value)}
+                          />
+                          <div className="flex justify-end gap-2">
+                            <button
+                              type="button"
+                              onClick={() => { setDescription(task.description || ''); setIsEditingDesc(false); }}
+                              className="px-3 py-1.5 text-sm font-medium border border-[var(--border-subtle)] rounded-lg text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] transition-colors"
+                            >
+                              Mégse
+                            </button>
+                            <button type="button" onClick={submitDescription}
+                              className="px-4 py-1.5 text-sm font-semibold bg-orange-500 rounded-lg text-white hover:bg-orange-600 transition-colors"
+                            >
+                              Mentés
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
                         <div
-                          className={clsx('h-full transition-all duration-500 ease-out rounded-full',
-                            subtasksCompleted === subtasksTotal ? 'bg-emerald-500' : 'bg-orange-500'
+                          onClick={() => canEdit && setIsEditingDesc(true)}
+                          className={clsx(
+                            'rounded-lg border border-transparent p-3 text-sm text-[var(--text-primary)] whitespace-pre-wrap min-h-[80px] transition-all',
+                            canEdit ? 'cursor-text hover:bg-[var(--bg-hover)] hover:border-[var(--border-subtle)]' : ''
                           )}
-                          style={{width: `${subtaskPercent}%`}}
+                        >
+                          {task.description ? (
+                            task.description
+                          ) : (
+                            <span className="text-[var(--text-tertiary)] italic">
+                              {canEdit ? 'Kattints ide a leírás hozzáadásához...' : 'Nincs megadva leírás.'}
+                            </span>
+                          )}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* ── Subtask Progress ── */}
+                    {subtasksTotal > 0 && (
+                      <div className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-elevated)] p-4 shadow-sm">
+                        <h3 className="text-xs font-semibold text-[var(--text-tertiary)] uppercase tracking-wider mb-2">
+                          Alfeladatok ({subtasksCompleted}/{subtasksTotal})
+                        </h3>
+                        <div className="flex items-center gap-3">
+                          <div className="flex-1 h-2.5 bg-[var(--bg-primary)] border border-[var(--border-subtle)] rounded-full overflow-hidden">
+                            <div
+                              className={clsx('h-full transition-all duration-500 ease-out rounded-full',
+                                subtasksCompleted === subtasksTotal ? 'bg-emerald-500' : 'bg-orange-500'
+                              )}
+                              style={{width: `${subtaskPercent}%`}}
+                            />
+                          </div>
+                          <span className="text-sm font-bold text-[var(--text-secondary)] tabular-nums">{Math.round(subtaskPercent)}%</span>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* ── Separator ── */}
+                    <div className="h-px w-full bg-[var(--border-subtle)]" />
+
+                    {/* ── Comments ── */}
+                    <TaskComments
+                      groupId={groupId}
+                      taskId={task.id}
+                      permissions={permissions.comment}
+                    />
+                  </div>
+
+                  {/* Right Column: Meta details Sidebar */}
+                  <div className="flex flex-col gap-5 lg:border-l lg:border-[var(--border-subtle)] lg:pl-8">
+                    {/* Fields Group */}
+                    <div className="flex flex-col gap-3">
+                      {/* Task Type */}
+                      <div className={fieldCardCls}>
+                        <span className={labelCls}>Típus</span>
+                        <div className="flex items-center gap-2">
+                          {TASK_TYPE_ICONS[task.task_type] || null}
+                          {canEdit ? (
+                            <Select value={task.task_type} onValueChange={(val) => handleUpdate('task_type', val)}>
+                              <SelectTrigger className={inlineSelectTriggerCls}>
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {TASK_TYPES.map(tt => (
+                                  <SelectItem key={tt} value={tt}>{TASK_TYPE_LABELS[tt]}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          ) : (
+                            <span className="font-semibold text-sm text-[var(--text-primary)]">
+                              {TASK_TYPE_LABELS[task.task_type as keyof typeof TASK_TYPE_LABELS] || task.task_type}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Status */}
+                      <div className={fieldCardCls}>
+                        <span className={labelCls}>Állapot</span>
+                        {canEdit ? (
+                          <Select value={task.status} onValueChange={(val) => handleUpdate('status', val)}>
+                            <SelectTrigger className={inlineSelectTriggerCls}>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {STATUSES.map(s => (
+                                <SelectItem key={s} value={s}>{STATUS_LABELS[s]}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        ) : (
+                          <span className="font-semibold text-sm text-[var(--text-primary)]">
+                            {STATUS_LABELS[task.status as keyof typeof STATUS_LABELS] || task.status}
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Priority */}
+                      <div className={fieldCardCls}>
+                        <span className={labelCls}>Prioritás</span>
+                        {canEdit ? (
+                          <Select value={task.priority || 'MEDIUM'} onValueChange={(val) => handleUpdate('priority', val)}>
+                            <SelectTrigger className={clsx(inlineSelectTriggerCls, priorityColorCls(task.priority))}>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {PRIORITIES.map(p => (
+                                <SelectItem key={p} value={p}>{PRIORITY_LABELS[p]}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        ) : (
+                          <span className={clsx('font-semibold text-sm', priorityColorCls(task.priority))}>
+                            {PRIORITY_LABELS[task.priority] || task.priority}
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Story Points */}
+                      <div className={fieldCardCls}>
+                        <span className={labelCls}>Story Points</span>
+                        {canEdit ? (
+                          <input
+                            type="number" min="0"
+                            defaultValue={task.story_points ?? ''}
+                            onBlur={(e) => handleNumberUpdate('story_points', e.target.value)}
+                            onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
+                            className={inlineNumberCls}
+                            placeholder="—"
+                          />
+                        ) : (
+                          <span className="font-semibold text-sm text-[var(--text-primary)]">{task.story_points ?? '—'}</span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Assignees */}
+                    <div className="flex flex-col gap-3">
+                      {/* Assignee */}
+                      <div className={fieldCardCls}>
+                        <span className={labelCls}>Felelős</span>
+                        <AssigneeCombobox
+                          users={groupUsers}
+                          value={currentAssigneeId}
+                          onChange={(userId) => handleUpdate('assignee_id', userId)}
+                          disabled={!canEdit}
+                          loading={groupUsersLoading}
+                          placeholder={task.assigneer_id?.assigneer_fullname || "Nincs hozzárendelve"}
                         />
                       </div>
-                      <span className="text-sm font-bold text-[var(--text-secondary)] tabular-nums">{Math.round(subtaskPercent)}%</span>
-                    </div>
-                  </div>
-                )}
 
-                {/* ── Categories ── */}
-                {task.categories && task.categories.length > 0 && (
-                  <div>
-                    <h3 className="text-xs font-semibold text-[var(--text-tertiary)] uppercase tracking-wider mb-2">Címkék</h3>
-                    <div className="flex flex-wrap gap-1.5">
-                      {task.categories.map((c) => (
-                        <span key={c.task_category_id}
-                          style={{backgroundColor: c.color + '15', color: c.color, borderColor: c.color + '30'}}
-                          className="px-2.5 py-1 text-[11px] uppercase font-bold rounded-full border"
-                        >
-                          {c.name}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* ── Description ── */}
-                <div>
-                  <h3 className="flex items-center gap-2 text-xs font-semibold text-[var(--text-tertiary)] uppercase tracking-wider mb-2">
-                    <AlignLeft size={14} /> Leírás
-                  </h3>
-                  {isEditingDesc ? (
-                    <div className="flex flex-col gap-2.5">
-                      <textarea
-                        autoFocus
-                        className="w-full min-h-[120px] rounded-lg border border-orange-500 ring-2 ring-orange-500/20 bg-[var(--bg-primary)] px-4 py-3 text-sm text-[var(--text-primary)] outline-none resize-y"
-                        value={description}
-                        onChange={(e) => setDescription(e.target.value)}
-                      />
-                      <div className="flex justify-end gap-2">
-                        <button
-                          type="button"
-                          onClick={() => { setDescription(task.description || ''); setIsEditingDesc(false); }}
-                          className="px-3 py-1.5 text-sm font-medium border border-[var(--border-subtle)] rounded-lg text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] transition-colors"
-                        >
-                          Mégse
-                        </button>
-                        <button type="button" onClick={submitDescription}
-                          className="px-4 py-1.5 text-sm font-semibold bg-orange-500 rounded-lg text-white hover:bg-orange-600 transition-colors"
-                        >
-                          Mentés
-                        </button>
+                      {/* Reporter */}
+                      <div className={fieldCardCls}>
+                        <span className={labelCls}>Bejelentő</span>
+                        <AssigneeCombobox
+                          users={groupUsers}
+                          value={currentReporterId}
+                          onChange={(userId) => handleUpdate('reporter_id', userId)}
+                          disabled={!canEdit}
+                          loading={groupUsersLoading}
+                          placeholder={task.reporter_id?.reporter_fullname || "Ismeretlen"}
+                        />
                       </div>
                     </div>
-                  ) : (
-                    <div
-                      onClick={() => canEdit && setIsEditingDesc(true)}
-                      className={clsx(
-                        'rounded-lg border border-transparent p-3 text-sm text-[var(--text-primary)] whitespace-pre-wrap min-h-[60px] transition-all',
-                        canEdit ? 'cursor-text hover:bg-[var(--bg-hover)] hover:border-[var(--border-subtle)]' : ''
-                      )}
-                    >
-                      {task.description ? (
-                        task.description
-                      ) : (
-                        <span className="text-[var(--text-tertiary)] italic">
-                          {canEdit ? 'Kattints ide a leírás hozzáadásához...' : 'Nincs megadva leírás.'}
-                        </span>
-                      )}
+
+                    {/* Dates */}
+                    <div className="flex flex-col gap-3">
+                      {/* Started At */}
+                      <div className={fieldCardCls}>
+                        <div className="flex items-center gap-1.5 mb-1">
+                          <Clock size={12} className="text-blue-500" />
+                          <span className={labelCls + ' !mb-0'}>Elkezdve</span>
+                        </div>
+                        {canEdit ? (
+                          <input type="datetime-local" defaultValue={toLocalDatetime(task.started_at)}
+                            onBlur={(e) => handleDateUpdate('started_at', e.target.value)}
+                            style={{fontSize: '16px'}}
+                            className={inlineDateCls} />
+                        ) : (
+                          <span className="font-medium text-sm text-[var(--text-primary)]">
+                            {task.started_at ? new Date(task.started_at).toLocaleString([], {year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'}) : '—'}
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Due At */}
+                      <div className={fieldCardCls}>
+                        <div className="flex items-center gap-1.5 mb-1">
+                          <Calendar size={12} className="text-amber-500" />
+                          <span className={labelCls + ' !mb-0'}>Határidő</span>
+                        </div>
+                        {canEdit ? (
+                          <input type="datetime-local" defaultValue={toLocalDatetime(task.due_at)}
+                            onBlur={(e) => handleDateUpdate('due_at', e.target.value)}
+                            style={{fontSize: '16px'}}
+                            className={inlineDateCls} />
+                        ) : (
+                          <span className="font-medium text-sm text-[var(--text-primary)]">
+                            {task.due_at ? new Date(task.due_at).toLocaleString([], {year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'}) : '—'}
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Completed At */}
+                      <div className={fieldCardCls}>
+                        <div className="flex items-center gap-1.5 mb-1">
+                          <CalendarCheck size={12} className="text-emerald-500" />
+                          <span className={labelCls + ' !mb-0'}>Befejezve</span>
+                        </div>
+                        {canEdit ? (
+                          <input type="datetime-local" defaultValue={toLocalDatetime(task.completed_at)}
+                            onBlur={(e) => handleDateUpdate('completed_at', e.target.value)}
+                            style={{fontSize: '16px'}}
+                            className={inlineDateCls} />
+                        ) : (
+                          <span className="font-medium text-sm text-[var(--text-primary)]">
+                            {task.completed_at ? new Date(task.completed_at).toLocaleString([], {year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'}) : '—'}
+                          </span>
+                        )}
+                      </div>
                     </div>
-                  )}
+
+                    {/* Categories */}
+                    {task.categories && task.categories.length > 0 && (
+                      <div className={fieldCardCls}>
+                        <span className={labelCls}>Címkék</span>
+                        <div className="flex flex-wrap gap-1.5 mt-1">
+                          {task.categories.map((c) => (
+                            <span key={c.task_category_id}
+                              style={{backgroundColor: c.color + '15', color: c.color, borderColor: c.color + '30'}}
+                              className="px-2.5 py-1 text-[11px] uppercase font-bold rounded-full border"
+                            >
+                              {c.name}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Archive Toggle */}
+                    {canEdit && (
+                      <button
+                        type="button"
+                        onClick={() => handleUpdate('is_archived', !task.is_archived)}
+                        className={clsx(
+                          fieldCardCls,
+                          'flex-row items-center gap-2 cursor-pointer select-none hover:bg-[var(--bg-hover)]',
+                          task.is_archived && 'bg-amber-50 border-amber-200 dark:bg-amber-900/20 dark:border-amber-800'
+                        )}
+                      >
+                        <Archive size={14} className={task.is_archived ? 'text-amber-600' : 'text-[var(--text-tertiary)]'} />
+                        <span className={clsx('font-semibold text-sm', task.is_archived ? 'text-amber-700 dark:text-amber-400' : 'text-[var(--text-primary)]')}>
+                          {task.is_archived ? 'Archiválva ✓' : 'Archiválás'}
+                        </span>
+                      </button>
+                    )}
+                  </div>
+
                 </div>
-
-                {/* ── Separator ── */}
-                <div className="h-px w-full bg-[var(--border-subtle)]" />
-
-                {/* ── Comments ── */}
-                <TaskComments
-                  groupId={groupId}
-                  taskId={task.id}
-                  permissions={permissions.comment}
-                />
-              </div>
               </div>
             </Tabs.Content>
 

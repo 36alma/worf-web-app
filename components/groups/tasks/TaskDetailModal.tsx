@@ -6,7 +6,7 @@ import * as Tabs from '@radix-ui/react-tabs';
 import {
   X, Calendar, AlignLeft, History, FileText, ArrowRight,
   Bug, BookOpen, Zap, Layers, CheckSquare, Clock, CalendarCheck,
-  Hash, Archive, User, Sparkles,
+  Hash, Archive, User, Sparkles, Type
 } from 'lucide-react';
 import clsx from 'clsx';
 import {Task, TaskHistoryItem, GroupUser, STATUSES, STATUS_LABELS, TASK_TYPES, TASK_TYPE_LABELS, PRIORITIES, PRIORITY_LABELS} from './types';
@@ -305,6 +305,9 @@ export default function TaskDetailModal({
                   <div className="flex flex-col gap-6 min-w-0">
                     {/* ── Summary (Inline Edit) ── */}
                     <div>
+                      <h3 className="flex items-center gap-2 text-xs font-semibold text-[var(--text-tertiary)] uppercase tracking-wider mb-2">
+                        <Type size={14} /> Feladat cím
+                      </h3>
                       {isEditingSummary ? (
                         <input
                           autoFocus

@@ -49,7 +49,7 @@ export default function CalendarView({tasks, onTaskClick}: CalendarViewProps) {
   }, [tasks]);
 
   return (
-    <div className="h-[calc(100svh-220px)] w-full flex-1 overflow-hidden rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-3 shadow-sm md:h-[calc(100vh-200px)] md:p-4">
+    <div className="worf-calendar h-[calc(100svh-220px)] w-full flex-1 overflow-hidden rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-3 shadow-sm md:h-[calc(100vh-200px)] md:p-4">
       <div className="fc-theme-standard h-full">
         {/* key={isMobile} force remount when switching views to avoid FullCalendar stale state */}
         <FullCalendar

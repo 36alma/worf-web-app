@@ -410,7 +410,7 @@ export default function TaskDetailModal({
                   </div>
 
                   {/* Right Column: Meta details Sidebar */}
-                  <div className="flex flex-col gap-5 lg:border-l lg:border-[var(--border-subtle)] lg:pl-8">
+                  <div className="flex flex-col gap-5 lg:border-l-2 lg:border-[var(--border-default)] lg:pl-8">
                     {/* Fields Group */}
                     <div className="flex flex-col gap-3">
                       {/* Task Type */}

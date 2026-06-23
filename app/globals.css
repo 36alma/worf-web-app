@@ -278,7 +278,7 @@ textarea::placeholder {
 }
 
 .worf-calendar .fc .fc-toolbar-title {
-  color: var(--text-primary);
+  color: var(--text-primary) !important;
 }
 
 .worf-calendar .fc .fc-button {
@@ -349,8 +349,9 @@ textarea::placeholder {
   color: #fff !important;
 }
 
-.worf-calendar .fc-toolbar-title {
-  color: #f4f4f5;
+.worf-calendar .fc-toolbar-title,
+.fc-toolbar-title {
+  color: var(--text-primary) !important;
   font-size: 1rem;
   font-weight: 600;
 }

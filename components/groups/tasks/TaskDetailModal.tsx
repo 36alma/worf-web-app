@@ -14,6 +14,7 @@ import AssigneeCombobox from './AssigneeCombobox';
 import TaskComments from './TaskComments';
 import TaskTypeBadge from './TaskTypeBadge';
 import {modifyTask, getTaskHistory} from '@/lib/api/tasks';
+import {translateTaskEvent, translateTaskValue} from '@/lib/i18n/taskHistory';
 import toast from 'react-hot-toast';
 import {
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
@@ -171,24 +172,6 @@ export default function TaskDetailModal({
     setIsEditingDesc(false);
   };
 
-  const formatActionType = (type: string) => {
-    const actions: Record<string, string> = {
-      'CREATED': 'Létrehozta',
-      'STATUS_CHANGED': 'Státusz módosítva',
-      'SUMMARY_CHANGED': 'Cím módosítva',
-      'DESCRIPTION_CHANGED': 'Leírás módosítva',
-      'ASSIGNEE_CHANGED': 'Felelős módosítva',
-      'PRIORITY_CHANGED': 'Prioritás módosítva',
-      'DUE_DATE_CHANGED': 'Határidő módosítva',
-      'TYPE_CHANGED': 'Típus módosítva',
-      'STORY_POINTS_CHANGED': 'Story Points módosítva',
-      'STARTED_AT_CHANGED': 'Kezdés módosítva',
-      'COMPLETED_AT_CHANGED': 'Befejezés módosítva',
-      'ARCHIVED': 'Archiválva',
-      'DELETED': 'Törölve',
-    };
-    return actions[type] || type;
-  };
 
   const subtasksTotal = task.subtasks_total ?? 0;
   const subtasksCompleted = task.subtasks_completed ?? 0;
@@ -657,7 +640,7 @@ export default function TaskDetailModal({
                       <div className="flex flex-col gap-1.5 border border-[var(--border-subtle)] p-3 rounded-lg bg-[var(--bg-primary)]">
                         <div className="flex items-center gap-2 justify-between">
                           <span className="text-[11px] font-bold uppercase tracking-wider text-orange-600 dark:text-orange-400">
-                            {formatActionType(item.action_type)}
+                            {translateTaskEvent(item.action_type, 'hu')}
                           </span>
                           <span className="text-[11px] text-[var(--text-tertiary)] bg-[var(--bg-hover)] px-2 py-0.5 rounded-md font-medium">
                             {new Date(item.created_at).toLocaleString([], {year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'})}
@@ -668,7 +651,7 @@ export default function TaskDetailModal({
                           <div className="flex items-center gap-3 text-sm mt-1 p-2 bg-[var(--bg-elevated)] rounded-md border border-[var(--border-subtle)]">
                             {item.old_value !== null && item.old_value !== undefined && (
                               <div className="text-[var(--text-secondary)] font-medium line-through decoration-red-500/50 decoration-2 flex-1 break-all text-xs">
-                                {item.old_value || <span className="italic text-gray-500">Üres</span>}
+                                {translateTaskValue(item.old_value, 'hu') || <span className="italic text-gray-500">Üres</span>}
                               </div>
                             )}
                             {item.old_value !== null && item.new_value !== null && (
@@ -676,7 +659,7 @@ export default function TaskDetailModal({
                             )}
                             {item.new_value !== null && item.new_value !== undefined && (
                               <div className="text-emerald-600 dark:text-emerald-400 font-semibold flex-1 break-all text-xs">
-                                {item.new_value || <span className="italic text-gray-500">Üres</span>}
+                                {translateTaskValue(item.new_value, 'hu') || <span className="italic text-gray-500">Üres</span>}
                               </div>
                             )}
                           </div>

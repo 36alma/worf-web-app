@@ -14,10 +14,10 @@ html[data-theme='dark'] {
   --bg-active: #252525;
   --bg-input: #141414;
 
-  --border-default: #222222;
-  --border-subtle: #1a1a1a;
-  --border-hover: #333333;
-  --border-focus: #555555;
+  --border-default: #606060;
+  --border-subtle: #4a4a4a;
+  --border-hover: #757575;
+  --border-focus: #959595;
 
   --text-primary: #ececec;
   --text-secondary: #888888;

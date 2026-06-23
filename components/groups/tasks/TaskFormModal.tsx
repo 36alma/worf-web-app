@@ -223,7 +223,7 @@ export default function TaskFormModal({
     <Dialog.Root open={open} onOpenChange={(nextOpen) => !nextOpen && onClose()}>
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-50 bg-black/50 backdrop-blur-[3px] animate-in fade-in-0 duration-200" />
-        <Dialog.Content className="fixed left-1/2 top-1/2 z-50 w-[min(94vw,680px)] -translate-x-1/2 -translate-y-1/2 rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-elevated)] shadow-2xl animate-in fade-in-0 zoom-in-95 slide-in-from-bottom-2 duration-200">
+        <Dialog.Content className="fixed left-1/2 top-1/2 z-50 w-[min(94vw,680px)] md:w-[min(96vw,880px)] -translate-x-1/2 -translate-y-1/2 rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-elevated)] shadow-2xl animate-in fade-in-0 zoom-in-95 slide-in-from-bottom-2 duration-200">
           <div className="flex items-center justify-between border-b border-[var(--border-subtle)] px-6 py-4">
             <div className="flex items-center gap-2.5">
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-orange-500/10">
@@ -240,7 +240,7 @@ export default function TaskFormModal({
             </Dialog.Close>
           </div>
 
-          <form onSubmit={handleSubmit(onSubmit)} className="flex max-h-[65vh] flex-col gap-5 overflow-y-auto px-6 py-5">
+          <form onSubmit={handleSubmit(onSubmit)} className="flex max-h-[65vh] md:max-h-[75vh] flex-col gap-5 overflow-y-auto px-6 py-5">
             <div className="grid grid-cols-[160px_1fr] gap-4">
               <div>
                 <label className={labelClassName}>{t('table.key')} <span className="text-red-400">*</span></label>

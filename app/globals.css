@@ -218,7 +218,21 @@ textarea::placeholder {
 }
 
 .worf-calendar .fc .fc-day-today {
-  background: rgba(255, 107, 44, 0.02) !important;
+  background: rgba(255, 107, 44, 0.04) !important;
+}
+
+.worf-calendar .fc .fc-day-today .fc-daygrid-day-number {
+  background: var(--accent);
+  color: #fff !important;
+  border-radius: 50%;
+  min-width: 24px;
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin: 4px;
+  font-size: 13px;
+  font-weight: 600;
 }
 
 .worf-calendar .fc .fc-day-today .fc-col-header-cell-cushion {

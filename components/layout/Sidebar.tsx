@@ -116,7 +116,7 @@ function SidebarContent({ isMobile }: { isMobile?: boolean }) {
   const pathname = usePathname();
   const params = useParams();
   const groupId = normalizeGroupId(typeof params.groupId === 'string' ? params.groupId : '');
-  const { setSidebarOpen, selectedGroupId, setSelectedGroupId } = useUiStore();
+  const { setSidebarOpen, selectedGroupId, selectedGroupName, setSelectedGroupId } = useUiStore();
   const { user } = useAuthStore();
   const {
     systemPermissions,
@@ -315,7 +315,7 @@ function SidebarContent({ isMobile }: { isMobile?: boolean }) {
                         <Select.Trigger className="workspace-select inline-flex h-[var(--input-height)] w-full items-center justify-between rounded-[var(--radius-md)] border border-[var(--border-default)] bg-[var(--bg-input)] px-3 text-sm text-[var(--text-primary)] hover:border-[var(--border-hover)]">
                           <span className="truncate">
                             <Select.Value placeholder={groupsT('team_selector_placeholder')}>
-                              {groups.find((g) => g.id === activeGroupId)?.name || groupsT('team_selector_placeholder')}
+                              {groups.find((g) => g.id === activeGroupId)?.name || (activeGroupId === selectedGroupId && selectedGroupName) || groupsT('team_selector_placeholder')}
                             </Select.Value>
                           </span>
                           <Select.Icon className="ml-2 flex-shrink-0">

@@ -160,11 +160,13 @@ function SidebarContent({ isMobile }: { isMobile?: boolean }) {
   }, [loadGroups, pathname]);
 
   useEffect(() => {
-    if (pathGroupId && pathGroupId !== selectedGroupId) {
+    if (pathGroupId) {
       const groupName = groups.find(g => g.id === pathGroupId)?.name;
-      setSelectedGroupId(pathGroupId, groupName);
+      if (pathGroupId !== selectedGroupId || (groupName && groupName !== selectedGroupName)) {
+        setSelectedGroupId(pathGroupId, groupName);
+      }
     }
-  }, [pathGroupId, selectedGroupId, setSelectedGroupId, groups]);
+  }, [pathGroupId, selectedGroupId, selectedGroupName, setSelectedGroupId, groups]);
 
   const activeGroupId = pathGroupId || selectedGroupId;
 
@@ -315,7 +317,9 @@ function SidebarContent({ isMobile }: { isMobile?: boolean }) {
                         <Select.Trigger className="workspace-select inline-flex h-[var(--input-height)] w-full items-center justify-between rounded-[var(--radius-md)] border border-[var(--border-default)] bg-[var(--bg-input)] px-3 text-sm text-[var(--text-primary)] hover:border-[var(--border-hover)]">
                           <span className="truncate">
                             <Select.Value placeholder={groupsT('team_selector_placeholder')}>
-                              {groups.find((g) => g.id === activeGroupId)?.name || (activeGroupId === selectedGroupId && selectedGroupName) || groupsT('team_selector_placeholder')}
+                              {activeGroupId && activeGroupId !== '__none__'
+                                ? groups.find((g) => g.id === activeGroupId)?.name || selectedGroupName || groupsT('team_selector_placeholder')
+                                : groupsT('team_selector_placeholder')}
                             </Select.Value>
                           </span>
                           <Select.Icon className="ml-2 flex-shrink-0">

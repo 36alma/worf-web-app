@@ -29,7 +29,7 @@ export default function Header({className}: HeaderProps) {
   const postsT = useTranslations('posts');
   const {user} = useAuthStore();
   const {clearPermissions} = usePermissionStore();
-  const {toggleSidebar} = useUiStore();
+  const {toggleSidebar, selectedGroupName} = useUiStore();
 
   const handleLogout = useCallback(async () => {
     try {
@@ -46,17 +46,29 @@ export default function Header({className}: HeaderProps) {
     const segments = pathname.split('/').filter(Boolean).slice(1);
     const current = segments.at(-1) ?? 'dashboard';
     const parent = segments.at(-2) ?? '';
+    const grandparent = segments.at(-3) ?? '';
 
-    const parentLabel = parent === 'posts' ? postsT('title') : navKeys.find((key) => key === parent) ? navT(parent as NavKey) : '';
+    let parentLabel = parent === 'posts' ? postsT('title') : navKeys.find((key) => key === parent) ? navT(parent as NavKey) : '';
     const parentHref = '/' + [locale, ...segments.slice(0, -1)].join('/');
 
     let currentLabel = navKeys.find((key) => key === current) ? navT(current as NavKey) : current;
+    
+    // If we are at /groups/[groupId], display the group name instead of the raw ID
+    if (parent === 'groups') {
+      currentLabel = selectedGroupName || current;
+    }
+    
+    // If we are at /groups/[groupId]/[subRoute], display the group name as the parent instead of the raw ID
+    if (grandparent === 'groups') {
+      parentLabel = selectedGroupName || parent;
+    }
+
     if (current === 'new' && parent === 'posts') currentLabel = postsT('createPost');
     if (current === 'edit') currentLabel = postsT('edit.pageTitle');
     if (parent === 'posts' && current !== 'new' && current !== 'edit') currentLabel = postsT('detail.title');
 
     return {parentLabel, currentLabel, parentHref};
-  }, [locale, pathname, navT, postsT]);
+  }, [locale, pathname, navT, postsT, selectedGroupName]);
 
   return (
     <header className={`topbar ${className ?? ''}`}>

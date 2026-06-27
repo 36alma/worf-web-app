@@ -48,11 +48,16 @@ export const useUiStore = create<UiState>()(
       selectedGroupName: '',
       toggleSidebar: () => set((state) => ({mobileSidebarOpen: !state.mobileSidebarOpen})),
       setSidebarOpen: (open) => set({mobileSidebarOpen: open}),
-      setSelectedGroupId: (groupId, groupName) => set((state) => ({
-        selectedGroupId: groupId,
-        selectedGroupName: groupName !== undefined ? groupName : state.selectedGroupName,
-        _lastUpdated: Date.now()
-      }))
+      setSelectedGroupId: (groupId, groupName) => set((state) => {
+        if (!groupId) {
+          return { selectedGroupId: '', selectedGroupName: '', _lastUpdated: Date.now() };
+        }
+        return {
+          selectedGroupId: groupId,
+          selectedGroupName: groupName !== undefined ? groupName : state.selectedGroupName,
+          _lastUpdated: Date.now()
+        };
+      })
     }),
     {
       name: 'worf-ui-store',

@@ -314,7 +314,9 @@ function SidebarContent({ isMobile }: { isMobile?: boolean }) {
                       <Select.Root value={activeGroupId || '__none__'} onValueChange={(value) => handleGroupSelect(value === '__none__' ? '' : value)}>
                         <Select.Trigger className="workspace-select inline-flex h-[var(--input-height)] w-full items-center justify-between rounded-[var(--radius-md)] border border-[var(--border-default)] bg-[var(--bg-input)] px-3 text-sm text-[var(--text-primary)] hover:border-[var(--border-hover)]">
                           <span className="truncate">
-                            <Select.Value placeholder={groupsT('team_selector_placeholder')} />
+                            <Select.Value placeholder={groupsT('team_selector_placeholder')}>
+                              {groups.find((g) => g.id === activeGroupId)?.name || groupsT('team_selector_placeholder')}
+                            </Select.Value>
                           </span>
                           <Select.Icon className="ml-2 flex-shrink-0">
                             <ChevronDown size={14} strokeWidth={1.75} className="chevron text-[var(--text-tertiary)]" />

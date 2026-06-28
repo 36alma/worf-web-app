@@ -32,24 +32,23 @@ export const canModifyOrDeletePost = ({
   basePermission,
   otherPermission
 }: PostGuardParams): boolean => {
-  // If user ID is not available, deny access
-  if (!currentUserId) {
-    return false;
+  const hasBasePermission = permissions[basePermission] === true;
+  const hasOtherPermission = permissions[otherPermission] === true;
+
+  // If user has .other permission, they can act on any post (including others')
+  // This covers admins/moderators who can edit/delete anyone's posts
+  if (hasBasePermission && hasOtherPermission) {
+    return true;
   }
 
-  // Check if current user owns the post
-  const isOwnPost = currentUserId === postAuthorId;
-
-  if (isOwnPost) {
-    // Own post: only need base permission
-    return permissions[basePermission] === true;
-  } else {
-    // Other's post: need both base permission AND .other variant
-    const hasBasePermission = permissions[basePermission] === true;
-    const hasOtherPermission = permissions[otherPermission] === true;
-
-    return hasBasePermission && hasOtherPermission;
+  // If user only has base permission (no .other), they can only act on their own posts
+  // We need a valid currentUserId to compare with the author
+  if (hasBasePermission && currentUserId) {
+    const isOwnPost = currentUserId === postAuthorId;
+    return isOwnPost;
   }
+
+  return false;
 };
 
 /**

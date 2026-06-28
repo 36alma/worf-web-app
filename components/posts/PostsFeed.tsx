@@ -995,14 +995,15 @@ export default function PostsFeed({ mode, groupId = '' }: PostsFeedProps) {
                             </DropdownMenu.Item>
                             {/* ── Edit menu item (Silent Policy: hidden if no permission) ── */}
                             {(() => {
+                              const currentUserId = user?.id || (user as any)?.user_id;
                               const canEdit = isGroupScope
                                 ? canModifyGroupPost(
-                                    user?.id,
+                                    currentUserId,
                                     post.author_id || '',
                                     activeGroupPermissions || {}
                                   )
                                 : canModifyGlobalPost(
-                                    user?.id,
+                                    currentUserId,
                                     post.author_id || '',
                                     systemPermissions
                                   );
@@ -1017,14 +1018,15 @@ export default function PostsFeed({ mode, groupId = '' }: PostsFeedProps) {
                             <DropdownMenu.Separator className="posts-dropdown-separator" />
                             {/* ── Delete menu item (Silent Policy: hidden if no permission) ── */}
                             {(() => {
+                              const currentUserId = user?.id || (user as any)?.user_id;
                               const canDelete = isGroupScope
                                 ? canDeleteGroupPost(
-                                    user?.id,
+                                    currentUserId,
                                     post.author_id || '',
                                     activeGroupPermissions || {}
                                   )
                                 : canDeleteGlobalPost(
-                                    user?.id,
+                                    currentUserId,
                                     post.author_id || '',
                                     systemPermissions
                                   );

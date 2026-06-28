@@ -328,19 +328,9 @@ export default function CalendarClient({groupId, locale}: CalendarClientProps) {
       return;
     }
 
-    // For allDay selections, if it's a single day (end is exactly 1 day after start), we make endAt the same as startAt.
-    // FullCalendar's allDay selection end is exclusive, so a 1-day selection has end = start + 1 day.
-    let endAt = selection.endStr;
-    if (selection.allDay && selection.start && selection.end) {
-      const diffDays = Math.round((selection.end.getTime() - selection.start.getTime()) / (1000 * 60 * 60 * 24));
-      if (diffDays <= 1) {
-        endAt = selection.startStr;
-      }
-    }
-
     openCreateEvent({
       startAt: selection.startStr || null,
-      endAt: endAt || null,
+      endAt: selection.endStr || null,
       allDay: selection.allDay
     });
     selection.view.calendar.unselect();
@@ -371,9 +361,15 @@ export default function CalendarClient({groupId, locale}: CalendarClientProps) {
       timestamp: 0
     };
 
+    let endAtStr = dateClick.dateStr;
+    if (dateClick.allDay && dateClick.date) {
+      const nextDay = new Date(dateClick.date.getTime() + 24 * 60 * 60 * 1000);
+      endAtStr = nextDay.toISOString().slice(0, 10);
+    }
+
     openCreateEvent({
       startAt: dateClick.dateStr,
-      endAt: dateClick.dateStr,
+      endAt: endAtStr,
       allDay: dateClick.allDay
     });
   };

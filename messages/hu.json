@@ -1,4 +1,4 @@
-﻿{
+{
   "common": {
     "app_name": "WORF",
     "lang_hu": "🇭🇺 Magyar",
@@ -499,7 +499,9 @@
       "copyLink": "Link másolása",
       "pin": "Kitűzés",
       "unpin": "Kitűzés levétele",
-      "delete": "Törlés"
+      "delete": "Törlés",
+      "deleteSuccess": "Poszt törölve",
+      "deleteError": "Hiba a poszt törlésekor"
     },
     "empty": {
       "title": "Még nincsenek posztok",

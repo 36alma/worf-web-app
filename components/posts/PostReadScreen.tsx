@@ -6,6 +6,7 @@ import {useLocale, useTranslations} from 'next-intl';
 import {ArrowLeft, Calendar, ChevronDown, Edit, Globe, Tag, User, Trash2} from 'lucide-react';
 import toast from 'react-hot-toast';
 import {getGlobalPost, getGroupPost, deleteGlobalPost, deleteGroupPost} from '@/lib/api/posts';
+import { getGroupPermissions } from '@/lib/api/permissions';
 import { useRouter } from 'next/navigation';
 import ConfirmDialog from '@/components/ui/ConfirmDialog';
 import { useAuthStore } from '@/lib/store/authStore';
@@ -158,9 +159,42 @@ export default function PostReadScreen({scope, groupId = '', postId}: PostReadSc
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
 
   const { user } = useAuthStore();
-  const { systemPermissions, groupPermissionsById } = usePermissionStore();
+  const { 
+    systemPermissions, 
+    groupPermissionsById,
+    groupPermissionsStatusById,
+    setGroupPermissions,
+    setGroupPermissionsLoading,
+    setGroupPermissionsError
+  } = usePermissionStore();
 
   const activeGroupPermissions = scope === 'group' && groupId ? groupPermissionsById[groupId] : null;
+
+  useEffect(() => {
+    if (scope !== 'group' || !groupId) return;
+
+    const status = groupPermissionsStatusById[groupId];
+    if (status === 'loading' || status === 'loaded' || status === 'error') return;
+
+    const loadPermissions = async () => {
+      setGroupPermissionsLoading(groupId, true);
+      try {
+        const permissions = await getGroupPermissions(groupId);
+        setGroupPermissions(groupId, permissions);
+      } catch {
+        setGroupPermissionsError(groupId);
+      }
+    };
+
+    void loadPermissions();
+  }, [
+    scope, 
+    groupId, 
+    groupPermissionsStatusById, 
+    setGroupPermissionsLoading, 
+    setGroupPermissions, 
+    setGroupPermissionsError
+  ]);
 
   const canEdit = useMemo(() => {
     if (!post) return false;

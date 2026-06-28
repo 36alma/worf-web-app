@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import {create} from 'zustand';
 
@@ -25,5 +25,10 @@ export const useAuthStore = create<AuthState>((set) => ({
   isLoading: true,
   setUser: (user) => set({user, isAuthenticated: true, isLoading: false}),
   setLoading: (isLoading) => set({isLoading}),
-  logout: () => set({user: null, isAuthenticated: false, isLoading: false})
+  logout: () => {
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('worf_user_groups_cache');
+    }
+    set({user: null, isAuthenticated: false, isLoading: false});
+  }
 }));

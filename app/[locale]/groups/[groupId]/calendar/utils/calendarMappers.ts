@@ -309,7 +309,7 @@ export const getInitialEventFormValues = (
     kind: 'event',
     allDay,
     startAt: toInputValue(initialStart.toISOString(), allDay),
-    endAt: range?.endAt ? toInputValue(initialEnd.toISOString(), allDay) : '',
+    endAt: toInputValue(initialEnd.toISOString(), allDay),
     location: '',
     timezone: fallbackTimezone,
     repeatEnabled: false,

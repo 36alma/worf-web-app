@@ -107,8 +107,12 @@ export const getGroupPermissions = async (group_id: string): Promise<PermissionM
   try {
     const response = await apiClient.post('/v1/group/permission', {group_id: safeGroupId});
 
-    return normalizePermissionMap(response.data);
+    console.log('[getGroupPermissions] raw response.data:', JSON.stringify(response.data));
+    const result = normalizePermissionMap(response.data);
+    console.log('[getGroupPermissions] normalized result:', result);
+    return result;
   } catch (error) {
+    console.error('[getGroupPermissions] error:', error);
     throw error;
   }
 };

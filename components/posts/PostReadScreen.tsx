@@ -198,19 +198,21 @@ export default function PostReadScreen({scope, groupId = '', postId}: PostReadSc
 
   const canEdit = useMemo(() => {
     if (!post) return false;
+    const currentUserId = user?.id || (user as any)?.user_id;
     if (scope === 'group') {
-      return canModifyGroupPost(user?.id, post.authorId || '', activeGroupPermissions || {});
+      return canModifyGroupPost(currentUserId, post.authorId || '', activeGroupPermissions || {});
     }
-    return canModifyGlobalPost(user?.id, post.authorId || '', systemPermissions);
-  }, [post, scope, user?.id, activeGroupPermissions, systemPermissions]);
+    return canModifyGlobalPost(currentUserId, post.authorId || '', systemPermissions);
+  }, [post, scope, user, activeGroupPermissions, systemPermissions]);
 
   const canDelete = useMemo(() => {
     if (!post) return false;
+    const currentUserId = user?.id || (user as any)?.user_id;
     if (scope === 'group') {
-      return canDeleteGroupPost(user?.id, post.authorId || '', activeGroupPermissions || {});
+      return canDeleteGroupPost(currentUserId, post.authorId || '', activeGroupPermissions || {});
     }
-    return canDeleteGlobalPost(user?.id, post.authorId || '', systemPermissions);
-  }, [post, scope, user?.id, activeGroupPermissions, systemPermissions]);
+    return canDeleteGlobalPost(currentUserId, post.authorId || '', systemPermissions);
+  }, [post, scope, user, activeGroupPermissions, systemPermissions]);
 
   const handleDelete = async () => {
     if (!post || !canDelete) return;

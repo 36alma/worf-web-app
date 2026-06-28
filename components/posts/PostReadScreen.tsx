@@ -188,10 +188,10 @@ export default function PostReadScreen({scope, groupId = '', postId}: PostReadSc
       } else {
         await deleteGlobalPost(post.id);
       }
-      toast.success(actionsT('deleteSuccess') || 'Post deleted');
+      toast.success(postsT('toasts.postDeleted'));
       router.push(backHref);
     } catch {
-      toast.error(actionsT('deleteError') || 'Failed to delete post');
+      toast.error(postsT('toasts.postDeleteError'));
       setDeleting(false);
       setDeleteConfirmOpen(false);
     }

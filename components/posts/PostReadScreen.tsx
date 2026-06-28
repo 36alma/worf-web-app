@@ -3,9 +3,14 @@
 import Link from 'next/link';
 import {useEffect, useMemo, useState} from 'react';
 import {useLocale, useTranslations} from 'next-intl';
-import {ArrowLeft, Calendar, ChevronDown, Edit, Globe, Tag, User} from 'lucide-react';
+import {ArrowLeft, Calendar, ChevronDown, Edit, Globe, Tag, User, Trash2} from 'lucide-react';
 import toast from 'react-hot-toast';
-import {getGlobalPost, getGroupPost} from '@/lib/api/posts';
+import {getGlobalPost, getGroupPost, deleteGlobalPost, deleteGroupPost} from '@/lib/api/posts';
+import { useRouter } from 'next/navigation';
+import ConfirmDialog from '@/components/ui/ConfirmDialog';
+import { useAuthStore } from '@/lib/store/authStore';
+import { usePermissionStore } from '@/lib/store/permissionStore';
+import { canDeleteGlobalPost, canDeleteGroupPost, canModifyGlobalPost, canModifyGroupPost } from '@/lib/permissions/postGuard';
 
 type RawObject = Record<string, unknown>;
 type PostStatus = 'draft' | 'published' | 'scheduled';
@@ -21,6 +26,7 @@ interface ReadPostData {
   title: string;
   body: string;
   author: string;
+  authorId?: string;
   categoryName: string;
   status: PostStatus;
   createdAt: string;
@@ -49,6 +55,7 @@ const normalizeReadPost = (payload: unknown): ReadPostData => {
       title: '',
       body: '',
       author: '',
+      authorId: '',
       categoryName: '',
       status: 'draft',
       createdAt: '',
@@ -76,6 +83,13 @@ const normalizeReadPost = (payload: unknown): ReadPostData => {
         nestedPost.author_name ??
         root.username ??
         ''
+    ),
+    authorId: String(
+      nestedPost.author_id ??
+      root.author_id ??
+      (nestedAuthor?.id) ??
+      (root.author && typeof root.author === 'object' ? (root.author as RawObject).id : undefined) ??
+      ''
     ),
     categoryName: String(
       nestedCategory?.category_name ??
@@ -137,8 +151,51 @@ export default function PostReadScreen({scope, groupId = '', postId}: PostReadSc
   const editHref =
     scope === 'group' ? `/${locale}/groups/${encodeURIComponent(groupId)}/posts/${encodeURIComponent(resolvedPostId)}/edit` : `/${locale}/posts/${encodeURIComponent(resolvedPostId)}/edit`;
 
+  const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [post, setPost] = useState<ReadPostData | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+
+  const { user } = useAuthStore();
+  const { systemPermissions, groupPermissionsById } = usePermissionStore();
+
+  const activeGroupPermissions = scope === 'group' && groupId ? groupPermissionsById[groupId] : null;
+
+  const canEdit = useMemo(() => {
+    if (!post) return false;
+    if (scope === 'group') {
+      return canModifyGroupPost(user?.id, post.authorId || '', activeGroupPermissions || {});
+    }
+    return canModifyGlobalPost(user?.id, post.authorId || '', systemPermissions);
+  }, [post, scope, user?.id, activeGroupPermissions, systemPermissions]);
+
+  const canDelete = useMemo(() => {
+    if (!post) return false;
+    if (scope === 'group') {
+      return canDeleteGroupPost(user?.id, post.authorId || '', activeGroupPermissions || {});
+    }
+    return canDeleteGlobalPost(user?.id, post.authorId || '', systemPermissions);
+  }, [post, scope, user?.id, activeGroupPermissions, systemPermissions]);
+
+  const handleDelete = async () => {
+    if (!post || !canDelete) return;
+    
+    try {
+      setDeleting(true);
+      if (scope === 'group' && groupId) {
+        await deleteGroupPost(groupId, post.id);
+      } else {
+        await deleteGlobalPost(post.id);
+      }
+      toast.success(actionsT('deleteSuccess') || 'Post deleted');
+      router.push(backHref);
+    } catch {
+      toast.error(actionsT('deleteError') || 'Failed to delete post');
+      setDeleting(false);
+      setDeleteConfirmOpen(false);
+    }
+  };
 
   useEffect(() => {
     let mounted = true;
@@ -214,10 +271,22 @@ export default function PostReadScreen({scope, groupId = '', postId}: PostReadSc
             <ArrowLeft size={14} />
             <span>{actionsT('back')}</span>
           </Link>
-          <Link href={editHref} className="btn-primary">
-            <Edit size={14} />
-            <span>{actionsT('edit')}</span>
-          </Link>
+          {canEdit && (
+            <Link href={editHref} className="btn-primary">
+              <Edit size={14} />
+              <span>{actionsT('edit')}</span>
+            </Link>
+          )}
+          {canDelete && (
+            <button 
+              className="btn-danger inline-flex items-center gap-2 rounded-md bg-red-600/10 px-3 py-2 text-sm font-medium text-red-500 hover:bg-red-600/20"
+              onClick={() => setDeleteConfirmOpen(true)}
+              disabled={deleting}
+            >
+              <Trash2 size={14} />
+              <span>{actionsT('delete')}</span>
+            </button>
+          )}
         </div>
       </header>
 
@@ -271,6 +340,14 @@ export default function PostReadScreen({scope, groupId = '', postId}: PostReadSc
           </div>
         </article>
       )}
+
+      <ConfirmDialog
+        open={deleteConfirmOpen}
+        title={actionsT('deleteTitle') || 'Delete Post'}
+        message={actionsT('deleteMessage') || 'Are you sure you want to delete this post? This action cannot be undone.'}
+        onCancel={() => setDeleteConfirmOpen(false)}
+        onConfirm={handleDelete}
+      />
     </section>
   );
 }

@@ -343,8 +343,8 @@ export default function PostReadScreen({scope, groupId = '', postId}: PostReadSc
 
       <ConfirmDialog
         open={deleteConfirmOpen}
-        title={actionsT('deleteTitle') || 'Delete Post'}
-        message={actionsT('deleteMessage') || 'Are you sure you want to delete this post? This action cannot be undone.'}
+        title={postsT('deletePostTitle')}
+        message={postsT('deletePostMessage')}
         onCancel={() => setDeleteConfirmOpen(false)}
         onConfirm={handleDelete}
       />

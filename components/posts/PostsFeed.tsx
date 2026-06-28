@@ -706,7 +706,16 @@ export default function PostsFeed({ mode, groupId = '' }: PostsFeedProps) {
       return;
     }
 
-    if (!canDeleteInScope) {
+    const postToDelete = posts.find(p => p.id === deletingPostId);
+    if (!postToDelete) {
+      return;
+    }
+
+    const canDelete = isGroupScope
+      ? canDeleteGroupPost(user?.id, postToDelete.author_id || '', activeGroupPermissions || {})
+      : canDeleteGlobalPost(user?.id, postToDelete.author_id || '', systemPermissions);
+
+    if (!canDelete) {
       return;
     }
 

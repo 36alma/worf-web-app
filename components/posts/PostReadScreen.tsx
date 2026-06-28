@@ -200,7 +200,17 @@ export default function PostReadScreen({scope, groupId = '', postId}: PostReadSc
     if (!post) return false;
     const currentUserId = user?.id || (user as any)?.user_id;
     if (scope === 'group') {
-      return canModifyGroupPost(currentUserId, post.authorId || '', activeGroupPermissions || {});
+      const perms = activeGroupPermissions || {};
+      const result = canModifyGroupPost(currentUserId, post.authorId || '', perms);
+      console.log('[PostReadScreen] canEdit DEBUG', {
+        currentUserId,
+        postAuthorId: post.authorId,
+        activeGroupPermissions: perms,
+        hasGroupPostModify: perms['group.post.modify'],
+        hasGroupPostModifyOther: perms['group.post.modify.other'],
+        result
+      });
+      return result;
     }
     return canModifyGlobalPost(currentUserId, post.authorId || '', systemPermissions);
   }, [post, scope, user, activeGroupPermissions, systemPermissions]);

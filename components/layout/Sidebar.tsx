@@ -143,8 +143,36 @@ function SidebarContent({ isMobile }: { isMobile?: boolean }) {
   }, [pathname, locale, groupId]);
 
   const loadGroups = useCallback(async () => {
+    const CACHE_KEY = 'worf_user_groups_cache';
+    const CACHE_TIME = 60 * 60 * 1000; // 1 hour
+
     try {
+      if (typeof window !== 'undefined') {
+        const cached = localStorage.getItem(CACHE_KEY);
+        if (cached) {
+          try {
+            const parsed = JSON.parse(cached);
+            if (Date.now() - parsed.timestamp < CACHE_TIME) {
+              setGroups(normalizeGroups(parsed.data));
+              setIsGroupsLoadError(false);
+              setIsGroupsLoaded(true);
+              return;
+            }
+          } catch (e) {
+            // Invalid cache, ignore and fetch
+          }
+        }
+      }
+
       const response = await getUserGroups();
+      
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(CACHE_KEY, JSON.stringify({
+          timestamp: Date.now(),
+          data: response?.data
+        }));
+      }
+
       setGroups(normalizeGroups(response?.data));
       setIsGroupsLoadError(false);
     } catch {

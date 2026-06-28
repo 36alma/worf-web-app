@@ -203,8 +203,9 @@ export default function PostReadScreen({scope, groupId = '', postId}: PostReadSc
       const perms = activeGroupPermissions || {};
       const result = canModifyGroupPost(currentUserId, post.authorId || '', perms);
       console.log('[PostReadScreen] canEdit DEBUG', {
-        currentUserId,
-        postAuthorId: post.authorId,
+        groupId,
+        groupIdEncoded: encodeURIComponent(groupId),
+        storeKeys: Object.keys(groupPermissionsById),
         activeGroupPermissions: perms,
         hasGroupPostModify: perms['group.post.modify'],
         hasGroupPostModifyOther: perms['group.post.modify.other'],
@@ -213,7 +214,7 @@ export default function PostReadScreen({scope, groupId = '', postId}: PostReadSc
       return result;
     }
     return canModifyGlobalPost(currentUserId, post.authorId || '', systemPermissions);
-  }, [post, scope, user, activeGroupPermissions, systemPermissions]);
+  }, [post, scope, user, activeGroupPermissions, systemPermissions, groupId, groupPermissionsById]);
 
   const canDelete = useMemo(() => {
     if (!post) return false;

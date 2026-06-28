@@ -499,7 +499,9 @@
       "copyLink": "Copy link",
       "pin": "Pin",
       "unpin": "Unpin",
-      "delete": "Delete"
+      "delete": "Delete",
+      "deleteSuccess": "Post deleted",
+      "deleteError": "Failed to delete post"
     },
     "empty": {
       "title": "No posts yet",

@@ -87,7 +87,7 @@ const toUserRows = (payload: unknown): AdminUserRow[] => {
         full_name: String(row.full_name ?? row.fullname ?? ''),
         is_active: typeof row.is_active === 'boolean' ? row.is_active : null,
         email_verified: typeof row.email_verified === 'boolean' ? row.email_verified : null,
-        role_id: String(row.role_id ?? row.role_name ?? '')
+        role_id: String(row.role_id ?? '')
       };
     })
     .filter((row): row is AdminUserRow => Boolean(row));
@@ -124,16 +124,23 @@ const toRoles = (payload: unknown): RoleItem[] => {
     .filter((item): item is RoleItem => Boolean(item));
 };
 
-const toProfile = (payload: unknown, fallback: AdminUserRow): EditFormState => {
+const toProfile = (payload: unknown, fallback: AdminUserRow, roles: RoleItem[]): EditFormState => {
   const source = readData(payload);
   const objectValue = source && typeof source === 'object' ? (source as RawObject) : {};
+
+  let role_id = String(objectValue.role_id ?? '');
+  if (!role_id) {
+    const roleName = String(objectValue.role_name ?? objectValue.role ?? '');
+    const found = roleName ? roles.find((r) => r.name === roleName) : undefined;
+    role_id = found?.id ?? '';
+  }
 
   return {
     user_id: fallback.id,
     username: String(objectValue.username ?? fallback.username ?? ''),
     email: String(objectValue.email ?? fallback.email ?? ''),
     full_name: String(objectValue.full_name ?? objectValue.fullname ?? fallback.full_name ?? ''),
-    role_id: String(objectValue.role_id ?? fallback.role_id ?? ''),
+    role_id,
     is_active: Boolean(objectValue.is_active ?? fallback.is_active ?? true),
     email_verified: Boolean(objectValue.email_verified ?? fallback.email_verified ?? false),
     is_2fa_enable: Boolean(objectValue.is_2fa_enable ?? false),
@@ -231,7 +238,7 @@ export default function AdminUsersManager() {
               onClick={async () => {
                 try {
                   const detailRes = await getAdminUserProfile(row.id);
-                  setForm(toProfile(detailRes.data, row));
+                  setForm(toProfile(detailRes.data, row, roles));
                   setOpenEdit(true);
                 } catch {
                   toast.error(t('load_error'));

@@ -324,7 +324,7 @@ export default function AdminUsersManager() {
   const handleEditClick = async (row: AdminUserRow) => {
     try {
       const detailRes = await getAdminUserProfile(row.id);
-      setForm(toProfile(detailRes.data, row));
+      setForm(toProfile(detailRes.data, row, roles));
       setOpenEdit(true);
     } catch {
       toast.error(t('load_error'));

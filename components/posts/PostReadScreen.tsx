@@ -3,7 +3,8 @@
 import Link from 'next/link';
 import {useEffect, useMemo, useState} from 'react';
 import {useLocale, useTranslations} from 'next-intl';
-import {ArrowLeft, Calendar, ChevronDown, Edit, Globe, Tag, User, Trash2} from 'lucide-react';
+import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
+import {ArrowLeft, Calendar, ChevronDown, Edit, Globe, MoreHorizontal, Tag, Trash2, User} from 'lucide-react';
 import toast from 'react-hot-toast';
 import {getGlobalPost, getGroupPost, deleteGlobalPost, deleteGroupPost} from '@/lib/api/posts';
 import { getGroupPermissions } from '@/lib/api/permissions';
@@ -327,21 +328,36 @@ export default function PostReadScreen({scope, groupId = '', postId}: PostReadSc
             <ArrowLeft size={14} />
             <span>{actionsT('back')}</span>
           </Link>
-          {canEdit && (
-            <Link href={editHref} className="btn-primary">
-              <Edit size={14} />
-              <span>{actionsT('edit')}</span>
-            </Link>
-          )}
-          {canDelete && (
-            <button 
-              className="btn-danger inline-flex items-center gap-2 rounded-md bg-red-600/10 px-3 py-2 text-sm font-medium text-red-500 hover:bg-red-600/20"
-              onClick={() => setDeleteConfirmOpen(true)}
-              disabled={deleting}
-            >
-              <Trash2 size={14} />
-              <span>{actionsT('delete')}</span>
-            </button>
+          {(canEdit || canDelete) && (
+            <DropdownMenu.Root>
+              <DropdownMenu.Trigger asChild>
+                <button className="post-menu-btn" aria-label={actionsT('menu')}>
+                  <MoreHorizontal size={16} />
+                </button>
+              </DropdownMenu.Trigger>
+              <DropdownMenu.Portal>
+                <DropdownMenu.Content className="posts-dropdown-content" sideOffset={4} align="end">
+                  {canEdit && (
+                    <DropdownMenu.Item className="posts-dropdown-item" asChild>
+                      <Link href={editHref}>
+                        <Edit size={14} />
+                        <span>{actionsT('edit')}</span>
+                      </Link>
+                    </DropdownMenu.Item>
+                  )}
+                  {canEdit && canDelete && <DropdownMenu.Separator className="posts-dropdown-separator" />}
+                  {canDelete && (
+                    <DropdownMenu.Item
+                      className="posts-dropdown-item danger"
+                      onClick={() => setDeleteConfirmOpen(true)}
+                    >
+                      <Trash2 size={14} />
+                      <span>{actionsT('delete')}</span>
+                    </DropdownMenu.Item>
+                  )}
+                </DropdownMenu.Content>
+              </DropdownMenu.Portal>
+            </DropdownMenu.Root>
           )}
         </div>
       </header>

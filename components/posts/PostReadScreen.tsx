@@ -9,6 +9,7 @@ import {getGlobalPost, getGroupPost, deleteGlobalPost, deleteGroupPost} from '@/
 import { getGroupPermissions } from '@/lib/api/permissions';
 import { useRouter } from 'next/navigation';
 import ConfirmDialog from '@/components/ui/ConfirmDialog';
+import { useGroupPermission } from '@/components/providers/GroupPermissionContext';
 import { useAuthStore } from '@/lib/store/authStore';
 import { usePermissionStore } from '@/lib/store/permissionStore';
 import { canDeleteGlobalPost, canDeleteGroupPost, canModifyGlobalPost, canModifyGroupPost } from '@/lib/permissions/postGuard';
@@ -168,7 +169,13 @@ export default function PostReadScreen({scope, groupId = '', postId}: PostReadSc
     setGroupPermissionsError
   } = usePermissionStore();
 
-  const activeGroupPermissions = scope === 'group' && groupId ? groupPermissionsById[groupId] : null;
+  // GroupPermissionContext is provided by the group layout and already has
+  // permissions loaded. We prefer it over the Zustand store because the
+  // store may not be populated yet when this component mounts.
+  const groupCtx = useGroupPermission();
+  const activeGroupPermissions = scope === 'group' && groupId
+    ? (groupPermissionsById[groupId] ?? groupCtx.permissions ?? null)
+    : null;
 
   useEffect(() => {
     if (scope !== 'group' || !groupId) return;
@@ -206,7 +213,9 @@ export default function PostReadScreen({scope, groupId = '', postId}: PostReadSc
         groupId,
         groupIdEncoded: encodeURIComponent(groupId),
         storeKeys: Object.keys(groupPermissionsById),
+        ctxPermissionKeys: Object.keys(groupCtx.permissions),
         activeGroupPermissions: perms,
+        permissionSource: groupPermissionsById[groupId] ? 'zustand' : (groupCtx.permissions ? 'context' : 'none'),
         hasGroupPostModify: perms['group.post.modify'],
         hasGroupPostModifyOther: perms['group.post.modify.other'],
         result
@@ -214,7 +223,7 @@ export default function PostReadScreen({scope, groupId = '', postId}: PostReadSc
       return result;
     }
     return canModifyGlobalPost(currentUserId, post.authorId || '', systemPermissions);
-  }, [post, scope, user, activeGroupPermissions, systemPermissions, groupId, groupPermissionsById]);
+  }, [post, scope, user, activeGroupPermissions, systemPermissions, groupId, groupPermissionsById, groupCtx]);
 
   const canDelete = useMemo(() => {
     if (!post) return false;

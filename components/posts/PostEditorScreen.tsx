@@ -11,6 +11,9 @@ import toast from 'react-hot-toast';
 import ConfirmDialog from '@/components/ui/ConfirmDialog';
 import MarkdownEditor from '@/components/posts/MarkdownEditor';
 import Button from '@/components/ui/Button';
+import FieldError from '@/components/ui/FieldError';
+import {useFieldValidation} from '@/hooks/useFieldValidation';
+import {requiredText} from '@/lib/validation';
 import {
   createGlobalPost,
   createGroupPost,
@@ -186,6 +189,9 @@ export default function PostEditorScreen({scope, groupId = '', postId = ''}: Pos
   const currentSnapshot = useMemo(() => trimSnapshot({title, body, categoryId}), [title, body, categoryId]);
   const hasChanges = useMemo(() => JSON.stringify(currentSnapshot) !== JSON.stringify(trimSnapshot(initialSnapshot)), [currentSnapshot, initialSnapshot]);
   const canSubmit = useMemo(() => title.trim().length > 0 && body.trim().length > 0, [title, body]);
+  const titleSchemas = useMemo(() => ({title: requiredText(120)}), []);
+  const {errors: titleErrors, validateField: validateTitle, validateAll: validateTitleAll, clearError: clearTitleError} =
+    useFieldValidation(titleSchemas);
 
   useEffect(() => {
     let mounted = true;
@@ -329,7 +335,8 @@ export default function PostEditorScreen({scope, groupId = '', postId = ''}: Pos
   const handleSave = async () => {
     const trimmedTitle = title.trim();
     const trimmedBody = body.trim();
-    if (!trimmedTitle || !trimmedBody) {
+    const titleOk = validateTitleAll({title});
+    if (!titleOk || !trimmedBody) {
       return;
     }
 
@@ -489,11 +496,16 @@ export default function PostEditorScreen({scope, groupId = '', postId = ''}: Pos
                   <input
                     id="post-title"
                     value={title}
-                    onChange={(event) => setTitle(event.target.value)}
+                    onChange={(event) => {
+                      setTitle(event.target.value);
+                      clearTitleError('title');
+                    }}
+                    onBlur={(event) => validateTitle('title', event.target.value)}
                     placeholder={formT('postTitlePlaceholder')}
                     className="form-input h-10 w-full rounded-[8px] border border-[var(--border-default)] bg-[var(--bg-input)] px-3 text-[14px] text-[var(--text-primary)] outline-none hover:border-[var(--border-hover)] focus:border-[var(--border-focus)] focus:shadow-[0_0_0_2px_rgba(255,107,44,0.08)]"
                     maxLength={120}
                   />
+                  <FieldError messages={titleErrors.title} />
                 </div>
               </div>
 

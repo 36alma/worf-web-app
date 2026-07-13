@@ -28,6 +28,9 @@ import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
 import ConfirmDialog from '@/components/ui/ConfirmDialog';
 import SideSheet from '@/components/ui/SideSheet';
+import FieldError from '@/components/ui/FieldError';
+import {useFieldValidation} from '@/hooks/useFieldValidation';
+import {requiredText, optionalText} from '@/lib/validation';
 import toast from 'react-hot-toast';
 
 // Categorize permissions by their names
@@ -80,6 +83,8 @@ export function GroupRolesTab() {
   const [roleName, setRoleName] = useState('');
   const [roleDesc, setRoleDesc] = useState('');
   const [isSubmittingRole, setIsSubmittingRole] = useState(false);
+  const roleSchemas = useMemo(() => ({name: requiredText(150), description: optionalText(1000)}), []);
+  const roleV = useFieldValidation(roleSchemas);
 
   // Delete
   const [roleToDelete, setRoleToDelete] = useState<any | null>(null);
@@ -173,7 +178,7 @@ export function GroupRolesTab() {
 
   const handleSaveRole = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!roleName.trim()) return;
+    if (!roleV.validateAll({name: roleName, description: roleDesc})) return;
 
     try {
       setIsSubmittingRole(true);
@@ -378,11 +383,16 @@ export function GroupRolesTab() {
                   autoFocus
                   type="text"
                   value={roleName}
-                  onChange={(e) => setRoleName(e.target.value)}
+                  onChange={(e) => {
+                    setRoleName(e.target.value);
+                    roleV.clearError('name');
+                  }}
+                  onBlur={(e) => roleV.validateField('name', e.target.value)}
                   placeholder={t('name_placeholder')}
                   required
                   className="w-full bg-[#111] border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-orange-500 focus:border-orange-500 transition-all"
                 />
+                <FieldError messages={roleV.errors.name} />
               </div>
               <div className="space-y-2">
                 <label htmlFor="roleDesc" className="text-sm font-medium text-gray-300">{t('desc_label')}</label>
@@ -390,10 +400,15 @@ export function GroupRolesTab() {
                   id="roleDesc"
                   type="text"
                   value={roleDesc}
-                  onChange={(e) => setRoleDesc(e.target.value)}
+                  onChange={(e) => {
+                    setRoleDesc(e.target.value);
+                    roleV.clearError('description');
+                  }}
+                  onBlur={(e) => roleV.validateField('description', e.target.value)}
                   placeholder={t('desc_placeholder')}
                   className="w-full bg-[#111] border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-orange-500 focus:border-orange-500 transition-all"
                 />
+                <FieldError messages={roleV.errors.description} />
               </div>
             </div>
             <div className="flex justify-end gap-3 pt-2">

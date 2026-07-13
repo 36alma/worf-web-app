@@ -1,10 +1,13 @@
-import {useEffect, useState, useCallback} from 'react';
+import {useEffect, useMemo, useState, useCallback} from 'react';
 import {getTaskComments, createTaskComment, deleteTaskComment} from '@/lib/api/tasks';
 import {TaskComment} from './types';
 import {Trash2, Send, MessageCircle, HelpCircle} from 'lucide-react';
 import toast from 'react-hot-toast';
 import {TooltipProvider, Tooltip, TooltipTrigger, TooltipContent} from '@/components/ui/tooltip';
 import ConfirmDialog from '@/components/ui/ConfirmDialog';
+import FieldError from '@/components/ui/FieldError';
+import {useFieldValidation} from '@/hooks/useFieldValidation';
+import {requiredText} from '@/lib/validation';
 import {usePermissions} from '@/hooks/usePermissions';
 
 export interface TaskCommentsProps {
@@ -47,6 +50,9 @@ export default function TaskComments({groupId, taskId, permissions}: TaskComment
   const [comments, setComments] = useState<TaskComment[]>([]);
   const [loading, setLoading] = useState(true);
   const [newComment, setNewComment] = useState('');
+  const commentSchemas = useMemo(() => ({comment: requiredText(2000)}), []);
+  const {errors: commentErrors, validateField: validateComment, validateAll: validateCommentAll, clearError: clearCommentError} =
+    useFieldValidation(commentSchemas);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
@@ -82,7 +88,8 @@ export default function TaskComments({groupId, taskId, permissions}: TaskComment
 
   const handleAddComment = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newComment.trim() || !permissions.create) return;
+    if (!permissions.create) return;
+    if (!validateCommentAll({comment: newComment})) return;
 
     try {
       const res = await createTaskComment({
@@ -294,7 +301,11 @@ export default function TaskComments({groupId, taskId, permissions}: TaskComment
             <div className="flex-1 flex flex-col gap-2">
               <textarea
                 value={newComment}
-                onChange={(e) => setNewComment(e.target.value)}
+                onChange={(e) => {
+                  setNewComment(e.target.value);
+                  clearCommentError('comment');
+                }}
+                onBlur={(e) => validateComment('comment', e.target.value)}
                 placeholder="Írj egy kommentet..."
                 rows={2}
                 className="w-full rounded-xl border border-[var(--border-default)] bg-[var(--bg-input)] px-4 py-2.5 text-sm text-[var(--text-primary)] placeholder-[var(--text-tertiary)] outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 resize-y transition-all shadow-sm"
@@ -305,6 +316,7 @@ export default function TaskComments({groupId, taskId, permissions}: TaskComment
                   }
                 }}
               />
+              <FieldError messages={commentErrors.comment} />
               <div className="flex items-center justify-between">
                 <span className="text-[11px] text-[var(--text-tertiary)] opacity-60">
                   Ctrl+Enter a küldéshez

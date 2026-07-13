@@ -9,6 +9,17 @@ import Button from '@/components/ui/Button';
 import DataTable from '@/components/ui/DataTable';
 import Modal from '@/components/ui/Modal';
 import Skeleton from '@/components/ui/Skeleton';
+import FieldError from '@/components/ui/FieldError';
+import PasswordChecklist from '@/components/ui/PasswordChecklist';
+import {useFieldValidation} from '@/hooks/useFieldValidation';
+import {
+  emailSchema,
+  fullNameSchema,
+  optionalEmailSchema,
+  optionalFullNameSchema,
+  optionalText,
+  isPasswordValid
+} from '@/lib/validation';
 
 type RawObject = Record<string, unknown>;
 
@@ -200,6 +211,15 @@ export default function AdminUsersManager() {
   const [createForm, setCreateForm] = useState<CreateFormState>(emptyCreateForm);
   const [limit, setLimit] = useState(200);
 
+  // Create: email/full_name/password kötelező. Edit: minden opcionális-update.
+  const createSchemas = useMemo(() => ({email: emailSchema, full_name: fullNameSchema}), []);
+  const editSchemas = useMemo(
+    () => ({username: optionalText(150), email: optionalEmailSchema, full_name: optionalFullNameSchema}),
+    []
+  );
+  const createV = useFieldValidation(createSchemas);
+  const editV = useFieldValidation(editSchemas);
+
   const load = useCallback(async () => {
     setLoading(true);
     try {
@@ -271,6 +291,16 @@ export default function AdminUsersManager() {
       return;
     }
 
+    const fieldsOk = editV.validateAll({
+      username: form.username,
+      email: form.email,
+      full_name: form.full_name
+    });
+    const passwordOk = !form.password || isPasswordValid(form.password);
+    if (!fieldsOk || !passwordOk) {
+      return;
+    }
+
     try {
       setSaving(true);
 
@@ -332,8 +362,9 @@ export default function AdminUsersManager() {
   };
 
   const onCreateUser = async () => {
-    if (!createForm.email || !createForm.full_name || !createForm.password) {
-      toast.error(t('create_error'));
+    const fieldsOk = createV.validateAll({email: createForm.email, full_name: createForm.full_name});
+    const passwordOk = isPasswordValid(createForm.password);
+    if (!fieldsOk || !passwordOk) {
       return;
     }
 
@@ -522,7 +553,9 @@ export default function AdminUsersManager() {
                 className="w-full rounded-md border border-[var(--border)] bg-[#0f0f18] px-3 py-2"
                 value={form.username}
                 onChange={(event) => setForm((prev) => (prev ? { ...prev, username: event.target.value } : prev))}
+                onBlur={(event) => editV.validateField('username', event.target.value)}
               />
+              <FieldError messages={editV.errors.username} />
             </div>
             <div>
               <label className="mb-1 block text-sm text-slate-300">{t('columns.email')}</label>
@@ -530,7 +563,9 @@ export default function AdminUsersManager() {
                 className="w-full rounded-md border border-[var(--border)] bg-[#0f0f18] px-3 py-2"
                 value={form.email}
                 onChange={(event) => setForm((prev) => (prev ? { ...prev, email: event.target.value } : prev))}
+                onBlur={(event) => editV.validateField('email', event.target.value)}
               />
+              <FieldError messages={editV.errors.email} />
             </div>
             <div>
               <label className="mb-1 block text-sm text-slate-300">{t('columns.full_name')}</label>
@@ -538,7 +573,9 @@ export default function AdminUsersManager() {
                 className="w-full rounded-md border border-[var(--border)] bg-[#0f0f18] px-3 py-2"
                 value={form.full_name}
                 onChange={(event) => setForm((prev) => (prev ? { ...prev, full_name: event.target.value } : prev))}
+                onBlur={(event) => editV.validateField('full_name', event.target.value)}
               />
+              <FieldError messages={editV.errors.full_name} />
             </div>
             <div>
               <label className="mb-1 block text-sm text-slate-300">{t('columns.role')}</label>
@@ -594,6 +631,7 @@ export default function AdminUsersManager() {
                 value={form.password}
                 onChange={(event) => setForm((prev) => (prev ? { ...prev, password: event.target.value } : prev))}
               />
+              {form.password.length > 0 && <PasswordChecklist password={form.password} />}
             </div>
             <div className="flex justify-end gap-2">
               <Button className='p-2' variant="ghost" type="button" onClick={() => setOpenEdit(false)}>
@@ -653,7 +691,9 @@ export default function AdminUsersManager() {
               value={createForm.email}
               required
               onChange={(event) => setCreateForm((prev) => ({ ...prev, email: event.target.value }))}
+              onBlur={(event) => createV.validateField('email', event.target.value)}
             />
+            <FieldError messages={createV.errors.email} />
           </div>
           <div>
             <label className="mb-1 block text-sm text-slate-300">{t('columns.full_name')} *</label>
@@ -662,7 +702,9 @@ export default function AdminUsersManager() {
               value={createForm.full_name}
               required
               onChange={(event) => setCreateForm((prev) => ({ ...prev, full_name: event.target.value }))}
+              onBlur={(event) => createV.validateField('full_name', event.target.value)}
             />
+            <FieldError messages={createV.errors.full_name} />
           </div>
           <div>
             <label className="mb-1 block text-sm text-slate-300">{t('columns.password')} *</label>
@@ -674,6 +716,7 @@ export default function AdminUsersManager() {
               required
               onChange={(event) => setCreateForm((prev) => ({ ...prev, password: event.target.value }))}
             />
+            <PasswordChecklist password={createForm.password} />
           </div>
           <div>
             <label className="mb-1 block text-sm text-slate-300">{t('columns.role')}</label>

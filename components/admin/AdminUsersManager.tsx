@@ -28,7 +28,8 @@ interface AdminUserRow {
   username: string;
   email: string;
   full_name: string;
-  is_active: boolean | null;
+  active: boolean | null;
+  role_name: string;
   email_verified: boolean | null;
   role_id: string;
 }
@@ -96,7 +97,8 @@ const toUserRows = (payload: unknown): AdminUserRow[] => {
         username: String(row.username ?? (email.includes('@') ? email.split('@')[0] : '')),
         email,
         full_name: String(row.full_name ?? row.fullname ?? ''),
-        is_active: typeof row.is_active === 'boolean' ? row.is_active : null,
+        active: typeof row.active === 'boolean' ? row.active : (typeof row.is_active === 'boolean' ? row.is_active : null),
+        role_name: String(row.role_name ?? ''),
         email_verified: typeof row.email_verified === 'boolean' ? row.email_verified : null,
         role_id: String(row.role_id ?? '')
       };
@@ -152,7 +154,7 @@ const toProfile = (payload: unknown, fallback: AdminUserRow, roles: RoleItem[]):
     email: String(objectValue.email ?? fallback.email ?? ''),
     full_name: String(objectValue.full_name ?? objectValue.fullname ?? fallback.full_name ?? ''),
     role_id,
-    is_active: Boolean(objectValue.is_active ?? fallback.is_active ?? true),
+    is_active: Boolean(objectValue.is_active ?? fallback.active ?? true),
     email_verified: Boolean(objectValue.email_verified ?? fallback.email_verified ?? false),
     is_2fa_enable: Boolean(objectValue.is_2fa_enable ?? false),
     password: ''
@@ -242,8 +244,9 @@ export default function AdminUsersManager() {
       { key: 'username' as const, label: t('columns.username') },
       { key: 'email' as const, label: t('columns.email') },
       { key: 'full_name' as const, label: t('columns.full_name') },
+      { key: 'role_name' as const, label: t('columns.role') },
       {
-        key: 'is_active' as const,
+        key: 'active' as const,
         label: t('columns.active'),
         render: (value: any) => (value === null ? '-' : value ? t('yes') : t('no'))
       },
@@ -481,21 +484,21 @@ export default function AdminUsersManager() {
                 {/* Active status badge */}
                 <span
                   className={`mt-0.5 inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium ${
-                    row.is_active === true
+                    row.active === true
                       ? 'bg-[var(--badge-green-bg)] text-[var(--badge-green-text)]'
-                      : row.is_active === false
+                      : row.active === false
                         ? 'bg-[rgba(229,72,77,0.12)] text-[var(--error)]'
                         : 'bg-[var(--badge-gray-bg)] text-[var(--badge-gray-text)]'
                   }`}
                 >
                   <span className={`inline-block h-1.5 w-1.5 rounded-full ${
-                    row.is_active === true
+                    row.active === true
                       ? 'bg-[var(--success)]'
-                      : row.is_active === false
+                      : row.active === false
                         ? 'bg-[var(--error)]'
                         : 'bg-[var(--text-tertiary)]'
                   }`} />
-                  {row.is_active === null ? '—' : row.is_active ? t('yes') : t('no')}
+                  {row.active === null ? '—' : row.active ? t('yes') : t('no')}
                 </span>
               </div>
 
@@ -507,10 +510,10 @@ export default function AdminUsersManager() {
                     {row.username}
                   </span>
                 )}
-                {getRoleName(row.role_id) && (
+                {row.role_name && (
                   <span className="inline-flex items-center gap-1.5">
                     <span className="inline-block h-1.5 w-1.5 rounded-full bg-[var(--accent)]" />
-                    {getRoleName(row.role_id)}
+                    {row.role_name}
                   </span>
                 )}
               </div>

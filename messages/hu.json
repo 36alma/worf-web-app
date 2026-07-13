@@ -1049,5 +1049,20 @@
       "members": "Tagok",
       "roles": "Szerepkörök"
     }
+  },
+  "validation": {
+    "email_invalid": "Kérjük, adjon meg egy érvényes e-mail címet.",
+    "fullname_invalid": "Adja meg a teljes nevét — legalább vezeték- és keresztnevet, minden szó nagybetűvel kezdődjön.",
+    "password_min_length": "Legalább 8 karakter",
+    "password_lowercase": "Tartalmaz kisbetűt",
+    "password_uppercase": "Tartalmaz nagybetűt",
+    "password_digit": "Tartalmaz számot",
+    "password_symbol": "Tartalmaz szimbólumot",
+    "password_mismatch": "A két jelszó nem egyezik.",
+    "filename_invalid": "A fájlnév nem engedélyezett karaktert tartalmaz.",
+    "filename_path": "A fájlnév nem tartalmazhat '/', '\\' vagy '..' karaktert.",
+    "required": "Ez a mező kötelező.",
+    "too_long": "A megadott érték túl hosszú.",
+    "invalid_chars": "A megadott érték érvénytelen karaktert tartalmaz."
   }
 }

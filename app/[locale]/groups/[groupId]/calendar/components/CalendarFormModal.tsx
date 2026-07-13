@@ -1,8 +1,11 @@
 'use client';
 
-import {useEffect, useState} from 'react';
+import {useEffect, useMemo, useState} from 'react';
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
+import FieldError from '@/components/ui/FieldError';
+import {useFieldValidation} from '@/hooks/useFieldValidation';
+import {requiredText, optionalText} from '@/lib/validation';
 import type {CalendarCopy, CalendarFormValues, GroupCalendarItem} from '../types';
 
 interface CalendarFormModalProps {
@@ -28,7 +31,11 @@ export default function CalendarFormModal({
     calendarName: '',
     calendarDescription: ''
   });
-  const [error, setError] = useState('');
+  const schemas = useMemo(
+    () => ({calendarName: requiredText(150), calendarDescription: optionalText(1000)}),
+    []
+  );
+  const {errors, validateField, validateAll, resetErrors} = useFieldValidation(schemas);
 
   useEffect(() => {
     if (!open) {
@@ -39,18 +46,16 @@ export default function CalendarFormModal({
       calendarName: calendar?.name ?? '',
       calendarDescription: calendar?.description ?? ''
     });
-    setError('');
-  }, [calendar, open]);
+    resetErrors();
+  }, [calendar, open, resetErrors]);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    if (!values.calendarName.trim()) {
-      setError(copy.validationName);
+    if (!validateAll({calendarName: values.calendarName, calendarDescription: values.calendarDescription})) {
       return;
     }
 
-    setError('');
     await onSubmit(values);
   };
 
@@ -62,9 +67,11 @@ export default function CalendarFormModal({
           <input
             value={values.calendarName}
             onChange={(event) => setValues((current) => ({...current, calendarName: event.target.value}))}
+            onBlur={(event) => validateField('calendarName', event.target.value)}
             className="h-[var(--input-height)] w-full rounded-[var(--input-radius)] border border-[var(--border-default)] bg-[var(--bg-input)] px-3 text-sm"
             placeholder={copy.calendarName}
           />
+          <FieldError messages={errors.calendarName} />
         </div>
 
         <div className="space-y-1">
@@ -74,13 +81,13 @@ export default function CalendarFormModal({
             onChange={(event) =>
               setValues((current) => ({...current, calendarDescription: event.target.value}))
             }
+            onBlur={(event) => validateField('calendarDescription', event.target.value)}
             rows={4}
             className="w-full rounded-[var(--input-radius)] border border-[var(--border-default)] bg-[var(--bg-input)] px-3 py-2 text-sm"
             placeholder={copy.calendarDescription}
           />
+          <FieldError messages={errors.calendarDescription} />
         </div>
-
-        {error ? <p className="text-sm text-[var(--error)]">{error}</p> : null}
 
         <div className="flex justify-end gap-2">
           <Button type="button" variant="ghost" onClick={onClose} disabled={submitting}>

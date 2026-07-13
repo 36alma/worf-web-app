@@ -3,6 +3,9 @@
 import {useEffect, useMemo, useState} from 'react';
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
+import FieldError from '@/components/ui/FieldError';
+import {useFieldValidation} from '@/hooks/useFieldValidation';
+import {requiredText, optionalText} from '@/lib/validation';
 import type {
   CalendarCopy,
   EventDraftRange,
@@ -44,6 +47,8 @@ export default function EventFormModal({
   );
   const [error, setError] = useState('');
   const [showOptionalFields, setShowOptionalFields] = useState(false);
+  const schemas = useMemo(() => ({name: requiredText(200), location: optionalText(300)}), []);
+  const {errors, validateField, validateAll, resetErrors} = useFieldValidation(schemas);
 
   useEffect(() => {
     if (!open) {
@@ -53,16 +58,17 @@ export default function EventFormModal({
     const nextValues = getInitialEventFormValues(event, initialRange, timezone);
     setValues(nextValues);
     setError('');
+    resetErrors();
     setShowOptionalFields(Boolean(nextValues.location || nextValues.timezone));
-  }, [event, initialRange, open, timezone]);
+  }, [event, initialRange, open, timezone, resetErrors]);
 
   const dateInputType = values.allDay ? 'date' : 'datetime-local';
 
   const handleSubmit = async (submitEvent: React.FormEvent<HTMLFormElement>) => {
     submitEvent.preventDefault();
+    setError('');
 
-    if (!values.name.trim()) {
-      setError(copy.validationName);
+    if (!validateAll({name: values.name, location: values.location})) {
       return;
     }
 
@@ -91,9 +97,11 @@ export default function EventFormModal({
             <input
               value={values.name}
               onChange={(event) => setValues((current) => ({...current, name: event.target.value}))}
+              onBlur={(event) => validateField('name', event.target.value)}
               className="h-[var(--input-height)] w-full rounded-[var(--input-radius)] border border-[var(--border-default)] bg-[var(--bg-input)] px-3 text-sm"
               placeholder={copy.eventName}
             />
+            <FieldError messages={errors.name} />
           </div>
 
           <div className="space-y-1">
@@ -170,8 +178,10 @@ export default function EventFormModal({
                   onChange={(event) =>
                     setValues((current) => ({...current, location: event.target.value}))
                   }
+                  onBlur={(event) => validateField('location', event.target.value)}
                   className="h-[var(--input-height)] w-full rounded-[var(--input-radius)] border border-[var(--border-default)] bg-[var(--bg-surface)] px-3 text-sm"
                 />
+                <FieldError messages={errors.location} />
               </div>
 
               <div className="space-y-1">

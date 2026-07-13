@@ -5,6 +5,8 @@ import {Eye, EyeOff, LockKeyhole, Save} from 'lucide-react';
 import {useMemo, useState} from 'react';
 import toast from 'react-hot-toast';
 import {Input} from '@/components/ui/Input';
+import PasswordChecklist from '@/components/ui/PasswordChecklist';
+import {isPasswordValid} from '@/lib/validation';
 import {updateCurrentUserProfile} from '@/lib/api/user';
 
 interface PasswordSectionProps {
@@ -48,7 +50,9 @@ export default function PasswordSection({labels}: PasswordSectionProps) {
 
   const score = useMemo(() => getPasswordScore(password), [password]);
   const passwordsMismatch = passwordRepeat.length > 0 && password !== passwordRepeat;
-  const canSave = password.length >= 8 && passwordRepeat.length >= 8 && !passwordsMismatch && score > 0;
+  // A mentés a backend ÖSSZES jelszó-szabályához kötött (isPasswordValid), nem csak a
+  // gyenge score-hoz — így a frontend nem enged át olyat, amit a backend elutasítana.
+  const canSave = isPasswordValid(password) && passwordRepeat.length > 0 && !passwordsMismatch;
 
   const strengthLabel =
     score <= 1
@@ -82,8 +86,8 @@ export default function PasswordSection({labels}: PasswordSectionProps) {
   };
 
   const handleSave = async () => {
-    if (password.length < 8) {
-      toast.error(labels.minLength);
+    // A hiányzó szabályokat a checklist mutatja meg finoman a user felé.
+    if (!isPasswordValid(password)) {
       return;
     }
 
@@ -150,6 +154,7 @@ export default function PasswordSection({labels}: PasswordSectionProps) {
             ))}
           </div>
           <p className="text-xs text-[var(--text-secondary)]">{strengthLabel}</p>
+          {password.length > 0 && <PasswordChecklist password={password} />}
         </div>
 
         <label className="block space-y-2">

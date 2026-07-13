@@ -2,9 +2,12 @@
 
 import {type LucideIcon, Mail, Save, User, UserRound} from 'lucide-react';
 import clsx from 'clsx';
-import {useEffect, useState} from 'react';
+import {useEffect, useMemo, useState} from 'react';
 import toast from 'react-hot-toast';
 import {Input} from '@/components/ui/Input';
+import FieldError from '@/components/ui/FieldError';
+import {useFieldValidation} from '@/hooks/useFieldValidation';
+import {optionalEmailSchema, optionalFullNameSchema, optionalText} from '@/lib/validation';
 import {updateCurrentUserProfile} from '@/lib/api/user';
 import type {ProfileData} from '@/components/profile/types';
 
@@ -45,6 +48,11 @@ export default function AccountFields({profile, labels, onProfileChange}: Accoun
     full_name: profile.full_name
   });
   const [savingField, setSavingField] = useState<EditableField | null>(null);
+  const schemas = useMemo(
+    () => ({username: optionalText(150), email: optionalEmailSchema, full_name: optionalFullNameSchema}),
+    []
+  );
+  const {errors, validateField, clearError} = useFieldValidation(schemas);
 
   useEffect(() => {
     setDrafts({
@@ -61,6 +69,10 @@ export default function AccountFields({profile, labels, onProfileChange}: Accoun
   ];
 
   const handleSave = async (field: EditableField) => {
+    if (!validateField(field, drafts[field])) {
+      return;
+    }
+
     const nextValue = drafts[field].trim();
     const previousValue = profile[field];
 
@@ -135,18 +147,21 @@ export default function AccountFields({profile, labels, onProfileChange}: Accoun
                     <p className="text-xs uppercase tracking-[0.14em] text-[var(--text-tertiary)]">{label}</p>
 
                     {isEditing ? (
-                      <Input
-                        type={type}
-                        autoComplete={autoComplete}
-                        value={drafts[key]}
-                        onChange={(event) =>
-                          setDrafts((current) => ({
-                            ...current,
-                            [key]: event.target.value
-                          }))
-                        }
-                        className="mt-2"
-                      />
+                      <>
+                        <Input
+                          type={type}
+                          autoComplete={autoComplete}
+                          value={drafts[key]}
+                          onChange={(event) => {
+                            const value = event.target.value;
+                            setDrafts((current) => ({...current, [key]: value}));
+                            clearError(key);
+                          }}
+                          onBlur={(event) => validateField(key, event.target.value)}
+                          className="mt-2"
+                        />
+                        <FieldError messages={errors[key]} />
+                      </>
                     ) : (
                       <p className="mt-1 truncate text-sm text-[var(--text-primary)]">{profile[key] || '—'}</p>
                     )}

@@ -6,6 +6,8 @@ import TaskTypeBadge from './TaskTypeBadge';
 import {Calendar, AlignLeft, History, FileText, ArrowRight, Bug, BookOpen, Zap, Layers, CheckSquare, Clock, CalendarCheck, Hash, Archive, User} from 'lucide-react';
 import clsx from 'clsx';
 import {modifyTask, getTaskHistory} from '@/lib/api/tasks';
+import {useTranslations} from 'next-intl';
+import {requiredText, optionalText} from '@/lib/validation';
 import toast from 'react-hot-toast';
 import * as Tabs from '@radix-ui/react-tabs';
 import {
@@ -48,6 +50,7 @@ export interface TaskDetailSheetProps {
 }
 
 export default function TaskDetailSheet({open, onClose, task, groupId, permissions, onUpdateTask, groupUsers = [], groupUsersLoading = false}: TaskDetailSheetProps) {
+  const tv = useTranslations('validation');
   const [summary, setSummary] = useState(task?.summary || '');
   const [isEditingSummary, setIsEditingSummary] = useState(false);
   
@@ -157,7 +160,10 @@ export default function TaskDetailSheet({open, onClose, task, groupId, permissio
   if (!task) return null;
 
   const submitSummary = () => {
-    if (!summary.trim()) {
+    const result = requiredText(200).safeParse(summary);
+    if (!result.success) {
+      const key = result.error.issues[0]?.message;
+      if (key && key !== 'required') toast.error(tv(key as never));
       setSummary(task.summary); // Revert
       setIsEditingSummary(false);
       return;
@@ -167,6 +173,11 @@ export default function TaskDetailSheet({open, onClose, task, groupId, permissio
   };
 
   const submitDescription = () => {
+    const result = optionalText(5000).safeParse(description);
+    if (!result.success) {
+      toast.error(tv(result.error.issues[0]?.message as never));
+      return;
+    }
     handleUpdate('description', description);
     setIsEditingDesc(false);
   };

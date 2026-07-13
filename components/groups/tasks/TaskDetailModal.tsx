@@ -15,6 +15,8 @@ import TaskComments from './TaskComments';
 import TaskTypeBadge from './TaskTypeBadge';
 import {modifyTask, getTaskHistory} from '@/lib/api/tasks';
 import {translateTaskEvent, translateTaskValue} from '@/lib/i18n/taskHistory';
+import {useTranslations} from 'next-intl';
+import {requiredText, optionalText} from '@/lib/validation';
 import toast from 'react-hot-toast';
 import {
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
@@ -49,6 +51,7 @@ export default function TaskDetailModal({
   open, onClose, task, groupId, permissions, onUpdateTask,
   groupUsers = [], groupUsersLoading = false,
 }: TaskDetailModalProps) {
+  const tv = useTranslations('validation');
   const [summary, setSummary] = useState(task?.summary || '');
   const [isEditingSummary, setIsEditingSummary] = useState(false);
   const [description, setDescription] = useState(task?.description || '');
@@ -158,7 +161,10 @@ export default function TaskDetailModal({
   };
 
   const submitSummary = () => {
-    if (!summary.trim()) {
+    const result = requiredText(200).safeParse(summary);
+    if (!result.success) {
+      const key = result.error.issues[0]?.message;
+      if (key && key !== 'required') toast.error(tv(key as never));
       setSummary(task.summary);
       setIsEditingSummary(false);
       return;
@@ -168,6 +174,11 @@ export default function TaskDetailModal({
   };
 
   const submitDescription = () => {
+    const result = optionalText(5000).safeParse(description);
+    if (!result.success) {
+      toast.error(tv(result.error.issues[0]?.message as never));
+      return;
+    }
     handleUpdate('description', description);
     setIsEditingDesc(false);
   };

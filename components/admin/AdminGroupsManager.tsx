@@ -10,6 +10,9 @@ import ConfirmDialog from '@/components/ui/ConfirmDialog';
 import DataTable from '@/components/ui/DataTable';
 import Modal from '@/components/ui/Modal';
 import Skeleton from '@/components/ui/Skeleton';
+import FieldError from '@/components/ui/FieldError';
+import {useFieldValidation} from '@/hooks/useFieldValidation';
+import {requiredText, optionalText} from '@/lib/validation';
 
 type RawObject = Record<string, unknown>;
 
@@ -90,6 +93,9 @@ export default function AdminGroupsManager() {
   const router = useRouter();
   const locale = useLocale();
 
+  const schemas = useMemo(() => ({name: requiredText(150), description: optionalText(1000)}), []);
+  const {errors, validateField, validateAll, resetErrors} = useFieldValidation(schemas);
+
   const load = useCallback(async () => {
     setLoading(true);
     try {
@@ -152,7 +158,7 @@ export default function AdminGroupsManager() {
   const onSubmit = async (event: FormEvent) => {
     event.preventDefault();
 
-    if (!form.name.trim()) {
+    if (!validateAll({name: form.name, description: form.description})) {
       return;
     }
 
@@ -174,6 +180,7 @@ export default function AdminGroupsManager() {
       toast.success(t('save_success'));
       setOpenForm(false);
       setForm(defaultForm);
+      resetErrors();
       await load();
     } catch {
       toast.error(t('save_error'));
@@ -314,8 +321,10 @@ export default function AdminGroupsManager() {
               className="w-full rounded-md border border-[var(--border)] bg-[#0f0f18] px-3 py-2"
               value={form.name}
               onChange={(event) => setForm((prev) => ({...prev, name: event.target.value}))}
+              onBlur={(event) => validateField('name', event.target.value)}
               required
             />
+            <FieldError messages={errors.name} />
           </div>
           <div>
             <label className="mb-1 block text-sm text-slate-300">{t('columns.description')}</label>
@@ -323,8 +332,10 @@ export default function AdminGroupsManager() {
               className="w-full rounded-md border border-[var(--border)] bg-[#0f0f18] px-3 py-2"
               value={form.description}
               onChange={(event) => setForm((prev) => ({...prev, description: event.target.value}))}
+              onBlur={(event) => validateField('description', event.target.value)}
               rows={3}
             />
+            <FieldError messages={errors.description} />
           </div>
           <div className="flex justify-end gap-2">
             <Button className="p-2" variant="ghost" type="button" onClick={() => setOpenForm(false)}>

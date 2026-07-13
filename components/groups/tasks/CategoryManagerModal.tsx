@@ -1,7 +1,10 @@
-import {useEffect, useState} from 'react';
+import {useEffect, useMemo, useState} from 'react';
 import Modal from '@/components/ui/Modal';
+import FieldError from '@/components/ui/FieldError';
 import {TaskCategory} from './types';
 import {getTaskCategories, createTaskCategory, deleteTaskCategory} from '@/lib/api/tasks';
+import {useFieldValidation} from '@/hooks/useFieldValidation';
+import {requiredText} from '@/lib/validation';
 import {Trash2, Plus} from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -22,6 +25,8 @@ export default function CategoryManagerModal({open, onClose, groupId, permission
   const [loading, setLoading] = useState(true);
   const [newName, setNewName] = useState('');
   const [newColor, setNewColor] = useState('#f97316'); // default orange
+  const schemas = useMemo(() => ({name: requiredText(100)}), []);
+  const {errors, validateField, validateAll, clearError} = useFieldValidation(schemas);
 
   useEffect(() => {
     if (open && permissions.read) {
@@ -38,7 +43,8 @@ export default function CategoryManagerModal({open, onClose, groupId, permission
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newName.trim() || !permissions.create) return;
+    if (!permissions.create) return;
+    if (!validateAll({name: newName})) return;
 
     try {
       const res = await createTaskCategory({
@@ -105,7 +111,11 @@ export default function CategoryManagerModal({open, onClose, groupId, permission
               <input
                 type="text"
                 value={newName}
-                onChange={(e) => setNewName(e.target.value)}
+                onChange={(e) => {
+                  setNewName(e.target.value);
+                  clearError('name');
+                }}
+                onBlur={(e) => validateField('name', e.target.value)}
                 placeholder="Címke neve"
                 className="flex-1 rounded-md border border-[var(--border-default)] bg-[var(--bg-input)] px-3 py-2 text-sm text-[var(--text-primary)] outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500"
               />
@@ -117,6 +127,7 @@ export default function CategoryManagerModal({open, onClose, groupId, permission
                 <Plus size={16} />
               </button>
             </div>
+            <FieldError messages={errors.name} />
           </form>
         )}
       </div>

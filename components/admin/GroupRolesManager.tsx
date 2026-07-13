@@ -16,6 +16,9 @@ import { normalizeGroupId } from '@/lib/utils/groupId';
 import Button from '@/components/ui/Button';
 import ConfirmDialog from '@/components/ui/ConfirmDialog';
 import Skeleton from '@/components/ui/Skeleton';
+import FieldError from '@/components/ui/FieldError';
+import {useFieldValidation} from '@/hooks/useFieldValidation';
+import {requiredText, optionalText} from '@/lib/validation';
 import {
   ChevronDown,
   ChevronRight,
@@ -290,7 +293,9 @@ export default function GroupRolesManager({ groupId: propGroupId }: GroupRolesMa
   const [searchQuery, setSearchQuery] = useState('');
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set(['Roles', 'Calendar', 'Posts', 'Tasks']));
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
-  const [formNameError, setFormNameError] = useState('');
+
+  const roleSchemas = useMemo(() => ({name: requiredText(150), description: optionalText(1000)}), []);
+  const {errors, validateField, validateAll, clearError} = useFieldValidation(roleSchemas);
 
   const selectedRole = useMemo(
     () => roles.find((role) => role.group_role_id === selectedRoleId) ?? null,
@@ -385,11 +390,9 @@ export default function GroupRolesManager({ groupId: propGroupId }: GroupRolesMa
   const submitRole = async (event: React.FormEvent) => {
     event.preventDefault();
     
-    if (!formName.trim()) {
-      setFormNameError(t('form.nameError'));
+    if (!validateAll({name: formName, description: formDescription})) {
       return;
     }
-    setFormNameError('');
 
     if (!groupId) {
       toast.error(t('messages.saveError'));
@@ -586,32 +589,36 @@ export default function GroupRolesManager({ groupId: propGroupId }: GroupRolesMa
                 value={formName}
                 onChange={(event) => {
                   setFormName(event.target.value);
-                  setFormNameError('');
+                  clearError('name');
                 }}
+                onBlur={(event) => validateField('name', event.target.value)}
                 placeholder={t('form.namePlaceholder')}
                 className={`w-full rounded-lg border-2 bg-[var(--bg-input)] px-3 py-2.5 text-sm placeholder-[var(--text-tertiary)] focus:outline-none transition-all ${
-                  formNameError
+                  errors.name?.length
                     ? 'border-red-500/50 focus:border-red-500'
                     : 'border-[var(--border)] focus:border-[var(--accent)]'
                 }`}
                 disabled={!!selectedRoleId && !editingRoleId}
                 required
               />
-              {formNameError && (
-                <p className="text-xs text-red-500 mt-1">{t('form.nameError')}</p>
-              )}
+              <FieldError messages={errors.name} />
             </div>
 
             <div>
               <label className="block text-xs font-semibold text-[var(--text-secondary)] mb-2 uppercase tracking-wider">{t('form.descriptionLabel')}</label>
               <textarea
                 value={formDescription}
-                onChange={(event) => setFormDescription(event.target.value)}
+                onChange={(event) => {
+                  setFormDescription(event.target.value);
+                  clearError('description');
+                }}
+                onBlur={(event) => validateField('description', event.target.value)}
                 placeholder={t('form.descriptionPlaceholder')}
                 className="w-full rounded-lg border-2 border-[var(--border)] bg-[var(--bg-input)] px-3 py-2.5 text-sm placeholder-[var(--text-tertiary)] focus:border-[var(--accent)] focus:outline-none transition-colors resize-none"
                 rows={2}
                 disabled={!!selectedRoleId && !editingRoleId}
               />
+              <FieldError messages={errors.description} />
             </div>
 
             {/* Action Buttons */}

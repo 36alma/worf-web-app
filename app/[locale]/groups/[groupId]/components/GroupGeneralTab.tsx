@@ -1,13 +1,17 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
 import { useGroupPermission } from '@/components/providers/GroupPermissionContext';
 import { modifyGroupBase, deleteGroup } from '@/lib/api/groups';
 import { Copy, AlertTriangle, Trash2, Loader2, Check } from 'lucide-react';
 import toast from 'react-hot-toast';
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
+import FieldError from '@/components/ui/FieldError';
+import { requiredText, optionalText } from '@/lib/validation';
 import { useTranslations } from 'next-intl';
 import clsx from 'clsx';
 
@@ -22,6 +26,7 @@ interface FormData {
 
 export function GroupGeneralTab({ groupData }: GroupGeneralTabProps) {
   const t = useTranslations('group_detail.general');
+  const tv = useTranslations('validation');
   const { groupId, hasPermission } = useGroupPermission();
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -32,12 +37,19 @@ export function GroupGeneralTab({ groupData }: GroupGeneralTabProps) {
   const canModify = hasPermission('group.modify.base');
   const canDelete = hasPermission('group.delete.group');
 
+  const formSchema = useMemo(
+    () => z.object({ name: requiredText(150), description: optionalText(1000) }),
+    []
+  );
+
   const {
     register,
     handleSubmit,
     reset,
-    formState: { isDirty, isValid },
+    formState: { isDirty, isValid, errors },
   } = useForm<FormData>({
+    resolver: zodResolver(formSchema),
+    mode: 'onBlur',
     defaultValues: {
       name: '',
       description: '',
@@ -123,15 +135,16 @@ export function GroupGeneralTab({ groupData }: GroupGeneralTabProps) {
             <input
               id="groupName"
               type="text"
-              {...register('name', { required: true })}
+              {...register('name')}
               disabled={!canModify || isSaving}
               className={clsx(
                 "w-full bg-[#0a0a0a] border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all",
                 !canModify && "opacity-50 cursor-not-allowed bg-white/5"
               )}
             />
+            <FieldError messages={errors.name?.message ? tv(errors.name.message as never) : undefined} />
           </div>
-          
+
           <div className="space-y-2">
             <label htmlFor="groupDesc" className="text-sm font-medium text-gray-300 ml-1">
               {t('desc_label')}
@@ -146,6 +159,7 @@ export function GroupGeneralTab({ groupData }: GroupGeneralTabProps) {
                 !canModify && "opacity-50 cursor-not-allowed bg-white/5"
               )}
             />
+            <FieldError messages={errors.description?.message ? tv(errors.description.message as never) : undefined} />
           </div>
 
           {canModify && (

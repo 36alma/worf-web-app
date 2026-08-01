@@ -24,11 +24,11 @@ import {
 
 // ── Task type icon map ──
 const TASK_TYPE_ICONS: Record<string, React.ReactNode> = {
-  BUG: <Bug size={14} className="text-red-500" />,
-  STORY: <BookOpen size={14} className="text-blue-500" />,
-  EPIC: <Zap size={14} className="text-purple-500" />,
-  SUBTASK: <Layers size={14} className="text-teal-500" />,
-  TASK: <CheckSquare size={14} className="text-orange-500" />,
+  BUG: <Bug size={14} className="text-danger" />,
+  STORY: <BookOpen size={14} className="text-info" />,
+  EPIC: <Zap size={14} className="text-info" />,
+  SUBTASK: <Layers size={14} className="text-warning" />,
+  TASK: <CheckSquare size={14} className="text-accent" />,
 };
 
 // ── Props ──
@@ -196,17 +196,17 @@ export default function TaskDetailModal({
 
   // ── Priority color helper ──
   const priorityColorCls = (p: string | undefined | null) =>
-    p === 'HIGH' || p === 'URGENT' ? 'text-red-500' :
-    p === 'MEDIUM' ? 'text-amber-500' : 'text-blue-500';
+    p === 'HIGH' || p === 'URGENT' ? 'text-danger' :
+    p === 'MEDIUM' ? 'text-warning' : 'text-info';
 
   // ── Style helpers ──
-  const labelCls = 'text-[11px] uppercase tracking-wider text-[var(--text-tertiary)] font-semibold mb-1';
-  const fieldCardCls = 'flex flex-col rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-primary)] px-3 py-2.5 transition-all';
+  const labelCls = 'text-[11px] uppercase tracking-wider text-[var(--text-tertiary)] font-medium mb-1';
+  const fieldCardCls = 'flex flex-col rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface)] px-3 py-2.5 transition-all';
   const inlineDateCls = 'bg-transparent text-[var(--text-primary)] outline-none border-none cursor-pointer font-medium text-sm w-full';
-  const inlineNumberCls = 'bg-transparent text-[var(--text-primary)] outline-none border-none font-semibold text-sm w-full';
+  const inlineNumberCls = 'bg-transparent text-[var(--text-primary)] outline-none border-none font-medium text-sm w-full';
 
   // Inline select trigger style (borderless, transparent)
-  const inlineSelectTriggerCls = 'h-auto border-none bg-transparent px-0 py-0 text-sm font-semibold shadow-none ring-0 focus:ring-0 focus:border-none';
+  const inlineSelectTriggerCls = 'h-auto border-none bg-transparent px-0 py-0 text-sm font-medium shadow-none ring-0 focus:ring-0 focus:border-none';
 
   return (
     <Dialog.Root open={open} onOpenChange={(nextOpen) => !nextOpen && onClose()}>
@@ -219,7 +219,7 @@ export default function TaskDetailModal({
           // Mobil: bottom sheet
           'fixed inset-x-0 bottom-0 z-50 flex flex-col',
           'max-h-[92dvh] bg-[var(--bg-elevated)]',
-          'rounded-t-2xl border border-[var(--border-subtle)] shadow-2xl',
+          'rounded-t-2xl border border-[var(--border-subtle)]',
           'data-[state=open]:animate-in data-[state=open]:slide-in-from-bottom',
           'data-[state=closed]:animate-out data-[state=closed]:slide-out-to-bottom',
           'duration-300',
@@ -238,7 +238,7 @@ export default function TaskDetailModal({
             onTouchMove={handleDragHandleTouchMove}
             className="flex justify-center pt-3 pb-1 md:hidden shrink-0 cursor-grab"
           >
-            <div className="h-1 w-10 rounded-full bg-white/20" />
+            <div className="h-1 w-10 rounded-full bg-border-strong" />
           </div>
 
           {/* ── Header ── */}
@@ -268,9 +268,9 @@ export default function TaskDetailModal({
               <Tabs.Trigger
                 value="details"
                 className={clsx(
-                  'flex items-center gap-2 px-4 py-2.5 font-semibold text-sm transition-all border-b-2 outline-none -mb-px',
+                  'flex items-center gap-2 px-4 py-2.5 font-medium text-sm transition-all border-b-2 outline-none -mb-px',
                   activeTab === 'details'
-                    ? 'border-orange-500 text-orange-500'
+                    ? 'border-accent text-accent'
                     : 'border-transparent text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] rounded-t-lg'
                 )}
               >
@@ -279,9 +279,9 @@ export default function TaskDetailModal({
               <Tabs.Trigger
                 value="history"
                 className={clsx(
-                  'flex items-center gap-2 px-4 py-2.5 font-semibold text-sm transition-all border-b-2 outline-none -mb-px',
+                  'flex items-center gap-2 px-4 py-2.5 font-medium text-sm transition-all border-b-2 outline-none -mb-px',
                   activeTab === 'history'
-                    ? 'border-orange-500 text-orange-500'
+                    ? 'border-accent text-accent'
                     : 'border-transparent text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] rounded-t-lg'
                 )}
               >
@@ -299,14 +299,14 @@ export default function TaskDetailModal({
                   <div className="flex flex-col gap-6 min-w-0">
                     {/* ── Summary (Inline Edit) ── */}
                     <div>
-                      <h3 className="flex items-center gap-2 text-xs font-semibold text-[var(--text-tertiary)] uppercase tracking-wider mb-2">
+                      <h3 className="flex items-center gap-2 text-xs font-medium text-[var(--text-tertiary)] uppercase tracking-wider mb-2">
                         <Type size={14} /> Feladat cím
                       </h3>
                       {isEditingSummary ? (
                         <input
                           autoFocus
                           style={{fontSize: '16px'}}
-                          className="w-full text-xl font-bold bg-[var(--bg-primary)] text-[var(--text-primary)] border border-orange-500 rounded-lg px-3 py-2 outline-none ring-2 ring-orange-500/20"
+                          className="w-full text-xl font-medium bg-[var(--bg-surface)] text-[var(--text-primary)] border border-border-focus rounded-lg px-3 py-2 outline-none ring-2 ring-accent/50"
                           value={summary}
                           onChange={(e) => setSummary(e.target.value)}
                           onBlur={submitSummary}
@@ -319,7 +319,7 @@ export default function TaskDetailModal({
                         <h2
                           onClick={() => canEdit && setIsEditingSummary(true)}
                           className={clsx(
-                            'text-xl font-bold text-[var(--text-primary)] rounded-lg px-3 py-2 -mx-3 transition-all',
+                            'text-xl font-medium text-[var(--text-primary)] rounded-lg px-3 py-2 -mx-3 transition-all',
                             canEdit && 'cursor-text hover:bg-[var(--bg-hover)] border border-transparent hover:border-[var(--border-subtle)]'
                           )}
                         >
@@ -330,14 +330,14 @@ export default function TaskDetailModal({
 
                     {/* ── Description ── */}
                     <div>
-                      <h3 className="flex items-center gap-2 text-xs font-semibold text-[var(--text-tertiary)] uppercase tracking-wider mb-2">
+                      <h3 className="flex items-center gap-2 text-xs font-medium text-[var(--text-tertiary)] uppercase tracking-wider mb-2">
                         <AlignLeft size={14} /> Leírás
                       </h3>
                       {isEditingDesc ? (
                         <div className="flex flex-col gap-2.5">
                           <textarea
                             autoFocus
-                            className="w-full min-h-[120px] rounded-lg border border-orange-500 ring-2 ring-orange-500/20 bg-[var(--bg-primary)] px-4 py-3 text-sm text-[var(--text-primary)] outline-none resize-y"
+                            className="w-full min-h-[120px] rounded-lg border border-border-focus ring-2 ring-accent/50 bg-[var(--bg-surface)] px-4 py-3 text-sm text-[var(--text-primary)] outline-none resize-y"
                             value={description}
                             onChange={(e) => setDescription(e.target.value)}
                           />
@@ -350,7 +350,7 @@ export default function TaskDetailModal({
                               Mégse
                             </button>
                             <button type="button" onClick={submitDescription}
-                              className="px-4 py-1.5 text-sm font-semibold bg-orange-500 rounded-lg text-white hover:bg-orange-600 transition-colors"
+                              className="px-4 py-1.5 text-sm font-medium bg-accent rounded-lg text-white hover:bg-accent-hover transition-colors"
                             >
                               Mentés
                             </button>
@@ -377,20 +377,20 @@ export default function TaskDetailModal({
 
                     {/* ── Subtask Progress ── */}
                     {subtasksTotal > 0 && (
-                      <div className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-elevated)] p-4 shadow-sm">
-                        <h3 className="text-xs font-semibold text-[var(--text-tertiary)] uppercase tracking-wider mb-2">
+                      <div className="rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-elevated)] p-4">
+                        <h3 className="text-xs font-medium text-[var(--text-tertiary)] uppercase tracking-wider mb-2">
                           Alfeladatok ({subtasksCompleted}/{subtasksTotal})
                         </h3>
                         <div className="flex items-center gap-3">
-                          <div className="flex-1 h-2.5 bg-[var(--bg-primary)] border border-[var(--border-subtle)] rounded-full overflow-hidden">
+                          <div className="flex-1 h-2.5 bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-full overflow-hidden">
                             <div
                               className={clsx('h-full transition-all duration-500 ease-out rounded-full',
-                                subtasksCompleted === subtasksTotal ? 'bg-emerald-500' : 'bg-orange-500'
+                                subtasksCompleted === subtasksTotal ? 'bg-success' : 'bg-accent'
                               )}
                               style={{width: `${subtaskPercent}%`}}
                             />
                           </div>
-                          <span className="text-sm font-bold text-[var(--text-secondary)] tabular-nums">{Math.round(subtaskPercent)}%</span>
+                          <span className="text-sm font-medium text-[var(--text-secondary)] tabular-nums">{Math.round(subtaskPercent)}%</span>
                         </div>
                       </div>
                     )}
@@ -427,7 +427,7 @@ export default function TaskDetailModal({
                               </SelectContent>
                             </Select>
                           ) : (
-                            <span className="font-semibold text-sm text-[var(--text-primary)]">
+                            <span className="font-medium text-sm text-[var(--text-primary)]">
                               {TASK_TYPE_LABELS[task.task_type as keyof typeof TASK_TYPE_LABELS] || task.task_type}
                             </span>
                           )}
@@ -449,7 +449,7 @@ export default function TaskDetailModal({
                             </SelectContent>
                           </Select>
                         ) : (
-                          <span className="font-semibold text-sm text-[var(--text-primary)]">
+                          <span className="font-medium text-sm text-[var(--text-primary)]">
                             {STATUS_LABELS[task.status as keyof typeof STATUS_LABELS] || task.status}
                           </span>
                         )}
@@ -470,7 +470,7 @@ export default function TaskDetailModal({
                             </SelectContent>
                           </Select>
                         ) : (
-                          <span className={clsx('font-semibold text-sm', priorityColorCls(task.priority))}>
+                          <span className={clsx('font-medium text-sm', priorityColorCls(task.priority))}>
                             {PRIORITY_LABELS[task.priority] || task.priority}
                           </span>
                         )}
@@ -489,7 +489,7 @@ export default function TaskDetailModal({
                             placeholder="—"
                           />
                         ) : (
-                          <span className="font-semibold text-sm text-[var(--text-primary)]">{task.story_points ?? '—'}</span>
+                          <span className="font-medium text-sm text-[var(--text-primary)]">{task.story_points ?? '—'}</span>
                         )}
                       </div>
                     </div>
@@ -528,7 +528,7 @@ export default function TaskDetailModal({
                       {/* Started At */}
                       <div className={fieldCardCls}>
                         <div className="flex items-center gap-1.5 mb-1">
-                          <Clock size={12} className="text-blue-500" />
+                          <Clock size={12} className="text-info" />
                           <span className={labelCls + ' !mb-0'}>Elkezdve</span>
                         </div>
                         {canEdit ? (
@@ -546,7 +546,7 @@ export default function TaskDetailModal({
                       {/* Due At */}
                       <div className={fieldCardCls}>
                         <div className="flex items-center gap-1.5 mb-1">
-                          <Calendar size={12} className="text-amber-500" />
+                          <Calendar size={12} className="text-warning" />
                           <span className={labelCls + ' !mb-0'}>Határidő</span>
                         </div>
                         {canEdit ? (
@@ -564,7 +564,7 @@ export default function TaskDetailModal({
                       {/* Completed At */}
                       <div className={fieldCardCls}>
                         <div className="flex items-center gap-1.5 mb-1">
-                          <CalendarCheck size={12} className="text-emerald-500" />
+                          <CalendarCheck size={12} className="text-success" />
                           <span className={labelCls + ' !mb-0'}>Befejezve</span>
                         </div>
                         {canEdit ? (
@@ -588,7 +588,7 @@ export default function TaskDetailModal({
                           {task.categories.map((c) => (
                             <span key={c.task_category_id}
                               style={{backgroundColor: c.color + '15', color: c.color, borderColor: c.color + '30'}}
-                              className="px-2.5 py-1 text-[11px] uppercase font-bold rounded-full border"
+                              className="px-2.5 py-1 text-[11px] uppercase font-medium rounded-full border"
                             >
                               {c.name}
                             </span>
@@ -605,11 +605,11 @@ export default function TaskDetailModal({
                         className={clsx(
                           fieldCardCls,
                           'flex-row items-center gap-2 cursor-pointer select-none hover:bg-[var(--bg-hover)]',
-                          task.is_archived && 'bg-amber-50 border-amber-200 dark:bg-amber-900/20 dark:border-amber-800'
+                          task.is_archived && 'bg-warning-bg border-transparent'
                         )}
                       >
-                        <Archive size={14} className={task.is_archived ? 'text-amber-600' : 'text-[var(--text-tertiary)]'} />
-                        <span className={clsx('font-semibold text-sm', task.is_archived ? 'text-amber-700 dark:text-amber-400' : 'text-[var(--text-primary)]')}>
+                        <Archive size={14} className={task.is_archived ? 'text-warning' : 'text-[var(--text-tertiary)]'} />
+                        <span className={clsx('font-medium text-sm', task.is_archived ? 'text-warning' : 'text-[var(--text-primary)]')}>
                           {task.is_archived ? 'Archiválva ✓' : 'Archiválás'}
                         </span>
                       </button>
@@ -628,7 +628,7 @@ export default function TaskDetailModal({
                   {[1, 2, 3, 4].map((i) => (
                     <div key={i} className="mb-8 ml-6 relative animate-pulse">
                       <div className="absolute -left-[31px] top-1 h-3 w-3 rounded-full bg-[var(--border-default)] border-4 border-[var(--bg-elevated)]" />
-                      <div className="flex flex-col gap-2 border border-[var(--border-subtle)] p-3 rounded-lg bg-[var(--bg-primary)]">
+                      <div className="flex flex-col gap-2 border border-[var(--border-subtle)] p-3 rounded-lg bg-[var(--bg-surface)]">
                         <div className="flex justify-between">
                           <div className="h-4 w-28 rounded bg-[var(--bg-hover)]" />
                           <div className="h-4 w-32 rounded bg-[var(--bg-hover)]" />
@@ -644,13 +644,13 @@ export default function TaskDetailModal({
                   <p className="text-sm">Nincsenek elérhető előzmények.</p>
                 </div>
               ) : (
-                <div className="relative border-l-2 border-orange-200 dark:border-orange-900 ml-4 py-2">
+                <div className="relative border-l-2 border-border ml-4 py-2">
                   {historyItems.map((item, index) => (
                     <div key={item.id || index} className="mb-6 ml-6 relative group">
-                      <div className="absolute -left-[31px] top-1.5 h-3 w-3 rounded-full bg-orange-500 border-4 border-[var(--bg-elevated)] group-hover:bg-orange-400 transition-colors" />
-                      <div className="flex flex-col gap-1.5 border border-[var(--border-subtle)] p-3 rounded-lg bg-[var(--bg-primary)]">
+                      <div className="absolute -left-[31px] top-1.5 h-3 w-3 rounded-full bg-accent border-4 border-[var(--bg-elevated)] group-hover:bg-accent-hover transition-colors" />
+                      <div className="flex flex-col gap-1.5 border border-[var(--border-subtle)] p-3 rounded-lg bg-[var(--bg-surface)]">
                         <div className="flex items-center gap-2 justify-between">
-                          <span className="text-[11px] font-bold uppercase tracking-wider text-orange-600 dark:text-orange-400">
+                          <span className="text-[11px] font-medium uppercase tracking-wider text-accent">
                             {translateTaskEvent(item.action_type, 'hu')}
                           </span>
                           <span className="text-[11px] text-[var(--text-tertiary)] bg-[var(--bg-hover)] px-2 py-0.5 rounded-md font-medium">
@@ -661,16 +661,16 @@ export default function TaskDetailModal({
                         {(item.old_value !== null && item.old_value !== undefined) || (item.new_value !== null && item.new_value !== undefined) ? (
                           <div className="flex items-center gap-3 text-sm mt-1 p-2 bg-[var(--bg-elevated)] rounded-md border border-[var(--border-subtle)]">
                             {item.old_value !== null && item.old_value !== undefined && (
-                              <div className="text-[var(--text-secondary)] font-medium line-through decoration-red-500/50 decoration-2 flex-1 break-all text-xs">
-                                {translateTaskValue(item.old_value, 'hu') || <span className="italic text-gray-500">Üres</span>}
+                              <div className="text-[var(--text-secondary)] font-medium line-through decoration-danger/50 decoration-2 flex-1 break-all text-xs">
+                                {translateTaskValue(item.old_value, 'hu') || <span className="italic text-fg-muted">Üres</span>}
                               </div>
                             )}
                             {item.old_value !== null && item.new_value !== null && (
                               <ArrowRight size={12} className="text-[var(--text-tertiary)] flex-shrink-0" />
                             )}
                             {item.new_value !== null && item.new_value !== undefined && (
-                              <div className="text-emerald-600 dark:text-emerald-400 font-semibold flex-1 break-all text-xs">
-                                {translateTaskValue(item.new_value, 'hu') || <span className="italic text-gray-500">Üres</span>}
+                              <div className="text-success font-medium flex-1 break-all text-xs">
+                                {translateTaskValue(item.new_value, 'hu') || <span className="italic text-fg-muted">Üres</span>}
                               </div>
                             )}
                           </div>

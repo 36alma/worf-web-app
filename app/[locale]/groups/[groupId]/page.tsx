@@ -60,14 +60,14 @@ export default function GroupDetailPage() {
     <div className="max-w-6xl mx-auto space-y-6 mt-4">
       {/* Page Header */}
       <div className="flex items-center gap-4 bg-[#1a1a1a] border border-white/5 p-6 rounded-xl">
-        <div className="flex items-center justify-center w-16 h-16 rounded-xl bg-orange-500 text-white text-2xl font-bold shadow-lg shadow-orange-500/20">
+        <div className="flex items-center justify-center w-16 h-16 rounded-xl bg-accent text-white text-2xl font-medium">
           {monogram}
         </div>
         <div className="flex flex-col">
           <h1 className="text-2xl font-bold text-white tracking-tight">
             {groupName}
           </h1>
-          <div className="flex items-center gap-2 text-sm text-gray-400 mt-1">
+          <div className="flex items-center gap-2 text-sm text-fg-secondary mt-1">
             <span>Létrehozva: {createdDate}</span>
             <span>&middot;</span>
             <span>{memberCount} tag</span>

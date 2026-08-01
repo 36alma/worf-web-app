@@ -28,7 +28,7 @@ const SIDEBAR_WIDTH = 320;
 const ROW_HEIGHT = 72;
 
 const STATUS_BAR_COLORS: Record<string, string> = {
-  TODO: 'bg-orange-500/85',
+  TODO: 'bg-sky-500/80',
   IN_PROGRESS: 'bg-blue-500/80',
   IN_REVIEW: 'bg-emerald-500/80',
   DONE: 'bg-emerald-500/80',
@@ -37,7 +37,7 @@ const STATUS_BAR_COLORS: Record<string, string> = {
 
 const PRIORITY_BAR_COLORS: Record<string, string> = {
   URGENT: 'bg-red-500/80',
-  HIGH: 'bg-orange-500/80',
+  HIGH: 'bg-amber-500/80',
   MEDIUM: 'bg-amber-500/80',
   NORMAL: 'bg-amber-500/80',
   LOW: 'bg-emerald-500/80'
@@ -262,11 +262,11 @@ export default function TimelineView({
 
   if (items.length === 0) {
     return (
-      <div className="flex h-full w-full min-w-0 flex-1 items-center justify-center rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-elevated)]">
+      <div className="flex h-full w-full min-w-0 flex-1 items-center justify-center rounded-lg border border-border bg-surface-2">
         <div className="flex flex-col items-center gap-3 text-center text-[var(--text-tertiary)]">
           <CalendarRange size={42} className="opacity-60" />
           <div>
-            <p className="font-semibold text-[var(--text-secondary)]">Nincs feladat ebben az időszakban</p>
+            <p className="font-medium text-[var(--text-secondary)]">Nincs feladat ebben az időszakban</p>
             <p className="text-sm">A timeline a betöltött és érvényes dátummal rendelkező feladatokból épül fel.</p>
           </div>
         </div>
@@ -287,10 +287,10 @@ export default function TimelineView({
   const activeDragTaskId = dragState?.taskId ?? null;
 
   return (
-    <div className="flex h-full min-h-0 w-full min-w-0 flex-1 flex-col overflow-hidden rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] shadow-sm">
+    <div className="flex h-full min-h-0 w-full min-w-0 flex-1 flex-col overflow-hidden rounded-lg border border-border bg-surface-1">
       <div className="flex items-center justify-between border-b border-[var(--border-subtle)] px-5 py-4">
         <div>
-          <h2 className="text-lg font-semibold text-[var(--text-primary)]">Idovonal</h2>
+          <h2 className="text-lg font-medium text-[var(--text-primary)]">Idovonal</h2>
           <p className="text-sm text-[var(--text-secondary)]">
             {formatRangeDate(start)} - {formatRangeDate(end)}
           </p>
@@ -312,7 +312,7 @@ export default function TimelineView({
                 className="sticky left-0 z-30 shrink-0 border-r border-[var(--border-subtle)] bg-[var(--bg-surface)]/95 backdrop-blur"
                 style={{width: SIDEBAR_WIDTH}}
               >
-                <div className="flex h-10 items-center px-4 text-[11px] font-semibold uppercase tracking-[0.22em] text-[var(--text-tertiary)]">
+                <div className="flex h-10 items-center px-4 text-[11px] font-medium uppercase tracking-[0.22em] text-[var(--text-tertiary)]">
                   Feladatok
                 </div>
                 <div className="flex h-12 items-center px-4 text-xs text-[var(--text-tertiary)]">
@@ -328,7 +328,7 @@ export default function TimelineView({
                   {weekSegments.map((segment) => (
                     <div
                       key={segment.key}
-                      className="flex items-center border-r border-[var(--border-subtle)] px-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--text-tertiary)] last:border-r-0"
+                      className="flex items-center border-r border-[var(--border-subtle)] px-3 text-[11px] font-medium uppercase tracking-[0.18em] text-[var(--text-tertiary)] last:border-r-0"
                       style={{gridColumn: `span ${segment.span} / span ${segment.span}`}}
                     >
                       {segment.label}
@@ -347,13 +347,13 @@ export default function TimelineView({
                         key={day.toISOString()}
                         className={clsx(
                           'flex flex-col justify-center border-r border-[var(--border-subtle)] px-2 text-center last:border-r-0',
-                          isToday && 'bg-orange-500/10'
+                          isToday && 'bg-accent/10'
                         )}
                       >
                         <span className="text-[10px] uppercase tracking-[0.18em] text-[var(--text-tertiary)]">
                           {formatWeekday(day)}
                         </span>
-                        <span className={clsx('text-sm font-semibold', isToday ? 'text-orange-400' : 'text-[var(--text-primary)]')}>
+                        <span className={clsx('text-sm font-medium', isToday ? 'text-accent' : 'text-[var(--text-primary)]')}>
                           {formatDayLabel(day)}
                         </span>
                       </div>
@@ -424,15 +424,15 @@ export default function TimelineView({
                     style={{width: SIDEBAR_WIDTH, height: ROW_HEIGHT}}
                   >
                     <div className="min-w-0 space-y-2">
-                      <div className="truncate text-sm font-semibold text-[var(--text-primary)]">
+                      <div className="truncate text-sm font-medium text-[var(--text-primary)]">
                         {item.name}
                       </div>
                       <div className="flex flex-wrap items-center gap-2">
-                        <span className={clsx('inline-flex rounded-full border px-2 py-0.5 text-[10px] font-semibold', STATUS_COLORS[item.task.status as keyof typeof STATUS_COLORS] || 'border-zinc-700 bg-zinc-800 text-zinc-200')}>
+                        <span className={clsx('inline-flex rounded-full border px-2 py-0.5 text-[10px] font-medium', STATUS_COLORS[item.task.status as keyof typeof STATUS_COLORS] || 'border-border bg-surface-2 text-fg-secondary')}>
                           {statusLabel}
                         </span>
                         {priorityLabel ? (
-                          <span className={clsx('inline-flex rounded-full border px-2 py-0.5 text-[10px] font-semibold', PRIORITY_COLORS[item.task.priority] || 'border-zinc-700 bg-zinc-800 text-zinc-200')}>
+                          <span className={clsx('inline-flex rounded-full border px-2 py-0.5 text-[10px] font-medium', PRIORITY_COLORS[item.task.priority] || 'border-border bg-surface-2 text-fg-secondary')}>
                             {priorityLabel}
                           </span>
                         ) : null}
@@ -455,7 +455,7 @@ export default function TimelineView({
                             key={`${item.id}-${day.toISOString()}`}
                             className={clsx(
                               'border-r border-[var(--border-subtle)] last:border-r-0',
-                              isToday && 'bg-orange-500/5'
+                              isToday && 'bg-accent/5'
                             )}
                           />
                         );
@@ -475,11 +475,11 @@ export default function TimelineView({
                       }}
                       onPointerDown={(event) => beginDrag('move', event)}
                       className={clsx(
-                         'absolute top-1/2 z-10 flex h-9 min-w-[60px] -translate-y-1/2 items-center overflow-hidden rounded-full border border-white/10 px-3 text-left shadow-[0_12px_30px_rgba(0,0,0,0.18)] transition-all',
+                         'absolute top-1/2 z-10 flex h-9 min-w-[60px] -translate-y-1/2 items-center overflow-hidden rounded-full border border-white/10 px-3 text-left transition-all',
                         barTone,
                         permissions.task.modify && 'cursor-grab active:cursor-grabbing',
                         !item.isDisabled && !isDragging && 'hover:-translate-y-[52%] hover:brightness-110',
-                        isDragging && 'z-20 brightness-110 ring-2 ring-orange-500 shadow-lg shadow-orange-500/20'
+                        isDragging && 'z-20 brightness-110 ring-2 ring-accent'
                       )}
                       style={{
                         left: `calc(${leftPct}% + 6px)`,
@@ -509,7 +509,7 @@ export default function TimelineView({
                         {!item.hasDueAt ? (
                           <span className="h-2.5 w-2.5 rounded-full bg-white/85 shadow-sm" />
                         ) : null}
-                        <span className="truncate text-xs font-semibold text-white/95">
+                        <span className="truncate text-xs font-medium text-white/95">
                           {issueKey}
                         </span>
                       </span>
@@ -518,13 +518,13 @@ export default function TimelineView({
                     {isDragging ? (
                       <>
                         <div
-                          className="absolute top-2 rounded-full border border-[var(--border-subtle)] bg-[var(--bg-surface)]/95 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--text-secondary)] shadow-md backdrop-blur"
+                          className="absolute top-2 rounded-full border border-[var(--border-subtle)] bg-[var(--bg-surface)]/95 px-2.5 py-1 text-[10px] font-medium uppercase tracking-[0.16em] text-[var(--text-secondary)] backdrop-blur"
                            style={{left: `max(0px, calc(${leftPct}%))`}}
                          >
                            Elkezdve {formatDayLabel(item.start)}
                          </div>
                         <div
-                          className="absolute top-2 rounded-full border border-[var(--border-subtle)] bg-[var(--bg-surface)]/95 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--text-secondary)] shadow-md backdrop-blur"
+                          className="absolute top-2 rounded-full border border-[var(--border-subtle)] bg-[var(--bg-surface)]/95 px-2.5 py-1 text-[10px] font-medium uppercase tracking-[0.16em] text-[var(--text-secondary)] backdrop-blur"
                            style={{left: `max(0px, calc(${leftPct + widthPct}% - 110px))`}}
                          >
                            Határidő {formatDayLabel(item.end)}

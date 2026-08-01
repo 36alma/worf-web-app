@@ -1,14 +1,20 @@
 import {useState, useEffect, useRef} from 'react';
-import {Calendar, GripVertical, Bug, BookOpen, Zap, Layers, CheckSquare} from 'lucide-react';
+import {Calendar, GripVertical} from 'lucide-react';
 import clsx from 'clsx';
-import {Task, PRIORITY_COLORS, TASK_TYPE_LABELS} from './types';
+import {Task} from './types';
 import TaskTypeBadge from './TaskTypeBadge';
-const TASK_TYPE_ICONS: Record<string, React.ReactNode> = {
-  BUG: <Bug size={12} className="text-red-500" />,
-  STORY: <BookOpen size={12} className="text-blue-500" />,
-  EPIC: <Zap size={12} className="text-purple-500" />,
-  SUBTASK: <Layers size={12} className="text-teal-500" />,
-  TASK: <CheckSquare size={12} className="text-orange-500" />,
+import Badge from '@/components/ui/Badge';
+import Avatar from '@/components/ui/Avatar';
+
+type BadgeVariant = 'neutral' | 'success' | 'warning' | 'danger' | 'info' | 'accent';
+
+// Priority → muted tint badge (spec §8/1: solid MEDIUM/LOW badges → tint).
+const PRIORITY_VARIANT: Record<string, BadgeVariant> = {
+  LOW: 'success',
+  MEDIUM: 'warning',
+  HIGH: 'danger',
+  CRITICAL: 'danger',
+  URGENT: 'danger',
 };
 
 export interface TaskCardProps {
@@ -76,13 +82,16 @@ export default function TaskCard({
       onClick={!isEditing ? onClick : undefined}
       style={{touchAction: 'manipulation'}}
       className={clsx(
-        'group relative flex cursor-pointer flex-col gap-2.5 rounded-xl border bg-[var(--bg-elevated)] p-4 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-lg active:scale-[0.98]',
-        isDragging ? 'ring-2 ring-orange-500 border-orange-500 shadow-xl shadow-orange-500/20 opacity-90 scale-105' : 'border-[var(--border-subtle)] hover:border-[var(--border-hover)]',
-        isSelected && 'ring-2 ring-orange-500 border-orange-500 bg-orange-50/50 dark:bg-orange-950/20'
+        'group relative flex cursor-pointer flex-col gap-2.5 rounded-lg border bg-surface-2 p-3 transition-colors',
+        isDragging
+          ? 'border-accent opacity-90 ring-2 ring-accent'
+          : isSelected
+            ? 'border-accent ring-2 ring-accent'
+            : 'border-border hover:border-border-strong'
       )}
     >
-      {/* Selection Checkbox & Drag Handle */}
-      <div className="absolute left-2 top-2 z-10 flex flex-col gap-1 items-center opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
+      {/* Selection checkbox */}
+      <div className="absolute left-2 top-2 z-10 flex flex-col items-center gap-1 opacity-0 transition-opacity focus-within:opacity-100 group-hover:opacity-100">
         {permissions.task.delete && (
           <input
             type="checkbox"
@@ -92,12 +101,12 @@ export default function TaskCard({
               onToggleSelection?.();
             }}
             onClick={(e) => e.stopPropagation()}
-            className="h-4 w-4 rounded border-gray-300 text-orange-500 focus:ring-orange-500 cursor-pointer accent-orange-500"
+            className="size-4 cursor-pointer rounded border border-border accent-[var(--accent)]"
           />
         )}
       </div>
 
-      {/* Top Row: issue_key + task_type + drag handle */}
+      {/* Top row: issue_key + task_type + drag handle */}
       <div className="flex items-center justify-between gap-2 pl-6">
         <TaskTypeBadge task_type={task.task_type} issue_key={task.issue_key} size="sm" />
 
@@ -105,7 +114,8 @@ export default function TaskCard({
           <div
             {...dragListeners}
             onClick={(e) => e.stopPropagation()}
-            className="cursor-grab active:cursor-grabbing text-[var(--text-tertiary)] hover:text-orange-500 -mt-1 -mr-1 p-1 transition-colors"
+            title="Drag"
+            className="-mr-1 -mt-1 cursor-grab p-1 text-fg-muted transition-colors hover:text-fg active:cursor-grabbing"
           >
             <GripVertical size={16} />
           </div>
@@ -122,81 +132,81 @@ export default function TaskCard({
             onBlur={saveEdit}
             onKeyDown={handleKeyDown}
             onClick={(e) => e.stopPropagation()}
-            className="w-full rounded border border-orange-500 bg-transparent px-1 py-0.5 text-[15px] font-semibold text-[var(--text-primary)] focus:outline-none focus:ring-1 focus:ring-orange-500/30"
+            className="w-full rounded-md border border-border-focus bg-transparent px-1 py-0.5 text-sm font-medium text-fg focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/50"
           />
         ) : (
           <h4
             onDoubleClick={handleDoubleClick}
-            className="text-[15px] font-semibold text-[var(--text-primary)] leading-tight line-clamp-2"
-            title="Kattints duplán a szerkesztéshez"
+            className="line-clamp-2 text-sm font-medium leading-tight text-fg"
           >
             {task.summary}
           </h4>
         )}
       </div>
 
-      {/* Meta row: priority badge, story points, due date */}
-      <div className="flex flex-wrap items-center gap-2 text-xs mt-1">
+      {/* Meta row: priority, story points, due date, assignee */}
+      <div className="mt-1 flex flex-wrap items-center gap-2">
         {task.priority && (
-          <span className={clsx(
-            "inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold tracking-wide border",
-            PRIORITY_COLORS[task.priority.toUpperCase()] || 'bg-gray-100 text-gray-700 border-gray-200'
-          )}>
+          <Badge variant={PRIORITY_VARIANT[task.priority.toUpperCase()] ?? 'neutral'}>
             {task.priority.toUpperCase()}
-          </span>
+          </Badge>
         )}
 
-        {(task.story_points !== null && task.story_points !== undefined && task.story_points > 0) && (
-          <span className="inline-flex items-center justify-center h-6 min-w-[24px] px-1.5 rounded-full bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300 border border-orange-200 dark:border-orange-800 text-[11px] font-bold tabular-nums" title="Story Points">
-            {task.story_points} SP
-          </span>
+        {task.story_points !== null && task.story_points !== undefined && task.story_points > 0 && (
+          <Badge variant="neutral">{task.story_points} SP</Badge>
         )}
 
         {task.due_at && (
-          <div className={clsx(
-            "flex items-center gap-1.5 px-2 py-0.5 rounded-md border font-medium",
-            isOverdue ? "bg-red-50 border-red-200 text-red-700 dark:bg-red-900/30" :
-            isDueSoon ? "bg-amber-50 border-amber-200 text-amber-700 dark:bg-amber-900/30" :
-            "bg-[var(--bg-surface)] border-[var(--border-subtle)] text-[var(--text-secondary)]"
-          )}>
-            <Calendar size={12} className={clsx(isOverdue && "text-red-500")} />
+          <span
+            className={clsx(
+              'inline-flex items-center gap-1 rounded-sm px-2 py-0.5 text-caption font-medium',
+              isOverdue
+                ? 'bg-danger-bg text-danger'
+                : isDueSoon
+                  ? 'bg-warning-bg text-warning'
+                  : 'text-fg-muted'
+            )}
+          >
+            <Calendar size={12} />
             {new Date(task.due_at).toLocaleDateString(undefined, {month: 'short', day: 'numeric'})}
-          </div>
+          </span>
         )}
 
         {task.assigneer_id?.assigneer_fullname && (
-          <div className="ml-auto flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-orange-100 to-amber-100 dark:from-orange-900/40 dark:to-amber-900/40 text-[10px] font-bold text-orange-800 dark:text-orange-300 ring-2 ring-white dark:ring-zinc-800 shadow-sm" title={task.assigneer_id.assigneer_fullname}>
-            {task.assigneer_id.assigneer_fullname.substring(0, 2).toUpperCase()}
-          </div>
+          <Avatar
+            name={task.assigneer_id.assigneer_fullname}
+            size="sm"
+            className="ml-auto"
+          />
         )}
       </div>
 
-      {/* Subtask Progress Bar */}
+      {/* Subtask progress */}
       {subtasksTotal > 0 && (
-        <div className="flex items-center gap-2 w-full mt-1" title={`${subtasksCompleted} / ${subtasksTotal} alfeladat kész`}>
-          <div className="flex-1 h-2 bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-full overflow-hidden">
-            <div 
+        <div className="mt-1 flex w-full items-center gap-2">
+          <div className="h-1.5 flex-1 overflow-hidden rounded-full border border-border bg-surface-1">
+            <div
               className={clsx(
-                "h-full transition-all duration-500 ease-out rounded-full",
-                subtasksCompleted === subtasksTotal ? "bg-emerald-500" : "bg-orange-500"
+                'h-full rounded-full transition-all duration-500 ease-out',
+                subtasksCompleted === subtasksTotal ? 'bg-success' : 'bg-info'
               )}
               style={{ width: `${subtaskPercent}%` }}
             />
           </div>
-          <span className="text-[10px] font-bold text-[var(--text-tertiary)] tabular-nums">
+          <span className="text-caption font-medium tabular-nums text-fg-muted">
             {subtasksCompleted}/{subtasksTotal}
           </span>
         </div>
       )}
 
-      {/* Categories */}
+      {/* Categories (user-assigned colours are intentional per-item colour) */}
       {task.categories && task.categories.length > 0 && (
-        <div className="flex flex-wrap gap-1.5 pt-2 border-t border-[var(--border-subtle)]/50 mt-1">
+        <div className="mt-1 flex flex-wrap gap-1.5 border-t border-border pt-2">
           {task.categories.map((c) => (
             <span
               key={c.task_category_id}
-              style={{backgroundColor: c.color + '15', color: c.color, borderColor: c.color + '30'}}
-              className="px-2 py-0.5 text-[10px] uppercase font-bold rounded border border-solid"
+              style={{backgroundColor: c.color + '22', color: c.color}}
+              className="rounded-sm px-2 py-0.5 text-caption font-medium uppercase"
             >
               {c.name}
             </span>

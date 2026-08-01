@@ -31,14 +31,12 @@ function getInitials(name: string): string {
 }
 
 function UserAvatar({user, size = 'sm'}: {user: GroupUser; size?: 'sm' | 'md'}) {
-  const colorClass = AVATAR_COLORS[hashCode(user.user_id) % AVATAR_COLORS.length];
   const sizeClass = size === 'md' ? 'h-7 w-7 text-[11px]' : 'h-5 w-5 text-[10px]';
 
   return (
     <span
       className={clsx(
-        'inline-flex shrink-0 select-none items-center justify-center rounded-full font-bold text-white',
-        colorClass,
+        'inline-flex shrink-0 select-none items-center justify-center rounded-full bg-surface-2 font-medium text-fg-secondary',
         sizeClass
       )}
     >
@@ -95,16 +93,16 @@ export default function AssigneeCombobox({
           aria-label={t('form.assignee')}
           className={clsx(
             'flex w-full items-center gap-2 rounded-lg border px-3 py-2 text-sm transition-all duration-150',
-            'bg-[var(--bg-primary)] text-[var(--text-primary)]',
+            'bg-[var(--bg-surface)] text-[var(--text-primary)]',
             open
-              ? 'border-orange-500 ring-2 ring-orange-500/20'
+              ? 'border-border-focus ring-2 ring-accent/50'
               : 'border-[var(--border-subtle)] hover:border-[var(--border-default)]',
             disabled && 'cursor-not-allowed opacity-50',
             !disabled && 'cursor-pointer'
           )}
         >
           {loading ? (
-            <div className="h-5 w-5 shrink-0 animate-spin rounded-full border-2 border-[var(--border-default)] border-t-orange-500" />
+            <div className="h-5 w-5 shrink-0 animate-spin rounded-full border-2 border-[var(--border-default)] border-t-accent" />
           ) : selectedUser ? (
             <UserAvatar user={selectedUser} />
           ) : (
@@ -139,7 +137,7 @@ export default function AssigneeCombobox({
           sideOffset={4}
           className={clsx(
             'z-[100] w-[var(--radix-popover-trigger-width)] min-w-[280px] max-w-[400px]',
-            'rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-elevated)] shadow-xl',
+            'rounded-lg border border-border bg-surface-2',
             'animate-in fade-in-0 zoom-in-95 slide-in-from-top-2 duration-150'
           )}
           onOpenAutoFocus={(event) => event.preventDefault()}
@@ -183,16 +181,16 @@ export default function AssigneeCombobox({
                 onSelect={() => handleSelect(null)}
                 className={clsx(
                   'flex cursor-pointer items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm transition-colors',
-                  'data-[selected=true]:bg-orange-50 data-[selected=true]:dark:bg-orange-900/20',
+                  'data-[selected=true]:bg-[var(--bg-active)]',
                   'hover:bg-[var(--bg-hover)]',
-                  value === null && 'bg-orange-50/60 dark:bg-orange-950/30'
+                  value === null && 'bg-[var(--bg-active)]'
                 )}
               >
-                <span className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-zinc-200 dark:bg-zinc-700">
-                  <X size={11} className="text-zinc-500 dark:text-zinc-400" />
+                <span className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-surface-2">
+                  <X size={11} className="text-fg-muted" />
                 </span>
                 <span className="flex-1 font-medium text-[var(--text-secondary)]">{t('form.unassigned')}</span>
-                {value === null && <Check size={14} className="shrink-0 text-orange-500" />}
+                {value === null && <Check size={14} className="shrink-0 text-accent" />}
               </Command.Item>
 
               {users.length > 0 && <div className="mx-1 my-1 h-px bg-[var(--border-subtle)]" />}
@@ -204,9 +202,9 @@ export default function AssigneeCombobox({
                   onSelect={() => handleSelect(user.user_id)}
                   className={clsx(
                     'flex cursor-pointer items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm transition-colors',
-                    'data-[selected=true]:bg-orange-50 data-[selected=true]:dark:bg-orange-900/20',
+                    'data-[selected=true]:bg-[var(--bg-active)]',
                     'hover:bg-[var(--bg-hover)]',
-                    value === user.user_id && 'bg-orange-50/60 dark:bg-orange-950/30'
+                    value === user.user_id && 'bg-[var(--bg-active)]'
                   )}
                 >
                   <UserAvatar user={user} />
@@ -220,7 +218,7 @@ export default function AssigneeCombobox({
                       </div>
                     )}
                   </div>
-                  {value === user.user_id && <Check size={14} className="shrink-0 text-orange-500" />}
+                  {value === user.user_id && <Check size={14} className="shrink-0 text-accent" />}
                 </Command.Item>
               ))}
             </Command.List>

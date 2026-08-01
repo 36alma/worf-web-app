@@ -180,6 +180,11 @@
       "calendar": "Calendar",
       "timeline": "Timeline"
     },
+    "board": {
+      "emptyColumn": "Drop a task here",
+      "taskCount": "{count} tasks",
+      "wipExceeded": "Limit exceeded!"
+    },
     "calendar": {
       "today": "Today",
       "month": "Month"

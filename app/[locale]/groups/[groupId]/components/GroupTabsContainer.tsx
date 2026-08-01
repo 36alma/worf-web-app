@@ -25,14 +25,14 @@ export function GroupTabsContainer({ groupData }: GroupTabsContainerProps) {
           <TabsList className="flex flex-col h-auto w-full bg-transparent p-0 gap-1 items-stretch">
             <TabsTrigger 
               value="general" 
-              className="justify-start px-4 py-3 h-auto text-base text-gray-400 font-medium data-[state=active]:bg-orange-500/10 data-[state=active]:text-orange-500 data-[state=active]:shadow-none rounded-none border-l-2 border-transparent data-[state=active]:border-orange-500 hover:bg-white/5 transition-colors"
+              className="justify-start px-4 py-3 h-auto text-base text-fg-secondary font-medium data-[state=active]:bg-accent/10 data-[state=active]:text-accent data-[state=active]:shadow-none rounded-none border-l-2 border-transparent data-[state=active]:border-accent hover:bg-surface-hover transition-colors"
             >
               <Settings className="w-5 h-5 mr-3" />
               {t('general')}
             </TabsTrigger>
             <TabsTrigger 
               value="members" 
-              className="justify-start px-4 py-3 h-auto text-base text-gray-400 font-medium data-[state=active]:bg-orange-500/10 data-[state=active]:text-orange-500 data-[state=active]:shadow-none rounded-none border-l-2 border-transparent data-[state=active]:border-orange-500 hover:bg-white/5 transition-colors"
+              className="justify-start px-4 py-3 h-auto text-base text-fg-secondary font-medium data-[state=active]:bg-accent/10 data-[state=active]:text-accent data-[state=active]:shadow-none rounded-none border-l-2 border-transparent data-[state=active]:border-accent hover:bg-surface-hover transition-colors"
             >
               <Users className="w-5 h-5 mr-3" />
               {t('members')}
@@ -40,7 +40,7 @@ export function GroupTabsContainer({ groupData }: GroupTabsContainerProps) {
             {canGetRoles && (
               <TabsTrigger 
                 value="roles" 
-                className="justify-start px-4 py-3 h-auto text-base text-gray-400 font-medium data-[state=active]:bg-orange-500/10 data-[state=active]:text-orange-500 data-[state=active]:shadow-none rounded-none border-l-2 border-transparent data-[state=active]:border-orange-500 hover:bg-white/5 transition-colors"
+                className="justify-start px-4 py-3 h-auto text-base text-fg-secondary font-medium data-[state=active]:bg-accent/10 data-[state=active]:text-accent data-[state=active]:shadow-none rounded-none border-l-2 border-transparent data-[state=active]:border-accent hover:bg-surface-hover transition-colors"
               >
                 <Shield className="w-5 h-5 mr-3" />
                 {t('roles')}

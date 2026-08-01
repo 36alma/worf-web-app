@@ -12,7 +12,7 @@ export default function FieldError({messages, className}: FieldErrorProps) {
   if (list.length === 0) return null;
 
   return (
-    <p role="alert" className={clsx('mt-1 text-[11px] font-medium text-red-500', className)}>
+    <p role="alert" className={clsx('mt-1 text-caption font-medium text-danger', className)}>
       {list[0]}
     </p>
   );

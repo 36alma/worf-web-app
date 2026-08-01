@@ -28,7 +28,7 @@ export default class ErrorBoundary extends React.Component<ErrorBoundaryProps, E
     if (this.state.hasError) {
       return (
         this.props.fallback ?? (
-          <div className="rounded-lg border border-[var(--border-default)] bg-[var(--bg-elevated)] p-4 text-sm text-red-300">
+          <div className="rounded-lg border border-border bg-surface-2 p-4 text-sm text-danger">
             Calendar view failed to render.
           </div>
         )

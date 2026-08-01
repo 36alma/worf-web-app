@@ -73,7 +73,7 @@ export default function AdminLayoutClient({ children }: { children: ReactNode })
   return (
     <section className="space-y-4">
       <h1 className="display-font text-[var(--text-primary)] text-2xl">{t('title')}</h1>
-      <p className="text-sm text-slate-300">{t('subtitle')}</p>
+      <p className="text-sm text-fg-secondary">{t('subtitle')}</p>
 
       <div className="flex flex-wrap gap-2">
         {allowedSections.map(({ key }) => {
@@ -84,8 +84,8 @@ export default function AdminLayoutClient({ children }: { children: ReactNode })
               key={key}
               href={href}
               className={`rounded-md border px-3 py-2 text-sm transition ${active
-                ? 'border-indigo-400/60 bg-[var(--accent-subtle)] text-indigo-200'
-                : 'border-[var(--border)] text-slate-300 hover:bg-[var(--accent-dark)]'
+                ? 'border-accent bg-accent-subtle text-accent'
+                : 'border-border text-fg-secondary hover:bg-surface-hover'
                 }`}
             >
               {t(`sections.${key}`)}

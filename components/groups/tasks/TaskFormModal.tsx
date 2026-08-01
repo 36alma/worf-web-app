@@ -212,24 +212,24 @@ export default function TaskFormModal({
 
   const labelClassName = 'mb-1.5 block text-xs font-medium uppercase tracking-wider text-[var(--text-tertiary)]';
   const inputClassName = clsx(
-    'w-full rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-primary)] px-3 py-2 text-sm text-[var(--text-primary)]',
+    'w-full rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface)] px-3 py-2 text-sm text-[var(--text-primary)]',
     'outline-none transition-all duration-150',
-    'focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20',
+    'focus-visible:border-border-focus focus-visible:ring-2 focus-visible:ring-accent/50',
     'placeholder:text-[var(--text-tertiary)]'
   );
-  const errorClassName = 'mt-1 text-[11px] font-medium text-red-500';
+  const errorClassName = 'mt-1 text-[11px] font-medium text-danger';
 
   return (
     <Dialog.Root open={open} onOpenChange={(nextOpen) => !nextOpen && onClose()}>
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-50 bg-black/50 backdrop-blur-[3px] animate-in fade-in-0 duration-200" />
-        <Dialog.Content className="fixed left-1/2 top-1/2 z-50 w-[min(94vw,680px)] md:w-[min(96vw,880px)] -translate-x-1/2 -translate-y-1/2 rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-elevated)] shadow-2xl animate-in fade-in-0 zoom-in-95 slide-in-from-bottom-2 duration-200">
+        <Dialog.Content className="fixed left-1/2 top-1/2 z-50 w-[min(94vw,680px)] md:w-[min(96vw,880px)] -translate-x-1/2 -translate-y-1/2 rounded-lg border border-border bg-surface-2 animate-in fade-in-0 zoom-in-95 slide-in-from-bottom-2 duration-200">
           <div className="flex items-center justify-between border-b border-[var(--border-subtle)] px-6 py-4">
             <div className="flex items-center gap-2.5">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-orange-500/10">
-                {initialData ? <Sparkles size={16} className="text-orange-500" /> : <Plus size={16} className="text-orange-500" />}
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent/10">
+                {initialData ? <Sparkles size={16} className="text-accent" /> : <Plus size={16} className="text-accent" />}
               </div>
-              <Dialog.Title className="text-base font-semibold text-[var(--text-primary)]">
+              <Dialog.Title className="text-base font-medium text-[var(--text-primary)]">
                 {initialData ? t('page.editTitle') : t('page.createTitle')}
               </Dialog.Title>
             </div>
@@ -243,20 +243,20 @@ export default function TaskFormModal({
           <form onSubmit={handleSubmit(onSubmit)} className="flex max-h-[65vh] md:max-h-[75vh] flex-col gap-5 overflow-y-auto px-6 py-5">
             <div className="grid grid-cols-[160px_1fr] gap-4">
               <div>
-                <label className={labelClassName}>{t('table.key')} <span className="text-red-400">*</span></label>
+                <label className={labelClassName}>{t('table.key')} <span className="text-danger">*</span></label>
                 <input
                   {...register('issue_key')}
                   disabled={!!initialData}
-                  className={clsx(inputClassName, errors.issue_key && 'border-red-400 focus:border-red-500 focus:ring-red-500/20', initialData && 'cursor-not-allowed opacity-60')}
+                  className={clsx(inputClassName, errors.issue_key && 'border-danger focus-visible:border-danger focus-visible:ring-2 focus-visible:ring-danger/40', initialData && 'cursor-not-allowed opacity-60')}
                   placeholder="TASK-1234"
                 />
                 {errors.issue_key && <span className={errorClassName}>{errors.issue_key.message}</span>}
               </div>
               <div>
-                <label className={labelClassName}>{t('table.summary')} <span className="text-red-400">*</span></label>
+                <label className={labelClassName}>{t('table.summary')} <span className="text-danger">*</span></label>
                 <input
                   {...register('summary')}
-                  className={clsx(inputClassName, errors.summary && 'border-red-400 focus:border-red-500 focus:ring-red-500/20')}
+                  className={clsx(inputClassName, errors.summary && 'border-danger focus-visible:border-danger focus-visible:ring-2 focus-visible:ring-danger/40')}
                   placeholder={t('form.summaryPlaceholder')}
                 />
                 {errors.summary && <span className={errorClassName}>{errors.summary.message}</span>}
@@ -401,7 +401,7 @@ export default function TaskFormModal({
               type="submit"
               disabled={isSubmitting}
               onClick={handleSubmit(onSubmit)}
-              className="rounded-lg bg-orange-500 px-5 py-2 text-sm font-semibold text-white transition-all hover:bg-orange-600 hover:shadow-lg hover:shadow-orange-500/20 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50"
+              className="rounded-lg bg-accent px-5 py-2 text-sm font-medium text-white transition-all hover:bg-accent-hover active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50"
             >
               {isSubmitting ? (
                 <span className="flex items-center gap-2">

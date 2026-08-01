@@ -200,30 +200,30 @@ export function GroupMembersTab() {
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-xl font-semibold text-white flex items-center gap-2">
-            <Users className="text-orange-500" size={20} />
+          <h2 className="text-xl font-medium text-white flex items-center gap-2">
+            <Users className="text-accent" size={20} />
             {t('title')}
           </h2>
-          <p className="text-sm text-gray-400 mt-1">{t('description')}</p>
+          <p className="text-sm text-fg-secondary mt-1">{t('description')}</p>
         </div>
         {canAdd && (
           <Button 
             onClick={() => setIsAddModalOpen(true)} 
             startIcon={<UserPlus size={18} />} 
-            className="bg-orange-500 hover:bg-orange-600 text-white border-none shadow-lg shadow-orange-500/20 px-6"
+            className="bg-accent hover:bg-accent-hover text-white border-none px-6"
           >
             {t('add_button')}
           </Button>
         )}
       </div>
 
-      <div className="overflow-hidden rounded-2xl border border-white/10 bg-[#111] shadow-xl">
+      <div className="overflow-hidden rounded-lg border border-border bg-surface-input shadow-xl">
         <div className="overflow-x-auto">
           <table className="min-w-full text-left text-sm">
-            <thead className="border-b border-white/10 bg-white/5">
+            <thead className="border-b border-border bg-surface-2">
               <tr>
-                <th className="px-6 py-4 font-semibold text-gray-400 uppercase tracking-wider text-xs">{t('table_user')}</th>
-                <th className="px-6 py-4 font-semibold text-gray-400 uppercase tracking-wider text-xs">{t('table_role')}</th>
+                <th className="px-6 py-4 font-medium text-fg-secondary uppercase tracking-wider text-xs">{t('table_user')}</th>
+                <th className="px-6 py-4 font-medium text-fg-secondary uppercase tracking-wider text-xs">{t('table_role')}</th>
                 <th className="w-20 px-6 py-4 text-right"></th>
               </tr>
             </thead>
@@ -232,8 +232,8 @@ export function GroupMembersTab() {
                 <tr>
                   <td colSpan={3} className="px-6 py-24 text-center">
                     <div className="flex flex-col items-center gap-3">
-                      <Loader2 className="w-8 h-8 text-orange-500 animate-spin" />
-                      <span className="text-gray-500 font-medium">{t('loading')}</span>
+                      <Loader2 className="w-8 h-8 text-accent animate-spin" />
+                      <span className="text-fg-muted font-medium">{t('loading')}</span>
                     </div>
                   </td>
                 </tr>
@@ -241,9 +241,9 @@ export function GroupMembersTab() {
                 <tr>
                   <td colSpan={3} className="px-6 py-24 text-center">
                     <div className="flex flex-col items-center gap-2 opacity-40">
-                      <Users size={48} className="text-gray-500 mb-2" />
-                      <p className="text-gray-400 font-medium text-base">{t('empty')}</p>
-                      <p className="text-gray-500 text-sm">{t('empty_hint')}</p>
+                      <Users size={48} className="text-fg-muted mb-2" />
+                      <p className="text-fg-secondary font-medium text-base">{t('empty')}</p>
+                      <p className="text-fg-muted text-sm">{t('empty_hint')}</p>
                     </div>
                   </td>
                 </tr>
@@ -256,14 +256,14 @@ export function GroupMembersTab() {
                     <tr key={userId} className="group hover:bg-white/[0.02] transition-colors">
                       <td className="px-6 py-5">
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500/20 to-orange-600/5 flex items-center justify-center text-orange-500 border border-orange-500/10 font-bold text-sm">
+                          <div className="w-10 h-10 rounded-full flex items-center justify-center bg-surface-2 text-fg-secondary border border-border font-medium text-sm">
                             {(member.name || member.user_name || member.fullname || '?').charAt(0).toUpperCase()}
                           </div>
                           <div className="min-w-0">
-                            <div className="font-semibold text-white truncate max-w-[200px]">
+                            <div className="font-medium text-white truncate max-w-[200px]">
                               {member.name || member.user_name || member.fullname || 'Ismeretlen'}
                             </div>
-                            <div className="text-[10px] text-gray-500 font-mono mt-0.5 truncate max-w-[150px]">
+                            <div className="text-[10px] text-fg-muted font-mono mt-0.5 truncate max-w-[150px]">
                               {member.email || userId}
                             </div>
                           </div>
@@ -276,11 +276,11 @@ export function GroupMembersTab() {
                             defaultValue={member.group_role_id}
                             onValueChange={(val) => handleRoleChange(userId, val)}
                           >
-                            <SelectTrigger className="h-9 bg-[#1a1a1a] border-white/5 hover:border-white/10 transition-all">
+                            <SelectTrigger className="h-9 bg-[#1a1a1a] border-border hover:border-border transition-all">
                               <SelectValue placeholder={t('role_placeholder')} />
-                              {isUpdating && <Loader2 size={14} className="ml-2 animate-spin text-orange-500" />}
+                              {isUpdating && <Loader2 size={14} className="ml-2 animate-spin text-accent" />}
                             </SelectTrigger>
-                            <SelectContent className="bg-[#1c1c1c] border-white/10">
+                            <SelectContent className="bg-[#1c1c1c] border-border">
                               {roles.map((role) => (
                                 <SelectItem key={role.group_role_id} value={role.group_role_id}>
                                   {role.group_role_name || role.name}
@@ -294,7 +294,7 @@ export function GroupMembersTab() {
                         {canRemove && (
                           <button
                             onClick={() => setMemberToRemove(member)}
-                            className="inline-flex h-9 w-9 items-center justify-center rounded-xl text-gray-500 hover:bg-red-500/10 hover:text-red-500 transition-all active:scale-90"
+                            className="inline-flex h-9 w-9 items-center justify-center rounded-xl text-fg-muted hover:bg-danger-bg hover:text-danger transition-all active:scale-90"
                             title={t('remove_title')}
                           >
                             <Trash2 size={18} strokeWidth={1.75} />
@@ -328,7 +328,7 @@ export function GroupMembersTab() {
                   className="bg-[#0c0c0c] flex-1"
                 />
                 <select
-                  className="rounded-md border border-white/10 bg-[#0f0f18] px-2 py-1 text-sm text-white"
+                  className="rounded-md border border-border bg-[#0f0f18] px-2 py-1 text-sm text-white"
                   value={limit}
                   onChange={(e) => setLimit(Number(e.target.value))}
                 >
@@ -341,11 +341,11 @@ export function GroupMembersTab() {
               <div className="max-h-[350px] overflow-y-auto space-y-2 pr-1 custom-scrollbar">
                 {isLoadingUsers ? (
                   <div className="flex flex-col items-center py-10 gap-3 opacity-50">
-                    <Loader2 className="w-6 h-6 text-orange-500 animate-spin" />
-                    <span className="text-xs text-gray-500">{t('loading_users')}</span>
+                    <Loader2 className="w-6 h-6 text-accent animate-spin" />
+                    <span className="text-xs text-fg-muted">{t('loading_users')}</span>
                   </div>
                 ) : usersToDisplay.length === 0 ? (
-                  <div className="text-center py-10 text-gray-500 text-sm italic">
+                  <div className="text-center py-10 text-fg-muted text-sm italic">
                     {t('no_more_users')}
                   </div>
                 ) : (
@@ -354,17 +354,17 @@ export function GroupMembersTab() {
                     return (
                       <div 
                         key={uid} 
-                        className="flex items-center justify-between p-3 rounded-xl bg-white/5 border border-white/5 hover:border-orange-500/30 hover:bg-orange-500/5 transition-all group"
+                        className="flex items-center justify-between p-3 rounded-xl bg-surface-2 border border-border hover:border-border-strong hover:bg-surface-hover transition-all group"
                       >
                         <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-gray-400 font-bold text-xs">
+                          <div className="w-8 h-8 rounded-full bg-surface-2 flex items-center justify-center text-fg-secondary font-medium text-xs">
                             {(u.fullname || u.name || u.username || '?').charAt(0).toUpperCase()}
                           </div>
                           <div className="min-w-0">
                             <div className="text-sm font-medium text-white truncate">
                               {u.fullname || u.name || u.username || 'Ismeretlen'}
                             </div>
-                            <div className="text-[10px] text-gray-500 truncate">
+                            <div className="text-[10px] text-fg-muted truncate">
                               {u.email || 'Nincs email'}
                             </div>
                           </div>
@@ -372,7 +372,7 @@ export function GroupMembersTab() {
                         <button
                           onClick={() => handleAddMember(uid)}
                           disabled={isAdding}
-                          className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-orange-500/10 text-orange-500 text-xs font-semibold hover:bg-orange-500 hover:text-white transition-all disabled:opacity-50"
+                          className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-accent/10 text-accent text-xs font-medium hover:bg-accent hover:text-white transition-all disabled:opacity-50"
                         >
                           <UserPlus2 size={14} />
                           {t('add_button')}
@@ -388,7 +388,7 @@ export function GroupMembersTab() {
               <Button 
                 type="button" 
                 variant="secondary" 
-                className="bg-white/5 hover:bg-white/10 border-white/10 text-white" 
+                className="bg-surface-2 hover:bg-surface-2 border-border text-white" 
                 onClick={() => setIsAddModalOpen(false)}
               >
                 {t('close')}

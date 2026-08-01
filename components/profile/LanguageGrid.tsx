@@ -74,7 +74,7 @@ export default function LanguageGrid({title, description}: LanguageGridProps) {
               className={clsx(
                 'group relative flex min-h-[88px] items-start justify-between rounded-[var(--radius-lg)] border p-4 text-left transition-colors',
                 isActive
-                  ? 'border-orange-500 bg-[var(--accent-subtle)]'
+                  ? 'border-accent bg-accent-subtle'
                   : 'border-[var(--border-default)] bg-[var(--bg-elevated)] hover:border-[var(--border-hover)] hover:bg-[var(--bg-hover)]'
               )}
             >
@@ -87,7 +87,7 @@ export default function LanguageGrid({title, description}: LanguageGridProps) {
                 className={clsx(
                   'flex h-7 w-7 items-center justify-center rounded-full border text-[var(--text-secondary)]',
                   isActive
-                    ? 'border-orange-500 bg-orange-500 text-white'
+                    ? 'border-accent bg-accent text-white'
                     : 'border-[var(--border-default)] bg-[var(--bg-surface)] group-hover:text-[var(--text-primary)]'
                 )}
               >

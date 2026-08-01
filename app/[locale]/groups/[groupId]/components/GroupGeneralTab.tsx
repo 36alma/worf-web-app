@@ -118,18 +118,18 @@ export function GroupGeneralTab({ groupData }: GroupGeneralTabProps) {
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
       {/* Alapadatok */}
-      <section className="space-y-6 bg-[#1a1a1a]/40 border border-white/5 rounded-2xl p-6">
+      <section className="space-y-6 bg-[#1a1a1a]/40 border border-border rounded-lg p-6">
         <div>
-          <h2 className="text-xl font-semibold text-white mb-1 flex items-center gap-2">
-            <span className="w-1.5 h-6 bg-orange-500 rounded-full" />
+          <h2 className="text-xl font-medium text-white mb-1 flex items-center gap-2">
+            <span className="w-1.5 h-6 bg-accent rounded-full" />
             {t('title')}
           </h2>
-          <p className="text-sm text-gray-400 ml-3.5">{t('description')}</p>
+          <p className="text-sm text-fg-secondary ml-3.5">{t('description')}</p>
         </div>
         
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
           <div className="space-y-2">
-            <label htmlFor="groupName" className="text-sm font-medium text-gray-300 ml-1">
+            <label htmlFor="groupName" className="text-sm font-medium text-fg-secondary ml-1">
               {t('name_label')}
             </label>
             <input
@@ -138,15 +138,15 @@ export function GroupGeneralTab({ groupData }: GroupGeneralTabProps) {
               {...register('name')}
               disabled={!canModify || isSaving}
               className={clsx(
-                "w-full bg-[#0a0a0a] border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all",
-                !canModify && "opacity-50 cursor-not-allowed bg-white/5"
+                "w-full bg-surface-input border border-border rounded-xl px-4 py-3 text-fg placeholder:text-fg-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 focus-visible:border-border-focus transition-all",
+                !canModify && "opacity-50 cursor-not-allowed bg-surface-2"
               )}
             />
             <FieldError messages={errors.name?.message ? tv(errors.name.message as never) : undefined} />
           </div>
 
           <div className="space-y-2">
-            <label htmlFor="groupDesc" className="text-sm font-medium text-gray-300 ml-1">
+            <label htmlFor="groupDesc" className="text-sm font-medium text-fg-secondary ml-1">
               {t('desc_label')}
             </label>
             <textarea
@@ -155,8 +155,8 @@ export function GroupGeneralTab({ groupData }: GroupGeneralTabProps) {
               disabled={!canModify || isSaving}
               rows={4}
               className={clsx(
-                "w-full bg-[#0a0a0a] border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all resize-none",
-                !canModify && "opacity-50 cursor-not-allowed bg-white/5"
+                "w-full bg-surface-input border border-border rounded-xl px-4 py-3 text-fg placeholder:text-fg-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 focus-visible:border-border-focus transition-all resize-none",
+                !canModify && "opacity-50 cursor-not-allowed bg-surface-2"
               )}
             />
             <FieldError messages={errors.description?.message ? tv(errors.description.message as never) : undefined} />
@@ -167,7 +167,7 @@ export function GroupGeneralTab({ groupData }: GroupGeneralTabProps) {
               <Button 
                 type="submit"
                 disabled={isSaving || !isValid || !isDirty}
-                className="bg-orange-500 hover:bg-orange-600 text-white border-none min-w-[140px] shadow-lg shadow-orange-500/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
+                className="bg-accent hover:bg-accent-hover text-white border-none min-w-[140px] transition-all active:scale-[0.98]"
               >
                 {isSaving ? (
                   <div className="flex items-center gap-2">
@@ -184,21 +184,21 @@ export function GroupGeneralTab({ groupData }: GroupGeneralTabProps) {
       </section>
 
       {/* Csoport Azonosító (ID) */}
-      <section className="space-y-4 pt-4 border-t border-white/5">
+      <section className="space-y-4 pt-4 border-t border-border">
         <div>
           <h2 className="text-lg font-medium text-white mb-1">{t('id_title')}</h2>
-          <p className="text-sm text-gray-400">{t('id_description')}</p>
+          <p className="text-sm text-fg-secondary">{t('id_description')}</p>
         </div>
         
-        <div className="flex items-center justify-between bg-[#1a1a1a]/60 border border-white/10 rounded-xl p-4 group">
-          <code className="font-mono text-sm text-gray-300 select-all truncate mr-4">
+        <div className="flex items-center justify-between bg-[#1a1a1a]/60 border border-border rounded-xl p-4 group">
+          <code className="font-mono text-sm text-fg-secondary select-all truncate mr-4">
             {groupId}
           </code>
           <Button 
             onClick={copyToClipboard}
             variant="secondary" 
-            className="shrink-0 bg-white/5 hover:bg-white/10 border-white/10 text-white h-10 w-10 p-0 sm:w-auto sm:px-4"
-            startIcon={isCopied ? <Check size={16} className="text-green-500" /> : <Copy size={16} />}
+            className="shrink-0 bg-surface-2 hover:bg-surface-2 border-border text-white h-10 w-10 p-0 sm:w-auto sm:px-4"
+            startIcon={isCopied ? <Check size={16} className="text-success" /> : <Copy size={16} />}
           >
             <span className="hidden sm:inline">{t('copy_button')}</span>
           </Button>
@@ -208,20 +208,20 @@ export function GroupGeneralTab({ groupData }: GroupGeneralTabProps) {
       {/* Veszélyzóna */}
       {canDelete && (
         <section className="space-y-4 pt-8">
-          <div className="border border-red-500/20 bg-red-500/5 rounded-2xl p-6">
+          <div className="border border-danger/20 bg-danger/5 rounded-lg p-6">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
               <div className="space-y-1">
-                <h2 className="text-lg font-semibold text-red-500 flex items-center gap-2">
+                <h2 className="text-lg font-medium text-danger flex items-center gap-2">
                   <AlertTriangle size={20} />
                   {t('danger_zone')}
                 </h2>
-                <p className="text-sm text-gray-400 max-w-xl">
+                <p className="text-sm text-fg-secondary max-w-xl">
                   {t('danger_description')}
                 </p>
               </div>
               <Button 
                 onClick={() => setIsDeleteModalOpen(true)}
-                className="shrink-0 bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white border-red-500/20 transition-all"
+                className="shrink-0 bg-danger-bg text-danger hover:bg-danger hover:text-white border-danger/20 transition-all"
                 startIcon={<Trash2 size={18} />}
               >
                 {t('delete_button')}
@@ -244,15 +244,15 @@ export function GroupGeneralTab({ groupData }: GroupGeneralTabProps) {
           }}
         >
           <div className="space-y-6 p-1">
-            <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-4 flex gap-3">
-              <AlertTriangle className="text-red-500 shrink-0" size={20} />
-              <p className="text-sm text-red-200/80 leading-relaxed">
+            <div className="bg-danger/10 border border-danger/20 rounded-xl p-4 flex gap-3">
+              <AlertTriangle className="text-danger shrink-0" size={20} />
+              <p className="text-sm text-danger leading-relaxed">
                 {t('delete_modal_warning')}
               </p>
             </div>
             
             <div className="space-y-3">
-              <label htmlFor="confirmName" className="text-sm text-gray-400 block px-1">
+              <label htmlFor="confirmName" className="text-sm text-fg-secondary block px-1">
                 {t('delete_modal_prompt', { name: originalName })}
               </label>
               <input
@@ -262,7 +262,7 @@ export function GroupGeneralTab({ groupData }: GroupGeneralTabProps) {
                 value={deleteConfirmText}
                 onChange={(e) => setDeleteConfirmText(e.target.value)}
                 disabled={isDeleting}
-                className="w-full bg-[#0a0a0a] border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-gray-600 focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 transition-all"
+                className="w-full bg-surface-input border border-border rounded-xl px-4 py-3 text-fg placeholder:text-fg-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-danger/40 focus-visible:border-danger transition-all"
                 placeholder={originalName}
               />
             </div>
@@ -275,14 +275,14 @@ export function GroupGeneralTab({ groupData }: GroupGeneralTabProps) {
                 }}
                 disabled={isDeleting}
                 variant="secondary"
-                className="bg-white/5 hover:bg-white/10 border-white/10 text-white min-w-[100px]"
+                className="bg-surface-2 hover:bg-surface-2 border-border text-white min-w-[100px]"
               >
                 {t('delete_modal_cancel')}
               </Button>
               <Button 
                 onClick={handleDelete}
                 disabled={deleteConfirmText !== originalName || isDeleting}
-                className="bg-red-500 hover:bg-red-600 text-white border-none min-w-[140px] shadow-lg shadow-red-500/20"
+                className="bg-danger hover:opacity-90 text-white border-none min-w-[140px]"
               >
                 {isDeleting ? (
                   <div className="flex items-center gap-2">

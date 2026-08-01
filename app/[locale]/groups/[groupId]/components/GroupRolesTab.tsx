@@ -281,51 +281,51 @@ export function GroupRolesTab() {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-lg font-medium text-white mb-1">{t('title')}</h2>
-          <p className="text-sm text-gray-400">{t('description')}</p>
+          <p className="text-sm text-fg-secondary">{t('description')}</p>
         </div>
         {canCreate && (
           <Button 
             onClick={openCreateModal} 
             startIcon={<ShieldPlus size={16} />} 
-            className="bg-orange-500 hover:bg-orange-600 text-white border-none shadow-lg shadow-orange-500/20"
+            className="bg-accent hover:bg-accent-hover text-white border-none"
           >
             {t('add_button')}
           </Button>
         )}
       </div>
 
-      <div className="overflow-hidden rounded-xl border border-white/10 bg-[#111]">
+      <div className="overflow-hidden rounded-xl border border-border bg-surface-input">
         <table className="min-w-full text-left text-sm">
-          <thead className="border-b border-white/10 bg-white/5">
+          <thead className="border-b border-border bg-surface-2">
             <tr>
-              <th className="px-6 py-4 font-medium text-gray-400">{t('table_name')}</th>
-              <th className="px-6 py-4 font-medium text-gray-400 hidden sm:table-cell">{t('table_desc')}</th>
+              <th className="px-6 py-4 font-medium text-fg-secondary">{t('table_name')}</th>
+              <th className="px-6 py-4 font-medium text-fg-secondary hidden sm:table-cell">{t('table_desc')}</th>
               {(canModify || canDelete || canSetPerms) && <th className="px-6 py-4 text-right">{t('table_actions')}</th>}
             </tr>
           </thead>
           <tbody className="divide-y divide-white/5">
             {isLoading ? (
               <tr>
-                <td colSpan={3} className="px-6 py-12 text-center text-gray-500">
+                <td colSpan={3} className="px-6 py-12 text-center text-fg-muted">
                   <div className="flex justify-center items-center gap-2">
-                    <div className="w-4 h-4 rounded-full border-2 border-orange-500 border-t-transparent animate-spin" />
+                    <div className="w-4 h-4 rounded-full border-2 border-accent border-t-transparent animate-spin" />
                     {t('loading')}
                   </div>
                 </td>
               </tr>
             ) : roles.length === 0 ? (
               <tr>
-                <td colSpan={3} className="px-6 py-12 text-center text-gray-500">
+                <td colSpan={3} className="px-6 py-12 text-center text-fg-muted">
                   {t('empty')}
                 </td>
               </tr>
             ) : (
               roles.map((role, i) => (
-                <tr key={role.group_role_id || role.id || i} className="hover:bg-white/5 transition-colors">
+                <tr key={role.group_role_id || role.id || i} className="hover:bg-surface-hover transition-colors">
                   <td className="px-6 py-4 text-white font-medium">
                     {role.group_role_name || role.name}
                   </td>
-                  <td className="px-6 py-4 text-gray-400 hidden sm:table-cell">
+                  <td className="px-6 py-4 text-fg-secondary hidden sm:table-cell">
                     {role.group_role_description || role.description || '-'}
                   </td>
                   {(canModify || canDelete || canSetPerms) && (
@@ -334,7 +334,7 @@ export function GroupRolesTab() {
                         {canSetPerms && (
                           <button
                             onClick={() => openPermissionsSheet(role)}
-                            className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-gray-400 hover:bg-orange-500/10 hover:text-orange-500 transition-colors"
+                            className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-fg-secondary hover:bg-surface-2 hover:text-fg transition-colors"
                             title={t('permissions_title_hint')}
                           >
                             <Settings size={18} strokeWidth={1.75} />
@@ -343,7 +343,7 @@ export function GroupRolesTab() {
                         {canModify && (
                           <button
                             onClick={() => openEditModal(role)}
-                            className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-gray-400 hover:bg-orange-500/10 hover:text-orange-500 transition-colors"
+                            className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-fg-secondary hover:bg-surface-2 hover:text-fg transition-colors"
                             title={t('edit_title')}
                           >
                             <Edit2 size={18} strokeWidth={1.75} />
@@ -352,7 +352,7 @@ export function GroupRolesTab() {
                         {canDelete && (
                           <button
                             onClick={() => setRoleToDelete(role)}
-                            className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-gray-400 hover:bg-red-500/10 hover:text-red-500 transition-colors"
+                            className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-fg-secondary hover:bg-danger-bg hover:text-danger transition-colors"
                             title={t('delete_title')}
                           >
                             <Trash2 size={18} strokeWidth={1.75} />
@@ -377,7 +377,7 @@ export function GroupRolesTab() {
           <form onSubmit={handleSaveRole} className="space-y-5">
             <div className="space-y-4">
               <div className="space-y-2">
-                <label htmlFor="roleName" className="text-sm font-medium text-gray-300">{t('name_label')}</label>
+                <label htmlFor="roleName" className="text-sm font-medium text-fg-secondary">{t('name_label')}</label>
                 <input
                   id="roleName"
                   autoFocus
@@ -390,12 +390,12 @@ export function GroupRolesTab() {
                   onBlur={(e) => roleV.validateField('name', e.target.value)}
                   placeholder={t('name_placeholder')}
                   required
-                  className="w-full bg-[#111] border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-orange-500 focus:border-orange-500 transition-all"
+                  className="w-full bg-surface-input border border-border rounded-lg px-4 py-2.5 text-fg placeholder:text-fg-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 focus-visible:border-border-focus transition-all"
                 />
                 <FieldError messages={roleV.errors.name} />
               </div>
               <div className="space-y-2">
-                <label htmlFor="roleDesc" className="text-sm font-medium text-gray-300">{t('desc_label')}</label>
+                <label htmlFor="roleDesc" className="text-sm font-medium text-fg-secondary">{t('desc_label')}</label>
                 <input
                   id="roleDesc"
                   type="text"
@@ -406,7 +406,7 @@ export function GroupRolesTab() {
                   }}
                   onBlur={(e) => roleV.validateField('description', e.target.value)}
                   placeholder={t('desc_placeholder')}
-                  className="w-full bg-[#111] border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-orange-500 focus:border-orange-500 transition-all"
+                  className="w-full bg-surface-input border border-border rounded-lg px-4 py-2.5 text-fg placeholder:text-fg-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 focus-visible:border-border-focus transition-all"
                 />
                 <FieldError messages={roleV.errors.description} />
               </div>
@@ -415,14 +415,14 @@ export function GroupRolesTab() {
               <Button 
                 type="button" 
                 variant="secondary" 
-                className="bg-white/5 hover:bg-white/10 border-white/10 text-white" 
+                className="bg-surface-2 hover:bg-surface-2 border-border text-white" 
                 onClick={() => setIsRoleModalOpen(false)}
               >
                 {t('cancel')}
               </Button>
               <Button 
                 type="submit" 
-                className="bg-orange-500 hover:bg-orange-600 text-white border-none disabled:bg-orange-500/50" 
+                className="bg-accent hover:bg-accent-hover text-white border-none disabled:opacity-50" 
                 disabled={!roleName.trim() || isSubmittingRole}
               >
                 {isSubmittingRole ? t('saving') : t('save_button')}
@@ -453,23 +453,23 @@ export function GroupRolesTab() {
           <div className="flex flex-col h-full -mx-5 px-5">
             <div className="flex-1 overflow-y-auto pb-6">
               <div className="relative my-4">
-                <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
+                <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-fg-muted" />
                 <input
                   type="text"
                   placeholder={t('permissions_search')}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full bg-[#111] border border-white/10 rounded-lg pl-10 pr-4 py-2 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-orange-500 transition-all"
+                  className="w-full bg-surface-input border border-border rounded-lg pl-10 pr-4 py-2 text-sm text-fg placeholder:text-fg-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 transition-all"
                 />
               </div>
 
               {isLoadingPerms ? (
-                <div className="py-10 text-center text-gray-500 flex flex-col items-center justify-center gap-3">
-                  <div className="w-6 h-6 rounded-full border-2 border-orange-500 border-t-transparent animate-spin" />
+                <div className="py-10 text-center text-fg-muted flex flex-col items-center justify-center gap-3">
+                  <div className="w-6 h-6 rounded-full border-2 border-accent border-t-transparent animate-spin" />
                   {t('loading')}
                 </div>
               ) : categorizedPermissions.length === 0 ? (
-                <div className="py-10 text-center text-gray-500">{t('permissions_none')}</div>
+                <div className="py-10 text-center text-fg-muted">{t('permissions_none')}</div>
               ) : (
                 <div className="space-y-4 mt-2">
                   {categorizedPermissions.map((category) => {
@@ -478,23 +478,23 @@ export function GroupRolesTab() {
                     const selectedInCat = category.permissions.filter(p => selectedPermIds.has(p.group_permission_id || p.id)).length;
 
                     return (
-                      <div key={category.key} className="border border-white/5 rounded-xl overflow-hidden bg-white/5">
+                      <div key={category.key} className="border border-border rounded-xl overflow-hidden bg-surface-2">
                         <button
                           onClick={() => toggleCategory(category.key)}
-                          className="w-full flex items-center justify-between p-4 hover:bg-white/5 transition-colors"
+                          className="w-full flex items-center justify-between p-4 hover:bg-surface-hover transition-colors"
                         >
                           <div className="flex items-center gap-3">
                             {isExpanded ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
-                            <CategoryIcon size={18} className="text-orange-500" />
+                            <CategoryIcon size={18} className="text-accent" />
                             <span className="font-medium text-sm text-white">{t(`categories.${category.key}` as any)}</span>
                           </div>
-                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-white/10 text-gray-400">
+                          <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-surface-2 text-fg-secondary">
                             {selectedInCat}/{category.permissions.length}
                           </span>
                         </button>
 
                         {isExpanded && (
-                          <div className="p-3 pt-0 space-y-2 border-t border-white/5 bg-[#111]/50">
+                          <div className="p-3 pt-0 space-y-2 border-t border-border bg-surface-input/50">
                             {category.permissions.map((perm) => {
                               const permId = perm.group_permission_id || perm.id || perm.name;
                               const isChecked = selectedPermIds.has(permId);
@@ -504,24 +504,24 @@ export function GroupRolesTab() {
                                   onClick={() => togglePermission(permId, !isChecked)}
                                   className={`w-full flex items-start justify-between p-3 rounded-lg border transition-all ${
                                     isChecked 
-                                      ? 'border-orange-500/50 bg-orange-500/5' 
-                                      : 'border-white/5 bg-[#111]/30 hover:border-white/10'
+                                      ? 'border-accent/50 bg-accent/5' 
+                                      : 'border-border bg-surface-input/30 hover:border-border'
                                   }`}
                                 >
                                   <div className="flex flex-col text-left pr-4">
-                                    <span className={`text-xs font-medium ${isChecked ? 'text-orange-500' : 'text-white'}`}>
+                                    <span className={`text-xs font-medium ${isChecked ? 'text-accent' : 'text-white'}`}>
                                       {perm.group_permission_name || perm.label || perm.name}
                                     </span>
                                     {(perm.group_permission_description || perm.description) && (
-                                      <span className="text-[10px] text-gray-500 mt-1 line-clamp-2">
+                                      <span className="text-[10px] text-fg-muted mt-1 line-clamp-2">
                                         {perm.group_permission_description || perm.description}
                                       </span>
                                     )}
                                   </div>
                                   <div className={`mt-0.5 flex-shrink-0 w-4 h-4 rounded border flex items-center justify-center transition-colors ${
-                                    isChecked ? 'bg-orange-500 border-orange-500' : 'border-white/20'
+                                    isChecked ? 'bg-accent border-accent' : 'border-border-strong'
                                   }`}>
-                                    {isChecked && <Check size={10} className="text-white font-bold" />}
+                                    {isChecked && <Check size={10} className="text-white font-medium" />}
                                   </div>
                                 </button>
                               );
@@ -535,10 +535,10 @@ export function GroupRolesTab() {
               )}
             </div>
 
-            <div className="sticky bottom-0 pt-4 pb-2 border-t border-white/10 bg-[#1a1a1a]">
+            <div className="sticky bottom-0 pt-4 pb-2 border-t border-border bg-[#1a1a1a]">
               <Button 
                 onClick={handleSavePermissions} 
-                className="w-full justify-center p-3 bg-orange-500 hover:bg-orange-600 text-white border-none shadow-lg shadow-orange-500/20 disabled:bg-orange-500/50" 
+                className="w-full justify-center p-3 bg-accent hover:bg-accent-hover text-white border-none disabled:opacity-50" 
                 disabled={isLoadingPerms || isSavingPerms}
               >
                 {isSavingPerms ? t('permissions_saving') : t('permissions_save')}

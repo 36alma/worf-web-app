@@ -272,7 +272,7 @@ export default function AdminUsersManager() {
             </Button>
             <Button
               variant="ghost"
-              className='p-2 text-red-400 hover:text-red-300'
+              className='p-2 text-danger hover:text-danger'
               onClick={() => setDeleteTarget(row)}
             >
               {t('delete')}
@@ -466,7 +466,7 @@ export default function AdminUsersManager() {
               {/* Top row: avatar + name + status */}
               <div className="flex items-start gap-3">
                 {/* Avatar circle */}
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[var(--accent-subtle)] text-sm font-semibold text-[var(--accent)]">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[var(--accent-subtle)] text-sm font-medium text-[var(--accent)]">
                   {(row.full_name || row.username || row.email).charAt(0).toUpperCase()}
                 </div>
 
@@ -551,7 +551,7 @@ export default function AdminUsersManager() {
             }}
           >
             <div>
-              <label className="mb-1 block text-sm text-slate-300">{t('columns.username')}</label>
+              <label className="mb-1 block text-sm text-fg-secondary">{t('columns.username')}</label>
               <input
                 className="w-full rounded-md border border-[var(--border)] bg-[#0f0f18] px-3 py-2"
                 value={form.username}
@@ -561,7 +561,7 @@ export default function AdminUsersManager() {
               <FieldError messages={editV.errors.username} />
             </div>
             <div>
-              <label className="mb-1 block text-sm text-slate-300">{t('columns.email')}</label>
+              <label className="mb-1 block text-sm text-fg-secondary">{t('columns.email')}</label>
               <input
                 className="w-full rounded-md border border-[var(--border)] bg-[#0f0f18] px-3 py-2"
                 value={form.email}
@@ -571,7 +571,7 @@ export default function AdminUsersManager() {
               <FieldError messages={editV.errors.email} />
             </div>
             <div>
-              <label className="mb-1 block text-sm text-slate-300">{t('columns.full_name')}</label>
+              <label className="mb-1 block text-sm text-fg-secondary">{t('columns.full_name')}</label>
               <input
                 className="w-full rounded-md border border-[var(--border)] bg-[#0f0f18] px-3 py-2"
                 value={form.full_name}
@@ -581,7 +581,7 @@ export default function AdminUsersManager() {
               <FieldError messages={editV.errors.full_name} />
             </div>
             <div>
-              <label className="mb-1 block text-sm text-slate-300">{t('columns.role')}</label>
+              <label className="mb-1 block text-sm text-fg-secondary">{t('columns.role')}</label>
               <select
                 className="w-full rounded-md border border-[var(--border)] bg-[#0f0f18] px-3 py-2"
                 value={form.role_id}
@@ -596,7 +596,7 @@ export default function AdminUsersManager() {
               </select>
             </div>
             <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
-              <label className="flex items-center gap-2 text-sm text-slate-300">
+              <label className="flex items-center gap-2 text-sm text-fg-secondary">
                 <input
                   type="checkbox"
                   checked={form.is_active}
@@ -604,7 +604,7 @@ export default function AdminUsersManager() {
                 />
                 {t('columns.active')}
               </label>
-              <label className="flex items-center gap-2 text-sm text-slate-300">
+              <label className="flex items-center gap-2 text-sm text-fg-secondary">
                 <input
                   type="checkbox"
                   checked={form.email_verified}
@@ -614,7 +614,7 @@ export default function AdminUsersManager() {
                 />
                 {t('columns.email_verified')}
               </label>
-              <label className="flex items-center gap-2 text-sm text-slate-300">
+              <label className="flex items-center gap-2 text-sm text-fg-secondary">
                 <input
                   type="checkbox"
                   checked={form.is_2fa_enable}
@@ -626,7 +626,7 @@ export default function AdminUsersManager() {
               </label>
             </div>
             <div>
-              <label className="mb-1 block text-sm text-slate-300">{t('columns.password')}</label>
+              <label className="mb-1 block text-sm text-fg-secondary">{t('columns.password')}</label>
               <input
                 type="password"
                 className="w-full rounded-md border border-[var(--border)] bg-[#0f0f18] px-3 py-2"
@@ -656,7 +656,7 @@ export default function AdminUsersManager() {
       >
         {deleteTarget && (
           <div className="space-y-4">
-            <p className="text-sm text-slate-300">
+            <p className="text-sm text-fg-secondary">
               {t('delete_user_confirm', {
                 name: deleteTarget.full_name || deleteTarget.username || deleteTarget.email
               })}
@@ -666,7 +666,7 @@ export default function AdminUsersManager() {
                 {t('cancel')}
               </Button>
               <Button
-                className='p-2 bg-red-600 hover:bg-red-700 text-white'
+                className='p-2 bg-danger hover:opacity-90 text-white'
                 onClick={onDelete}
                 disabled={deleting}
               >
@@ -687,7 +687,7 @@ export default function AdminUsersManager() {
           }}
         >
           <div>
-            <label className="mb-1 block text-sm text-slate-300">{t('columns.email')} *</label>
+            <label className="mb-1 block text-sm text-fg-secondary">{t('columns.email')} *</label>
             <input
               type="email"
               className="w-full rounded-md border border-[var(--border)] bg-[#0f0f18] px-3 py-2"
@@ -699,7 +699,7 @@ export default function AdminUsersManager() {
             <FieldError messages={createV.errors.email} />
           </div>
           <div>
-            <label className="mb-1 block text-sm text-slate-300">{t('columns.full_name')} *</label>
+            <label className="mb-1 block text-sm text-fg-secondary">{t('columns.full_name')} *</label>
             <input
               className="w-full rounded-md border border-[var(--border)] bg-[#0f0f18] px-3 py-2"
               value={createForm.full_name}
@@ -710,7 +710,7 @@ export default function AdminUsersManager() {
             <FieldError messages={createV.errors.full_name} />
           </div>
           <div>
-            <label className="mb-1 block text-sm text-slate-300">{t('columns.password')} *</label>
+            <label className="mb-1 block text-sm text-fg-secondary">{t('columns.password')} *</label>
             <input
               type="password"
               className="w-full rounded-md border border-[var(--border)] bg-[#0f0f18] px-3 py-2"
@@ -722,7 +722,7 @@ export default function AdminUsersManager() {
             <PasswordChecklist password={createForm.password} />
           </div>
           <div>
-            <label className="mb-1 block text-sm text-slate-300">{t('columns.role')}</label>
+            <label className="mb-1 block text-sm text-fg-secondary">{t('columns.role')}</label>
             <select
               className="w-full rounded-md border border-[var(--border)] bg-[#0f0f18] px-3 py-2"
               value={createForm.role_id}
@@ -737,7 +737,7 @@ export default function AdminUsersManager() {
             </select>
           </div>
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-            <label className="flex items-center gap-2 text-sm text-slate-300">
+            <label className="flex items-center gap-2 text-sm text-fg-secondary">
               <input
                 type="checkbox"
                 checked={createForm.is_active}
@@ -745,7 +745,7 @@ export default function AdminUsersManager() {
               />
               {t('columns.active')}
             </label>
-            <label className="flex items-center gap-2 text-sm text-slate-300">
+            <label className="flex items-center gap-2 text-sm text-fg-secondary">
               <input
                 type="checkbox"
                 checked={createForm.email_verified}

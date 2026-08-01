@@ -1,5 +1,6 @@
 import {useEffect, useMemo, useState} from 'react';
 import Modal from '@/components/ui/Modal';
+import Button from '@/components/ui/Button';
 import FieldError from '@/components/ui/FieldError';
 import {TaskCategory} from './types';
 import {getTaskCategories, createTaskCategory, deleteTaskCategory} from '@/lib/api/tasks';
@@ -24,7 +25,7 @@ export default function CategoryManagerModal({open, onClose, groupId, permission
   const [categories, setCategories] = useState<TaskCategory[]>([]);
   const [loading, setLoading] = useState(true);
   const [newName, setNewName] = useState('');
-  const [newColor, setNewColor] = useState('#f97316'); // default orange
+  const [newColor, setNewColor] = useState('#e8590c'); // default accent
   const schemas = useMemo(() => ({name: requiredText(100)}), []);
   const {errors, validateField, validateAll, clearError} = useFieldValidation(schemas);
 
@@ -88,7 +89,7 @@ export default function CategoryManagerModal({open, onClose, groupId, permission
                   <span className="text-sm font-medium text-[var(--text-primary)]">{cat.name}</span>
                 </div>
                 {permissions.delete && (
-                  <button onClick={() => handleDelete(cat.task_category_id)} className="text-[var(--text-tertiary)] hover:text-red-500">
+                  <button onClick={() => handleDelete(cat.task_category_id)} className="text-fg-muted transition-colors hover:text-danger">
                     <Trash2 size={16} />
                   </button>
                 )}
@@ -99,14 +100,14 @@ export default function CategoryManagerModal({open, onClose, groupId, permission
         )}
 
         {permissions.create && (
-          <form onSubmit={handleCreate} className="mt-2 flex flex-col gap-3 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-elevated)] p-4">
-            <h4 className="text-sm font-semibold text-[var(--text-primary)]">Új címke</h4>
+          <form onSubmit={handleCreate} className="mt-2 flex flex-col gap-3 rounded-lg border border-border bg-surface-2 p-4">
+            <h4 className="text-section text-fg">Új címke</h4>
             <div className="flex gap-2">
               <input
                 type="color"
                 value={newColor}
                 onChange={(e) => setNewColor(e.target.value)}
-                className="h-10 w-12 cursor-pointer rounded bg-transparent p-1"
+                className="h-9 w-12 cursor-pointer rounded-md bg-transparent p-1"
               />
               <input
                 type="text"
@@ -117,15 +118,9 @@ export default function CategoryManagerModal({open, onClose, groupId, permission
                 }}
                 onBlur={(e) => validateField('name', e.target.value)}
                 placeholder="Címke neve"
-                className="flex-1 rounded-md border border-[var(--border-default)] bg-[var(--bg-input)] px-3 py-2 text-sm text-[var(--text-primary)] outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500"
+                className="flex-1 rounded-md border border-border bg-surface-input px-3 py-2 text-sm text-fg outline-none focus-visible:border-border-focus focus-visible:ring-2 focus-visible:ring-accent/50"
               />
-              <button
-                type="submit"
-                disabled={!newName.trim()}
-                className="flex items-center justify-center rounded-md bg-orange-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-orange-600 disabled:opacity-50"
-              >
-                <Plus size={16} />
-              </button>
+              <Button type="submit" variant="primary" disabled={!newName.trim()} className="px-3" startIcon={<Plus size={16} />} />
             </div>
             <FieldError messages={errors.name} />
           </form>

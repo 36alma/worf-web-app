@@ -1,8 +1,14 @@
 'use client';
 
-import * as Avatar from '@radix-ui/react-avatar';
-import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 import {ChevronRight, LogOut, Menu, Sparkles, UserCircle} from 'lucide-react';
+import Avatar from '@/components/ui/Avatar';
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+} from '@/components/ui/DropdownMenu';
 import Link from 'next/link';
 import {usePathname, useRouter} from 'next/navigation';
 import {useCallback, useMemo} from 'react';
@@ -99,39 +105,34 @@ export default function Header({className}: HeaderProps) {
 
       <div className="topbar-spacer" />
 
-      <DropdownMenu.Root>
-        <DropdownMenu.Trigger asChild>
-          <button type="button" className="topbar-avatar" aria-label="Profile menu">
-            <Avatar.Root className="avatar-sm">
-              <Avatar.Image src={user?.avatar} alt={user?.fullname ?? user?.username ?? 'User'} className="h-full w-full object-cover" />
-              <Avatar.Fallback className="avatar-fallback">
-                {(user?.fullname || user?.username || 'U').slice(0, 2).toUpperCase()}
-              </Avatar.Fallback>
-            </Avatar.Root>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <button
+            type="button"
+            aria-label="Profile menu"
+            className="rounded-full outline-none focus-visible:ring-2 focus-visible:ring-accent/50"
+          >
+            <Avatar
+              src={user?.avatar}
+              name={user?.fullname ?? user?.username ?? 'User'}
+              size="md"
+            />
           </button>
-        </DropdownMenu.Trigger>
-        <DropdownMenu.Portal>
-          <DropdownMenu.Content className="dropdown-content z-50 min-w-44 rounded-[var(--radius-lg)] border border-[var(--border-default)] bg-[var(--bg-elevated)] p-1" align="end">
-            <DropdownMenu.Item asChild>
-              <Link
-                href={`/${locale}/profile`}
-                className="flex cursor-pointer items-center gap-2 rounded-[var(--radius-sm)] px-2 py-2 text-sm text-[var(--text-primary)] outline-none hover:bg-[var(--bg-hover)]"
-              >
-                <UserCircle size={16} strokeWidth={1.75} />
-                {navT('profile')}
-              </Link>
-            </DropdownMenu.Item>
-            <DropdownMenu.Separator className="my-1 h-px bg-[var(--border-subtle)]" />
-            <DropdownMenu.Item
-              onClick={handleLogout}
-              className="flex cursor-pointer items-center gap-2 rounded-[var(--radius-sm)] px-2 py-2 text-sm text-[var(--error)] outline-none hover:bg-[var(--bg-hover)]"
-            >
-              <LogOut size={16} strokeWidth={1.75} />
-              {authT('logout')}
-            </DropdownMenu.Item>
-          </DropdownMenu.Content>
-        </DropdownMenu.Portal>
-      </DropdownMenu.Root>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuItem asChild>
+            <Link href={`/${locale}/profile`}>
+              <UserCircle size={16} strokeWidth={1.75} />
+              {navT('profile')}
+            </Link>
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem variant="danger" onClick={handleLogout}>
+            <LogOut size={16} strokeWidth={1.75} />
+            {authT('logout')}
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
     </header>
   );
 }

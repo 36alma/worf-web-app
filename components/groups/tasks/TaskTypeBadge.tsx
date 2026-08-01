@@ -11,50 +11,47 @@ export interface TaskTypeBadgeProps {
   className?: string;
 }
 
-const TASK_TYPE_CONFIG: Record<string, { icon: React.ElementType, color: string, bg: string }> = {
-  BUG: { icon: Bug, color: 'text-red-500', bg: 'bg-red-500/15 dark:bg-red-500/10' },
-  STORY: { icon: BookOpen, color: 'text-green-500', bg: 'bg-green-500/15 dark:bg-green-500/10' },
-  EPIC: { icon: Zap, color: 'text-purple-500', bg: 'bg-purple-500/15 dark:bg-purple-500/10' },
-  SUBTASK: { icon: Layers, color: 'text-teal-500 dark:text-teal-400', bg: 'bg-teal-500/15 dark:bg-teal-400/10' },
-  TASK: { icon: CheckSquare, color: 'text-orange-500', bg: 'bg-orange-500/15 dark:bg-orange-500/10' },
+// Muted tint (dark -bg + own-family icon) from the semantic palette — no raw Tailwind colors.
+const TASK_TYPE_CONFIG: Record<string, { icon: React.ElementType; cls: string }> = {
+  BUG: { icon: Bug, cls: 'bg-danger-bg text-danger' },
+  STORY: { icon: BookOpen, cls: 'bg-success-bg text-success' },
+  EPIC: { icon: Zap, cls: 'bg-info-bg text-info' },
+  SUBTASK: { icon: Layers, cls: 'bg-warning-bg text-warning' },
+  TASK: { icon: CheckSquare, cls: 'bg-surface-2 text-fg-secondary' },
 };
 
-export default function TaskTypeBadge({ 
-  task_type, 
-  issue_key, 
+const DEFAULT_CONFIG = { icon: CheckSquare, cls: 'bg-surface-2 text-fg-muted' };
+
+export default function TaskTypeBadge({
+  task_type,
+  issue_key,
   size = 'md',
-  className 
+  className,
 }: TaskTypeBadgeProps) {
   const t = useTranslations('tasks');
-  const config = task_type && TASK_TYPE_CONFIG[task_type.toUpperCase()] 
-    ? TASK_TYPE_CONFIG[task_type.toUpperCase()] 
-    : { icon: CheckSquare, color: 'text-gray-400', bg: 'bg-gray-500/10' };
+  const config =
+    (task_type && TASK_TYPE_CONFIG[task_type.toUpperCase()]) || DEFAULT_CONFIG;
 
   const Icon = config.icon;
 
   const sizeClasses = {
-    sm: { box: 'w-5 h-5 rounded', icon: 12, text: 'text-xs' },
+    sm: { box: 'w-5 h-5 rounded-sm', icon: 12, text: 'text-caption' },
     md: { box: 'w-6 h-6 rounded-md', icon: 14, text: 'text-sm' },
-    lg: { box: 'w-8 h-8 rounded-md', icon: 18, text: 'text-lg' },
+    lg: { box: 'w-8 h-8 rounded-md', icon: 18, text: 'text-base' },
   };
 
   const currSize = sizeClasses[size];
 
   return (
-    <div className={clsx("flex items-center gap-2", className)}>
-      <div 
-        className={clsx(
-          "flex items-center justify-center shrink-0 border border-transparent dark:border-white/5", 
-          currSize.box,
-          config.color,
-          config.bg
-        )}
+    <div className={clsx('flex items-center gap-2', className)}>
+      <div
+        className={clsx('flex shrink-0 items-center justify-center', currSize.box, config.cls)}
       >
         <Icon size={currSize.icon} />
       </div>
       {issue_key && (
         <span
-          className={clsx("font-bold text-[var(--text-primary)]", currSize.text)}
+          className={clsx('font-medium text-fg', currSize.text)}
           title={task_type ? translateTaskType(t, task_type.toUpperCase()) : undefined}
         >
           {issue_key}

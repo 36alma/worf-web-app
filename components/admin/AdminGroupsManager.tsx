@@ -257,7 +257,7 @@ export default function AdminGroupsManager() {
             >
               {/* Header: icon + group name */}
               <div className="flex items-start gap-3">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[var(--accent-subtle)] text-sm font-bold text-[var(--accent)]">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[var(--accent-subtle)] text-sm font-medium text-[var(--accent)]">
                   {row.name.charAt(0).toUpperCase()}
                 </div>
                 <div className="min-w-0 flex-1">
@@ -316,7 +316,7 @@ export default function AdminGroupsManager() {
       >
         <form className="space-y-3" onSubmit={onSubmit}>
           <div>
-            <label className="mb-1 block text-sm text-slate-300">{t('columns.group_name')}</label>
+            <label className="mb-1 block text-sm text-fg-secondary">{t('columns.group_name')}</label>
             <input
               className="w-full rounded-md border border-[var(--border)] bg-[#0f0f18] px-3 py-2"
               value={form.name}
@@ -327,7 +327,7 @@ export default function AdminGroupsManager() {
             <FieldError messages={errors.name} />
           </div>
           <div>
-            <label className="mb-1 block text-sm text-slate-300">{t('columns.description')}</label>
+            <label className="mb-1 block text-sm text-fg-secondary">{t('columns.description')}</label>
             <textarea
               className="w-full rounded-md border border-[var(--border)] bg-[#0f0f18] px-3 py-2"
               value={form.description}

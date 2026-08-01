@@ -3,8 +3,10 @@ import {useDroppable} from '@dnd-kit/core';
 import {SortableContext, verticalListSortingStrategy} from '@dnd-kit/sortable';
 import {ChevronDown, ChevronRight, MoreHorizontal} from 'lucide-react';
 import clsx from 'clsx';
+import {useTranslations} from 'next-intl';
 import {Task} from './types';
 import SortableTaskCard from './SortableTaskCard';
+import EmptyState from '@/components/ui/EmptyState';
 
 export interface TaskColumnProps {
   id: string; // The column status name
@@ -18,6 +20,15 @@ export interface TaskColumnProps {
   onModifyTaskSummary: (taskId: string, newSummary: string) => void;
 }
 
+// Column status → dot colour (spec §5 column header).
+const STATUS_DOT: Record<string, string> = {
+  TODO: 'var(--text-tertiary)',
+  IN_PROGRESS: 'var(--warning)',
+  IN_REVIEW: 'var(--info)',
+  DONE: 'var(--success)',
+  BLOCKED: 'var(--error)',
+};
+
 export default function TaskColumn({
   id,
   title,
@@ -29,27 +40,27 @@ export default function TaskColumn({
   onToggleSelection,
   onModifyTaskSummary
 }: TaskColumnProps) {
+  const t = useTranslations('tasks');
   const [isCollapsed, setIsCollapsed] = useState(false);
   const {setNodeRef, isOver} = useDroppable({id});
 
   const isOverWip = wipLimit !== undefined && tasks.length > wipLimit;
-
-  // Calculate story points if we had them, currently just card count
-  const footerSummary = `${tasks.length} feladat`;
+  const dotColor = STATUS_DOT[id?.toUpperCase()] ?? 'var(--text-tertiary)';
 
   if (isCollapsed) {
     return (
-      <div className="flex h-[70svh] w-12 shrink-0 flex-col items-center gap-4 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] py-4 transition-colors">
+      <div className="flex h-[70svh] w-12 shrink-0 flex-col items-center gap-4 rounded-lg border border-border bg-surface-1 py-4 transition-colors">
         <button
           onClick={() => setIsCollapsed(false)}
-          className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] min-h-[44px] min-w-[44px] flex items-center justify-center"
+          className="flex min-h-[44px] min-w-[44px] items-center justify-center text-fg-secondary hover:text-fg"
+          aria-label={title}
         >
           <ChevronRight size={20} />
         </button>
         <div className="flex flex-1 items-start justify-center pt-4" style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}>
-          <h3 className="font-semibold tracking-wider text-[var(--text-primary)]">{title}</h3>
+          <h3 className="font-medium tracking-wider text-fg">{title}</h3>
         </div>
-        <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[var(--bg-elevated)] text-xs font-semibold text-[var(--text-secondary)]">
+        <span className="flex size-6 items-center justify-center rounded-full bg-surface-2 text-caption font-medium text-fg-secondary">
           {tasks.length}
         </span>
       </div>
@@ -60,43 +71,40 @@ export default function TaskColumn({
     <div
       ref={setNodeRef}
       className={clsx(
-        "flex h-[70svh] w-full shrink-0 flex-col gap-4 rounded-xl border p-4 transition-colors lg:h-[75vh] lg:w-[320px]",
-        isOver
-          ? "border-orange-500 bg-orange-500/5"
-          : "border-[var(--border-subtle)] bg-[var(--bg-surface)]",
-        isOverWip && !isOver && "border-red-400/50 bg-red-500-[0.02]"
+        'flex h-[70svh] w-full shrink-0 flex-col gap-4 rounded-lg border p-4 transition-colors lg:h-[75vh] lg:w-[320px]',
+        isOver ? 'border-accent bg-accent/5' : 'border-border bg-surface-1',
+        isOverWip && !isOver && 'border-danger/50 bg-danger/5'
       )}
     >
-      {/* Sticky column header */}
-      <div className="sticky top-0 z-10 flex items-center justify-between rounded-t-xl bg-[var(--bg-surface)] pb-2">
+      {/* Sticky column header: dot + label + faint count (spec §5) */}
+      <div className="sticky top-0 z-10 flex items-center justify-between bg-surface-1 pb-2">
         <div className="flex flex-1 items-center gap-2">
           <button
             onClick={() => setIsCollapsed(true)}
-            className="text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+            className="text-fg-secondary hover:text-fg"
+            aria-label={title}
           >
-            <ChevronDown size={18} />
+            <ChevronDown size={16} />
           </button>
-          <h3 className={clsx("font-semibold", isOverWip ? "text-red-500" : "text-[var(--text-primary)]")}>
-            {title}
-          </h3>
           <span
-            className={clsx(
-              "flex h-5 min-w-[20px] items-center justify-center rounded-full px-1.5 text-xs font-semibold",
-              isOverWip
-                ? "bg-red-500/10 text-red-600"
-                : "bg-[var(--bg-elevated)] text-[var(--text-secondary)]"
-            )}
+            className="size-1.5 shrink-0 rounded-full"
+            style={{ backgroundColor: dotColor }}
+            aria-hidden
+          />
+          <h3 className={clsx('text-section', isOverWip ? 'text-danger' : 'text-fg')}>{title}</h3>
+          <span
+            className={clsx('text-caption tabular-nums', isOverWip ? 'text-danger' : 'text-fg-muted')}
           >
             {tasks.length}
           </span>
         </div>
-        <button className="text-[var(--text-tertiary)] hover:text-[var(--text-primary)]">
-          <MoreHorizontal size={18} />
+        <button className="text-fg-muted hover:text-fg" aria-label="Column actions">
+          <MoreHorizontal size={16} />
         </button>
       </div>
 
       <div className="flex flex-1 flex-col gap-3 overflow-y-auto pr-1">
-        <SortableContext items={tasks.map((t) => t.id)} strategy={verticalListSortingStrategy}>
+        <SortableContext items={tasks.map((task) => task.id)} strategy={verticalListSortingStrategy}>
           {tasks.map((task) => (
             <SortableTaskCard
               key={task.id}
@@ -109,19 +117,14 @@ export default function TaskColumn({
             />
           ))}
         </SortableContext>
-        
-        {tasks.length === 0 && (
-          <div className="flex h-24 items-center justify-center rounded-lg border border-dashed border-[var(--border-default)] text-sm text-[var(--text-tertiary)]">
-            Nincsenek feladatok
-          </div>
-        )}
+
+        {tasks.length === 0 && <EmptyState>{t('board.emptyColumn')}</EmptyState>}
       </div>
 
-      <div className="flex justify-between border-t border-[var(--border-subtle)] pt-3 text-xs text-[var(--text-tertiary)]">
-        <span>{footerSummary}</span>
-        {isOverWip && <span className="text-red-500 font-medium">Limit túllépve!</span>}
+      <div className="flex justify-between border-t border-border pt-3 text-caption text-fg-muted">
+        <span>{t('board.taskCount', {count: tasks.length})}</span>
+        {isOverWip && <span className="font-medium text-danger">{t('board.wipExceeded')}</span>}
       </div>
     </div>
   );
 }
-

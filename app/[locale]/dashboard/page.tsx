@@ -20,6 +20,9 @@ import {
 } from 'lucide-react';
 import {callWorfApi} from '@/lib/server/worf';
 import {getServerAccessToken} from '@/lib/utils/cookies';
+import Card from '@/components/ui/Card';
+import EmptyState from '@/components/ui/EmptyState';
+import {buttonVariants} from '@/components/ui/Button';
 
 async function getGroupCount() {
   const token = await getServerAccessToken();
@@ -77,7 +80,7 @@ export default async function DashboardPage() {
       label: t('active_groups'),
       value: groupCount.toString(),
       icon: Users,
-      iconClass: 'text-[var(--accent)] bg-[var(--accent-subtle)]',
+      iconClass: 'bg-surface-2 text-fg-secondary',
       trendIcon: TrendingUp,
       trend: t('vs_last_month')
     },
@@ -85,7 +88,7 @@ export default async function DashboardPage() {
       label: t('open_tasks'),
       value: '0',
       icon: CheckSquare,
-      iconClass: 'text-[var(--info)] bg-[rgba(59,130,246,0.1)]',
+      iconClass: 'bg-info-bg text-info',
       trendIcon: Minus,
       trend: t('no_change')
     },
@@ -93,98 +96,86 @@ export default async function DashboardPage() {
       label: t('upcoming_events'),
       value: '0',
       icon: CalendarDays,
-      iconClass: 'text-[var(--success)] bg-[rgba(44,182,125,0.1)]',
+      iconClass: 'bg-success-bg text-success',
       trendIcon: Minus,
       trend: t('no_events_scheduled')
     }
   ];
 
   return (
-    <div className="space-y-4">
-      <h1 className="display-font text-2xl text-[var(--text-primary)]">{t('title')}</h1>
+    <div className="mx-auto max-w-[1600px] space-y-6">
+      <h1 className="text-title text-fg">{t('title')}</h1>
 
-      <div className="stats-grid grid gap-4 lg:grid-cols-3">
-        {cards.map((card, index) => {
+      <div className="grid gap-4 lg:grid-cols-3">
+        {cards.map((card) => {
           const Icon = card.icon;
           const TrendIcon = card.trendIcon;
           return (
-            <section
-              key={card.label}
-              className="stat-card rounded-[12px] border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-5 hover:border-[#2a2a2a]"
-              style={{animation: `fadeInUp 300ms ease-out ${index * 60}ms backwards`}}
-            >
-              <div className="stat-header mb-4 flex items-center gap-2.5">
-                <div className={`stat-icon-wrapper inline-flex h-9 w-9 items-center justify-center rounded-[8px] ${card.iconClass}`}>
+            <Card key={card.label} interactive className="p-5">
+              <div className="mb-4 flex items-center gap-2.5">
+                <div className={`inline-flex size-9 items-center justify-center rounded-md ${card.iconClass}`}>
                   <Icon size={18} strokeWidth={1.75} />
                 </div>
-                <span className="stat-label text-[13px] font-normal text-[var(--text-secondary)]">{card.label}</span>
+                <span className="text-[13px] text-fg-secondary">{card.label}</span>
               </div>
-              <div className="stat-value mb-2 text-[32px] font-semibold leading-none text-[var(--text-primary)]">{card.value}</div>
-              <div className="stat-trend flex items-center gap-1 text-xs text-[var(--text-tertiary)]">
+              <div className="mb-2 text-[28px] font-medium leading-none text-fg">{card.value}</div>
+              <div className="flex items-center gap-1 text-caption text-fg-muted">
                 <TrendIcon size={14} strokeWidth={1.75} />
                 <span>{card.trend}</span>
               </div>
-            </section>
+            </Card>
           );
         })}
       </div>
 
-      <section className="welcome-card rounded-[12px] border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-6">
-        <div className="welcome-content mb-5 flex gap-4">
-          <div className="welcome-icon inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-[10px] bg-[var(--accent-subtle)] text-[var(--accent)]">
+      <Card className="p-6">
+        <div className="mb-5 flex gap-4">
+          <div className="inline-flex size-11 shrink-0 items-center justify-center rounded-lg bg-surface-2 text-fg-secondary">
             <Sparkles size={24} strokeWidth={1.75} />
           </div>
-          <div className="welcome-text">
-            <h3 className="mb-1 text-base font-semibold text-[var(--text-primary)]">{t('welcome')}</h3>
-            <p className="text-[13px] leading-[1.5] text-[var(--text-secondary)]">
+          <div>
+            <h3 className="mb-1 text-base font-medium text-fg">{t('welcome')}</h3>
+            <p className="text-[13px] leading-[1.5] text-fg-secondary">
               {t('welcome_description')}
             </p>
           </div>
         </div>
-        <div className="welcome-actions flex flex-wrap gap-2.5">
-          <Link
-            href="../groups"
-            className="inline-flex h-[var(--btn-height-md)] items-center gap-2 rounded-[var(--btn-radius)] bg-[var(--accent)] px-3 text-sm font-medium text-white hover:bg-[var(--accent-hover)]"
-          >
+        <div className="flex flex-wrap gap-2.5">
+          <Link href="../groups" className={buttonVariants({variant: 'primary'})}>
             <Plus size={16} strokeWidth={1.75} />
             {t('create_first_group')}
           </Link>
-          <Link
-            href="../profile"
-            className="inline-flex h-[var(--btn-height-md)] items-center gap-2 rounded-[var(--btn-radius)] text-sm text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]"
-          >
+          <Link href="../profile" className={buttonVariants({variant: 'ghost'})}>
             <BookOpen size={16} strokeWidth={1.75} />
             {t('read_documentation')}
           </Link>
         </div>
-      </section>
+      </Card>
 
-      <div className="dashboard-grid mt-4 grid gap-4 xl:grid-cols-2">
-        <section className="panel rounded-[12px] border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-5">
-          <div className="panel-header mb-5 flex items-center justify-between">
-            <div className="panel-title flex items-center gap-2 text-sm font-semibold text-[var(--text-primary)]">
+      <div className="mt-4 grid gap-4 xl:grid-cols-2">
+        <Card className="p-5">
+          <div className="mb-5 flex items-center justify-between">
+            <div className="flex items-center gap-2 text-section text-fg">
               <Activity size={16} strokeWidth={1.75} />
               <span>{t('recent_activity')}</span>
             </div>
-            <button type="button" className="rounded-[var(--radius-md)] px-2 py-1 text-xs text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]">
+            <button type="button" className="rounded-md px-2 py-1 text-caption text-fg-secondary transition-colors hover:bg-surface-hover hover:text-fg">
               {t('view_all')}
             </button>
           </div>
-          <div className="empty-state flex flex-col items-center justify-center px-5 py-10 text-center">
-            <Clock size={32} strokeWidth={1.75} className="empty-icon mb-3 text-[var(--border-hover)]" />
-            <p className="empty-text mb-1 text-sm text-[var(--text-secondary)]">{t('no_recent_activity')}</p>
-            <p className="empty-subtext text-xs text-[var(--text-tertiary)]">{t('activity_hint')}</p>
-          </div>
-        </section>
+          <EmptyState icon={<Clock size={20} strokeWidth={1.75} className="text-fg-muted" />}>
+            {t('no_recent_activity')}
+          </EmptyState>
+        </Card>
 
-        <section className="panel rounded-[12px] border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-5">
-          <div className="panel-header mb-4 flex items-center justify-between">
-            <div className="panel-title flex items-center gap-2 text-sm font-semibold text-[var(--text-primary)]">
+        <Card className="p-5">
+          <div className="mb-4 flex items-center justify-between">
+            <div className="flex items-center gap-2 text-section text-fg">
               <Zap size={16} strokeWidth={1.75} />
               <span>{t('quick_actions')}</span>
             </div>
           </div>
-          <div className="quick-actions space-y-1">
+          <div className="space-y-1">
             {[
               {label: t('actions.create_group'), desc: t('actions.create_group_desc'), icon: UserPlus},
               {label: t('actions.add_task'), desc: t('actions.add_task_desc'), icon: ListTodo},
@@ -193,20 +184,20 @@ export default async function DashboardPage() {
             ].map((item) => {
               const Icon = item.icon;
               return (
-                <button key={item.label} type="button" className="quick-action-item flex w-full items-center gap-3 rounded-[8px] bg-transparent p-3 text-left hover:bg-[var(--bg-hover)]">
-                  <div className="qa-icon inline-flex h-9 w-9 items-center justify-center rounded-[8px] bg-[var(--bg-elevated)] text-[var(--text-secondary)]">
+                <button key={item.label} type="button" className="flex w-full items-center gap-3 rounded-md bg-transparent p-3 text-left transition-colors hover:bg-surface-hover">
+                  <div className="inline-flex size-9 items-center justify-center rounded-md bg-surface-2 text-fg-secondary">
                     <Icon size={18} strokeWidth={1.75} />
                   </div>
                   <div>
-                    <span className="qa-label block text-[13px] font-medium text-[var(--text-primary)]">{item.label}</span>
-                    <span className="qa-desc block text-xs text-[var(--text-tertiary)]">{item.desc}</span>
+                    <span className="block text-[13px] font-medium text-fg">{item.label}</span>
+                    <span className="block text-caption text-fg-muted">{item.desc}</span>
                   </div>
-                  <ArrowRight size={16} strokeWidth={1.75} className="qa-arrow ml-auto text-[var(--border-hover)]" />
+                  <ArrowRight size={16} strokeWidth={1.75} className="ml-auto text-fg-muted" />
                 </button>
               );
             })}
           </div>
-        </section>
+        </Card>
       </div>
     </div>
   );

@@ -1,38 +1,58 @@
-import clsx from 'clsx';
-import type {ReactNode} from 'react';
-import {AlertTriangle, CheckCircle2, Dot, Info} from 'lucide-react';
+import type { ReactNode } from 'react';
+import { cva, type VariantProps } from 'class-variance-authority';
+import { cn } from '@/lib/utils/cn';
+
+// Muted tint badge: dark -bg tint + own-family text (spec §5). Never solid + white.
+const badgeVariants = cva(
+  'inline-flex items-center gap-1 rounded-sm px-2 py-0.5 text-caption font-medium',
+  {
+    variants: {
+      variant: {
+        neutral: 'bg-surface-2 text-fg-secondary',
+        success: 'bg-success-bg text-success',
+        warning: 'bg-warning-bg text-warning',
+        danger: 'bg-danger-bg text-danger',
+        info: 'bg-info-bg text-info',
+        accent: 'bg-accent-muted text-[color:var(--badge-accent-text)]',
+      },
+    },
+    defaultVariants: { variant: 'neutral' },
+  }
+);
+
+type BadgeVariant = NonNullable<VariantProps<typeof badgeVariants>['variant']>;
+
+// Back-compat: the previous API took a `color` prop. Map it onto semantic variants.
+const legacyColorMap: Record<string, BadgeVariant> = {
+  slate: 'neutral',
+  gray: 'neutral',
+  indigo: 'accent',
+  orange: 'accent',
+  cyan: 'info',
+  blue: 'info',
+  red: 'danger',
+  green: 'success',
+  yellow: 'warning',
+};
 
 export interface BadgeProps {
   children: ReactNode;
-  color?: 'slate' | 'indigo' | 'cyan' | 'red' | 'green' | 'yellow';
+  variant?: BadgeVariant;
+  /** @deprecated use `variant` */
+  color?: string;
+  icon?: ReactNode;
+  className?: string;
 }
 
-export default function Badge({children, color = 'slate'}: BadgeProps) {
-  const icon =
-    color === 'green' ? (
-      <CheckCircle2 size={12} strokeWidth={1.75} />
-    ) : color === 'red' || color === 'yellow' ? (
-      <AlertTriangle size={12} strokeWidth={1.75} />
-    ) : color === 'cyan' ? (
-      <Info size={12} strokeWidth={1.75} />
-    ) : (
-      <Dot size={12} strokeWidth={1.75} />
-    );
-
+export default function Badge({ children, variant, color, icon, className }: BadgeProps) {
+  const resolved: BadgeVariant =
+    variant ?? (color ? legacyColorMap[color] ?? 'neutral' : 'neutral');
   return (
-    <span
-      className={clsx(
-        'inline-flex items-center gap-1 rounded-[var(--radius-sm)] px-2 py-0.5 text-xs font-medium',
-        color === 'slate' && 'bg-[var(--badge-gray-bg)] text-[var(--badge-gray-text)]',
-        color === 'indigo' && 'bg-[var(--badge-orange-bg)] text-[var(--badge-orange-text)]',
-        color === 'cyan' && 'bg-[var(--badge-blue-bg)] text-[var(--badge-blue-text)]',
-        color === 'red' && 'bg-[rgba(229,72,77,0.12)] text-[var(--error)]',
-        color === 'green' && 'bg-[var(--badge-green-bg)] text-[var(--badge-green-text)]',
-        color === 'yellow' && 'bg-[rgba(229,160,0,0.12)] text-[var(--warning)]'
-      )}
-    >
+    <span className={cn(badgeVariants({ variant: resolved }), className)}>
       {icon}
       {children}
     </span>
   );
 }
+
+export { badgeVariants };

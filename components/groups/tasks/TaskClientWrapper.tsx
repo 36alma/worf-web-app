@@ -4,7 +4,12 @@ import {useState, useEffect, useMemo, useCallback} from 'react';
 import {useTranslations} from 'next-intl';
 import {Plus, Tags, Filter, Search, Columns3, List, Calendar as CalendarIcon, Trash2, Clock} from 'lucide-react';
 import toast from 'react-hot-toast';
-import clsx from 'clsx';
+
+import Button from '@/components/ui/Button';
+import { Input } from '@/components/ui/Input';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/Tabs';
+import Skeleton from '@/components/ui/Skeleton';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 import KanbanView from './KanbanView';
 import ListView from './ListView';
@@ -244,113 +249,123 @@ export default function TaskClientWrapper({groupId, permissions}: TaskClientWrap
     }
   };
 
+  const hasActiveFilters =
+    filters.status.length > 0 ||
+    filters.priority.length > 0 ||
+    !!filters.dateFrom ||
+    !!filters.dateTo;
+
   return (
     <div className="flex h-full flex-col gap-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <h1 className="text-3xl font-bold tracking-tight text-[var(--text-primary)]">{t('page.title')}</h1>
+        <h1 className="text-title text-fg">{t('page.title')}</h1>
 
         <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-          <div className="group relative">
-            <Search className="absolute left-2.5 top-2 text-[var(--text-tertiary)] group-focus-within:text-orange-500" size={16} />
-            <input
+          <div className="relative">
+            <Search
+              className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-fg-muted"
+              size={16}
+            />
+            <Input
               type="text"
               placeholder={t('filter.searchPlaceholder')}
               value={filters.search}
               onChange={(event) => setFilters((prev) => ({...prev, search: event.target.value}))}
-              className="h-9 w-full sm:w-48 rounded border border-[var(--border-subtle)] bg-[var(--bg-elevated)] pl-8 pr-3 text-sm text-[var(--text-primary)] transition-all focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500"
+              className="w-full pl-8 sm:w-48"
             />
           </div>
 
-          <button
+          <Button
+            variant={hasActiveFilters ? 'secondary' : 'ghost'}
+            size="sm"
+            startIcon={<Filter size={15} />}
             onClick={() => setIsFilterOpen(true)}
-            className={clsx(
-              'flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-sm font-medium transition-colors',
-              (filters.status.length > 0 || filters.priority.length > 0 || filters.dateFrom || filters.dateTo)
-                ? 'border-orange-200 bg-orange-50 text-orange-700 dark:border-orange-700/50 dark:bg-orange-900/30'
-                : 'border-[var(--border-default)] bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]'
-            )}
           >
-            <Filter size={15} /> <span className="hidden sm:inline">{t('filter.filterButton')}</span>
-          </button>
+            <span className="hidden sm:inline">{t('filter.filterButton')}</span>
+          </Button>
 
-          <div className="mx-1 h-4 w-px bg-[var(--border-subtle)]" />
+          <div className="mx-1 h-5 w-px bg-border" />
 
-          <div className="flex rounded-md border border-[var(--border-subtle)] bg-[var(--bg-elevated)] p-1 shadow-sm">
-            <button
-              onClick={() => setActiveView('kanban')}
-              className={clsx(
-                'hidden lg:flex items-center gap-2 rounded border px-3 py-1.5 text-sm font-medium transition-all',
-                activeView === 'kanban'
-                  ? 'border-orange-500/50 bg-orange-500/10 text-orange-500 shadow'
-                  : 'border-transparent text-[var(--text-tertiary)] hover:text-[var(--text-secondary)]'
-              )}
-            >
-              <Columns3 size={15} /> <span className="hidden sm:inline">{t('views.kanban')}</span>
-            </button>
-            <button
-              onClick={() => setActiveView('list')}
-              className={clsx('flex items-center gap-2 rounded border px-3 py-1.5 text-sm font-medium transition-all', activeView === 'list' ? 'border-orange-500/50 bg-orange-500/10 text-orange-500 shadow' : 'border-transparent text-[var(--text-tertiary)] hover:text-[var(--text-secondary)]')}
-            >
-              <List size={15} /> <span className="hidden sm:inline">{t('views.list')}</span>
-            </button>
-            <button
-              onClick={() => setActiveView('calendar')}
-              className={clsx('flex items-center gap-2 rounded border px-3 py-1.5 text-sm font-medium transition-all', activeView === 'calendar' ? 'border-orange-500/50 bg-orange-500/10 text-orange-500 shadow' : 'border-transparent text-[var(--text-tertiary)] hover:text-[var(--text-secondary)]')}
-            >
-              <CalendarIcon size={15} /> <span className="hidden sm:inline">{t('views.calendar')}</span>
-            </button>
-            <button
-              onClick={() => setActiveView('timeline')}
-              className={clsx(
-                'hidden lg:flex items-center gap-2 rounded border px-3 py-1.5 text-sm font-medium transition-all',
-                activeView === 'timeline'
-                  ? 'border-orange-500/50 bg-orange-500/10 text-orange-500 shadow'
-                  : 'border-transparent text-[var(--text-tertiary)] hover:text-[var(--text-secondary)]'
-              )}
-            >
-              <Clock size={15} /> <span className="hidden sm:inline">{t('views.timeline')}</span>
-            </button>
-          </div>
+          <Tabs value={activeView} onValueChange={(value) => setActiveView(value as typeof activeView)}>
+            <TabsList>
+              <TabsTrigger value="kanban" className="hidden lg:inline-flex">
+                <Columns3 size={15} /> <span className="hidden sm:inline">{t('views.kanban')}</span>
+              </TabsTrigger>
+              <TabsTrigger value="list">
+                <List size={15} /> <span className="hidden sm:inline">{t('views.list')}</span>
+              </TabsTrigger>
+              <TabsTrigger value="calendar">
+                <CalendarIcon size={15} /> <span className="hidden sm:inline">{t('views.calendar')}</span>
+              </TabsTrigger>
+              <TabsTrigger value="timeline" className="hidden lg:inline-flex">
+                <Clock size={15} /> <span className="hidden sm:inline">{t('views.timeline')}</span>
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
 
           {permissions.category.read && (
-            <button
-              onClick={() => setIsCategoryManagerOpen(true)}
-              className="flex items-center justify-center rounded-md border border-[var(--border-default)] bg-[var(--bg-elevated)] p-2 text-[var(--text-secondary)] transition-colors hover:bg-[var(--bg-hover)]"
-              title={t('category.manage')}
-            >
-              <Tags size={16} />
-            </button>
+            <TooltipProvider delayDuration={200}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => setIsCategoryManagerOpen(true)}
+                    aria-label={t('category.manage')}
+                    className="px-2"
+                    startIcon={<Tags size={16} />}
+                  />
+                </TooltipTrigger>
+                <TooltipContent>{t('category.manage')}</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           )}
 
           {permissions.task.create && (
-            <button
+            <Button
+              variant="primary"
+              startIcon={<Plus size={16} />}
               onClick={() => setIsFormOpen(true)}
-              className="ml-2 flex items-center gap-2 rounded-md bg-orange-500 px-4 py-2 text-sm font-medium text-white transition-all hover:bg-orange-600 hover:shadow-lg hover:shadow-orange-500/20 active:scale-95"
+              className="ml-1"
             >
-              <Plus size={16} /> <span className="sm:inline">{t('create')}</span>
-            </button>
+              {t('create')}
+            </Button>
           )}
         </div>
       </div>
 
       {permissions.task.delete && selectedTaskIds.length > 0 && activeView !== 'calendar' && activeView !== 'timeline' && (
-        <div className="animate-in slide-in-from-top-2 flex items-center justify-between rounded-lg bg-orange-50 p-3 px-4 shadow-sm outline outline-1 outline-orange-200 dark:bg-orange-900/30 dark:outline-orange-800">
-          <span className="text-sm font-medium text-orange-800 dark:text-orange-300">
+        <div className="flex items-center justify-between rounded-lg border border-border bg-surface-1 px-4 py-3 animate-in slide-in-from-top-2">
+          <span className="text-sm font-medium text-fg">
             {t('badges.selectedCount', {count: selectedTaskIds.length})}
           </span>
-          <button
+          <Button
+            variant="danger"
+            size="sm"
+            startIcon={<Trash2 size={16} />}
             onClick={handleBulkDelete}
-            className="flex items-center gap-2 rounded-md bg-red-600 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-red-700"
           >
-            <Trash2 size={16} /> {t('badges.bulkDelete')}
-          </button>
+            {t('badges.bulkDelete')}
+          </Button>
         </div>
       )}
 
       <div className="relative flex min-w-0 flex-1 overflow-hidden">
         {loading && tasks.length === 0 ? (
-          <div className="flex flex-1 items-center justify-center">
-            <div className="h-8 w-8 animate-spin rounded-full border-4 border-[var(--border-default)] border-t-orange-500" />
+          <div className="flex flex-1 gap-4">
+            {[0, 1, 2].map((column) => (
+              <div key={column} className="hidden flex-1 flex-col gap-3 lg:flex">
+                <Skeleton className="h-6 w-28" />
+                <Skeleton className="h-24 w-full" />
+                <Skeleton className="h-24 w-full" />
+                <Skeleton className="h-24 w-full" />
+              </div>
+            ))}
+            <div className="flex flex-1 flex-col gap-3 lg:hidden">
+              <Skeleton className="h-24 w-full" />
+              <Skeleton className="h-24 w-full" />
+              <Skeleton className="h-24 w-full" />
+            </div>
           </div>
         ) : (
           <>
@@ -395,26 +410,28 @@ export default function TaskClientWrapper({groupId, permissions}: TaskClientWrap
         )}
       </div>
 
-      <div className="mt-2 flex items-center justify-between border-t border-[var(--border-subtle)] pt-4">
-        <p className="text-sm text-[var(--text-secondary)]">
-          {t('pagination.page')} <span className="font-semibold text-[var(--text-primary)]">{currentPage}</span>{' '}
+      <div className="mt-2 flex items-center justify-between border-t border-border pt-4">
+        <p className="text-sm text-fg-secondary">
+          {t('pagination.page')} <span className="font-medium text-fg">{currentPage}</span>{' '}
           {tasks.length > 0 && t('pagination.showing', {count: tasks.length})}
         </p>
         <div className="flex gap-2">
-          <button
+          <Button
+            variant="secondary"
+            size="sm"
             onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
             disabled={currentPage === 1 || loading}
-            className="rounded-md border border-[var(--border-default)] px-3 py-1.5 text-sm font-medium text-[var(--text-primary)] transition-colors hover:bg-[var(--bg-hover)] disabled:opacity-50"
           >
             {t('pagination.prev')}
-          </button>
-          <button
+          </Button>
+          <Button
+            variant="secondary"
+            size="sm"
             onClick={() => setCurrentPage((page) => page + 1)}
             disabled={!hasMore || loading}
-            className="rounded-md border border-[var(--border-default)] px-3 py-1.5 text-sm font-medium text-[var(--text-primary)] transition-colors hover:bg-[var(--bg-hover)] disabled:opacity-50"
           >
             {t('pagination.next')}
-          </button>
+          </Button>
         </div>
       </div>
 

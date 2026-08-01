@@ -105,13 +105,13 @@ export default function GroupDetailLayoutClient({ groupId, children }: GroupDeta
   if (!group) {
     return (
       <div className="space-y-4">
-        <div className="text-sm text-slate-400">
+        <div className="text-sm text-fg-muted">
           {t('group_not_found')}
         </div>
         <div>
           <Link
             href={`/${locale}/admin/groups`}
-            className="text-sm text-indigo-400 hover:text-indigo-300"
+            className="text-sm text-fg-secondary hover:text-fg"
           >
             ← {t('back_to_groups')}
           </Link>
@@ -127,15 +127,15 @@ export default function GroupDetailLayoutClient({ groupId, children }: GroupDeta
           <div className="flex items-center gap-2">
             <Link
               href={`/${locale}/admin/groups`}
-              className="text-sm text-indigo-400 hover:text-indigo-300"
+              className="text-sm text-fg-secondary hover:text-fg"
             >
               {t('groups')}
             </Link>
-            <span className="text-slate-400">/</span>
+            <span className="text-fg-muted">/</span>
           </div>
-          <h2 className="text-2xl font-semibold text-slate-100 mt-2">{group.name}</h2>
+          <h2 className="text-2xl font-medium text-fg mt-2">{group.name}</h2>
           {group.description && (
-            <p className="text-sm text-slate-400 mt-1">{group.description}</p>
+            <p className="text-sm text-fg-muted mt-1">{group.description}</p>
           )}
         </div>
       </div>

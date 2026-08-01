@@ -42,14 +42,14 @@ export default function CalendarView({tasks, onTaskClick}: CalendarViewProps) {
         title: task.summary,
         start: (task.due_at || task.started_at) as string,
         allDay: true,
-        backgroundColor: STATUS_COLORS[task.status] || '#f97316',
+        backgroundColor: STATUS_COLORS[task.status] || '#e8590c',
         borderColor: 'transparent',
         extendedProps: {task}
       }));
   }, [tasks]);
 
   return (
-    <div className="worf-calendar h-[calc(100svh-220px)] w-full flex-1 overflow-hidden rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-3 shadow-sm md:h-[calc(100vh-200px)] md:p-4">
+    <div className="worf-calendar h-[calc(100svh-220px)] w-full flex-1 overflow-hidden rounded-lg border border-border bg-surface-1 p-3 md:h-[calc(100vh-200px)] md:p-4">
       <div className="fc-theme-standard h-full">
         {/* key={isMobile} force remount when switching views to avoid FullCalendar stale state */}
         <FullCalendar

@@ -148,14 +148,14 @@ export default function TaskComments({groupId, taskId, permissions}: TaskComment
       <div className="mt-8 flex flex-col gap-5">
         {/* Section Header */}
         <div className="flex items-center gap-2.5">
-          <div className="flex items-center justify-center h-7 w-7 rounded-lg bg-orange-500/10">
-            <MessageCircle size={15} className="text-orange-500" />
+          <div className="flex items-center justify-center h-7 w-7 rounded-lg bg-accent/10">
+            <MessageCircle size={15} className="text-accent" />
           </div>
-          <h3 className="font-semibold text-[var(--text-primary)] text-base tracking-tight">
+          <h3 className="font-medium text-[var(--text-primary)] text-base tracking-tight">
             Kommentek
           </h3>
           {!loading && comments.length > 0 && (
-            <span className="text-xs font-bold text-[var(--text-tertiary)] bg-[var(--bg-elevated)] border border-[var(--border-subtle)] rounded-full px-2 py-0.5 tabular-nums">
+            <span className="text-xs font-medium text-[var(--text-tertiary)] bg-[var(--bg-elevated)] border border-[var(--border-subtle)] rounded-full px-2 py-0.5 tabular-nums">
               {comments.length}
             </span>
           )}
@@ -188,16 +188,16 @@ export default function TaskComments({groupId, taskId, permissions}: TaskComment
               return (
                 <div
                   key={comment.id}
-                  className="relative group flex items-start justify-between py-3 px-2 -mx-2 rounded-xl transition-colors hover:bg-[var(--bg-hover)]/50"
+                  className="relative group flex items-start justify-between py-3 px-2 -mx-2 rounded-lg transition-colors hover:bg-surface-hover"
                 >
                   {/* Bal oldal: Avatar, Név, Dátum és Szöveg */}
                   <div className="flex items-start gap-3 min-w-0">
                     {/* Avatar */}
                     <div
-                      className={`flex shrink-0 h-9 w-9 items-center justify-center rounded-full font-bold text-xs select-none ring-2 ring-offset-1 ring-offset-[var(--bg-primary)] transition-shadow ${
+                      className={`flex shrink-0 h-9 w-9 items-center justify-center rounded-full font-medium text-xs select-none ring-2 ring-offset-1 ring-offset-[var(--bg-surface)] transition-shadow ${
                         hasAuthor
-                          ? 'bg-gradient-to-br from-orange-400 to-amber-500 text-white ring-orange-500/20'
-                          : 'bg-zinc-300 dark:bg-zinc-700 text-zinc-600 dark:text-zinc-400 ring-zinc-400/20'
+                          ? 'bg-surface-2 text-fg-secondary ring-border'
+                          : 'bg-surface-2 text-fg-muted ring-border'
                       }`}
                     >
                       {initials}
@@ -207,7 +207,7 @@ export default function TaskComments({groupId, taskId, permissions}: TaskComment
                     <div className="flex flex-col gap-1 w-full pt-0.5 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
                         {/* Author Name */}
-                        <span className="font-semibold text-sm text-[var(--text-primary)] truncate max-w-[180px]">
+                        <span className="font-medium text-sm text-[var(--text-primary)] truncate max-w-[180px]">
                           {authorName}
                         </span>
 
@@ -257,7 +257,7 @@ export default function TaskComments({groupId, taskId, permissions}: TaskComment
                         <button
                           onClick={() => setConfirmDeleteId(comment.id)}
                           disabled={deletingId === comment.id}
-                          className="shrink-0 p-2 rounded-md text-zinc-500 dark:text-zinc-400 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors disabled:opacity-30 disabled:cursor-not-allowed ml-2 flex items-center justify-center cursor-pointer"
+                          className="shrink-0 p-2 rounded-md text-fg-muted hover:text-danger hover:bg-danger-bg transition-colors disabled:opacity-30 disabled:cursor-not-allowed ml-2 flex items-center justify-center cursor-pointer"
                           aria-label="Komment törlése"
                         >
                           <Trash2 size={16} />
@@ -274,7 +274,7 @@ export default function TaskComments({groupId, taskId, permissions}: TaskComment
 
             {/* Empty state */}
             {comments.length === 0 && (
-              <div className="flex flex-col items-center justify-center py-10 text-center bg-[var(--bg-elevated)]/50 rounded-xl border border-dashed border-[var(--border-default)]">
+              <div className="flex flex-col items-center justify-center py-10 text-center rounded-lg border border-dashed border-[var(--border-default)]">
                 <div className="flex items-center justify-center h-12 w-12 rounded-full bg-[var(--bg-hover)] mb-3">
                   <MessageCircle size={22} className="text-[var(--text-tertiary)]" />
                 </div>
@@ -295,7 +295,7 @@ export default function TaskComments({groupId, taskId, permissions}: TaskComment
         {permissions.create && (
           <form onSubmit={handleAddComment} className="mt-2 flex gap-3 items-start">
             {/* Current user avatar placeholder */}
-            <div className="flex shrink-0 h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 text-white font-bold text-xs select-none ring-2 ring-emerald-500/20 ring-offset-1 ring-offset-[var(--bg-primary)] mt-0.5">
+            <div className="flex shrink-0 h-9 w-9 items-center justify-center rounded-full bg-surface-2 text-fg-secondary font-medium text-xs select-none ring-2 ring-border ring-offset-1 ring-offset-[var(--bg-surface)] mt-0.5">
               ÉN
             </div>
             <div className="flex-1 flex flex-col gap-2">
@@ -308,7 +308,7 @@ export default function TaskComments({groupId, taskId, permissions}: TaskComment
                 onBlur={(e) => validateComment('comment', e.target.value)}
                 placeholder="Írj egy kommentet..."
                 rows={2}
-                className="w-full rounded-xl border border-[var(--border-default)] bg-[var(--bg-input)] px-4 py-2.5 text-sm text-[var(--text-primary)] placeholder-[var(--text-tertiary)] outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 resize-y transition-all shadow-sm"
+                className="w-full rounded-lg border border-[var(--border-default)] bg-[var(--bg-input)] px-4 py-2.5 text-sm text-[var(--text-primary)] placeholder-[var(--text-tertiary)] outline-none focus-visible:border-border-focus focus-visible:ring-2 focus-visible:ring-accent/50 resize-y transition-all"
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
                     e.preventDefault();
@@ -324,7 +324,7 @@ export default function TaskComments({groupId, taskId, permissions}: TaskComment
                 <button
                   type="submit"
                   disabled={!newComment.trim()}
-                  className="flex items-center gap-2 rounded-lg bg-orange-500 px-4 py-2 text-sm font-medium text-white transition-all hover:bg-orange-600 hover:shadow-md hover:shadow-orange-500/20 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:shadow-none active:scale-[0.97]"
+                  className="flex items-center gap-2 rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white transition-all hover:bg-accent-hover disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:shadow-none active:scale-[0.97]"
                 >
                   <Send size={14} /> Küldés
                 </button>

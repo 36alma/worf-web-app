@@ -27,7 +27,7 @@ export default function PasswordChecklist({password, className}: PasswordCheckli
             key={ruleId}
             className={clsx(
               'flex items-center gap-1.5 text-[12px] transition-colors',
-              ok ? 'text-emerald-500' : 'text-[var(--text-tertiary)]'
+              ok ? 'text-success' : 'text-fg-muted'
             )}
           >
             {ok ? <Check size={13} strokeWidth={2.5} /> : <X size={13} strokeWidth={2.5} />}

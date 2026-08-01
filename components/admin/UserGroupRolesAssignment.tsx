@@ -366,21 +366,21 @@ export default function UserGroupRolesAssignment({groupId}: {groupId: string}) {
       <Modal open={Boolean(editingUser)} title={a('edit_user_title')} onClose={() => setEditingUser(null)}>
         <div className="space-y-4">
           <input
-            className="w-full rounded-md border border-[var(--border)] bg-[var(--bg-primary)] px-3 py-2"
+            className="w-full rounded-md border border-[var(--border)] bg-[var(--bg-surface)] px-3 py-2"
             value={form.full_name}
             onChange={(e) => setForm((p) => ({...p, full_name: e.target.value}))}
             readOnly
             placeholder={a('columns.full_name')}
           />
           <input
-            className="w-full rounded-md border border-[var(--border)] bg-[var(--bg-primary)] px-3 py-2"
+            className="w-full rounded-md border border-[var(--border)] bg-[var(--bg-surface)] px-3 py-2"
             value={form.email}
             onChange={(e) => setForm((p) => ({...p, email: e.target.value}))}
             readOnly
             placeholder="E-mail"
           />
           <input
-            className="w-full rounded-md border border-[var(--border)] bg-[var(--bg-primary)] px-3 py-2"
+            className="w-full rounded-md border border-[var(--border)] bg-[var(--bg-surface)] px-3 py-2"
             value={form.username}
             onChange={(e) => setForm((p) => ({...p, username: e.target.value}))}
             readOnly

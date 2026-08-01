@@ -140,7 +140,7 @@ export default function AdminRolesManager() {
             >
               <div className="flex items-start gap-3">
                 {/* Role icon */}
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[var(--badge-blue-bg)] text-sm font-bold text-[var(--badge-blue-text)]">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[var(--badge-blue-bg)] text-sm font-medium text-[var(--badge-blue-text)]">
                   {row.name.charAt(0).toUpperCase()}
                 </div>
                 <div className="min-w-0 flex-1">
@@ -164,7 +164,7 @@ export default function AdminRolesManager() {
         )}
       </div>
 
-      <p className="text-xs text-slate-400">{t('roles_readonly_hint')}</p>
+      <p className="text-xs text-fg-muted">{t('roles_readonly_hint')}</p>
     </div>
   );
 }

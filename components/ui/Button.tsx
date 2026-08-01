@@ -1,40 +1,55 @@
-import { ButtonHTMLAttributes, ReactNode } from 'react';
-import clsx from 'clsx';
-import { Plus } from 'lucide-react';
+import { ButtonHTMLAttributes, ReactNode, forwardRef } from 'react';
+import { cva, type VariantProps } from 'class-variance-authority';
+import { Loader2 } from 'lucide-react';
+import { cn } from '@/lib/utils/cn';
 
-export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'danger' | 'ghost';
+const buttonVariants = cva(
+  'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md border font-medium transition-colors active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 disabled:pointer-events-none disabled:opacity-50',
+  {
+    variants: {
+      variant: {
+        // accent lives ONLY on the primary CTA (spec §1) — max one per view
+        primary: 'border-transparent bg-accent text-white hover:bg-accent-hover',
+        secondary: 'border-border-strong bg-transparent text-fg hover:bg-surface-2',
+        danger: 'border-border-strong bg-transparent text-danger hover:bg-surface-2',
+        ghost: 'border-transparent bg-transparent text-fg-secondary hover:bg-surface-2 hover:text-fg',
+      },
+      size: {
+        sm: 'h-8 px-3 text-[13px]',
+        md: 'h-9 px-3.5 text-sm',
+        lg: 'h-10 px-4 text-sm',
+      },
+    },
+    // secondary is the default / most common button (spec §5)
+    defaultVariants: { variant: 'secondary', size: 'md' },
+  }
+);
+
+export interface ButtonProps
+  extends ButtonHTMLAttributes<HTMLButtonElement>,
+    VariantProps<typeof buttonVariants> {
   startIcon?: ReactNode;
   endIcon?: ReactNode;
+  loading?: boolean;
 }
 
-export default function Button({
-  variant = 'primary',
-  className,
-  children,
-  startIcon,
-  endIcon,
-  ...props
-}: ButtonProps) {
+const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button(
+  { variant, size, className, children, startIcon, endIcon, loading, disabled, ...props },
+  ref
+) {
   return (
     <button
+      ref={ref}
+      disabled={disabled || loading}
+      className={cn(buttonVariants({ variant, size }), className)}
       {...props}
-      className={clsx(
-        'inline-flex h-[var(--btn-height-md)] items-center justify-center gap-2 rounded-[var(--btn-radius)] border px-[var(--btn-padding)] text-sm font-medium active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50',
-        variant === 'primary' && 'border-transparent bg-[var(--accent)] text-white hover:bg-[var(--accent-hover)]',
-        variant === 'secondary' &&
-        'border-[var(--border-default)] bg-transparent text-[var(--text-primary)] hover:border-[var(--border-hover)] hover:bg-[var(--bg-hover)]',
-        variant === 'danger' &&
-        'border-[var(--border-default)] bg-transparent text-[var(--error)] hover:border-[var(--border-hover)] hover:bg-[var(--bg-hover)]',
-        variant === 'ghost' && 'border-transparent bg-transparent text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]',
-        className
-      )}
     >
-      <div className='flex items-center'>
-        <div className='pr-2 pl-3'>{startIcon}</div>
-        <span className="p-2">{children}</span>
-        <div className='pr-3 pl-2'>{endIcon}</div>
-      </div>
+      {loading ? <Loader2 className="size-4 animate-spin" aria-hidden /> : startIcon}
+      {children != null && children !== false && <span>{children}</span>}
+      {!loading && endIcon}
     </button>
   );
-}
+});
+
+export default Button;
+export { buttonVariants };

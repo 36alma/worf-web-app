@@ -27,7 +27,7 @@
   height: 400px;
   background: radial-gradient(
     ellipse 40% 30% at 50% 50%,
-    rgba(255, 107, 44, 0.08) 0%,
+    rgba(232, 89, 12, 0.08) 0%,
     transparent 70%
   );
 }
@@ -69,7 +69,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--accent, #ff6b2c);
+  background: var(--accent, var(--accent));
   border-radius: 10px;
   color: #fff;
 }
@@ -87,14 +87,14 @@
   align-items: center;
   justify-content: center;
   border-radius: 50%;
-  background: rgba(255, 107, 44, 0.06);
-  border: 1px solid rgba(255, 107, 44, 0.15);
+  background: rgba(232, 89, 12, 0.06);
+  border: 1px solid rgba(232, 89, 12, 0.15);
   margin-bottom: 28px;
   animation: pulse 3s ease-in-out infinite;
 }
 
 .wifiIcon {
-  color: var(--accent, #ff6b2c);
+  color: var(--accent, var(--accent));
   opacity: 0.9;
 }
 
@@ -131,7 +131,7 @@
   gap: 8px;
   height: 42px;
   padding: 0 24px;
-  background: var(--accent, #ff6b2c);
+  background: var(--accent, var(--accent));
   color: #fff;
   font-size: 14px;
   font-weight: 600;
@@ -143,14 +143,14 @@
     transform 100ms ease,
     box-shadow 150ms ease;
   box-shadow:
-    0 0 0 0 rgba(255, 107, 44, 0),
+    0 0 0 0 rgba(232, 89, 12, 0),
     0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
 .refreshBtn:hover {
-  background: var(--accent-hover, #ff7d45);
+  background: var(--accent-hover, var(--accent-hover));
   box-shadow:
-    0 0 20px rgba(255, 107, 44, 0.2),
+    0 0 20px rgba(232, 89, 12, 0.2),
     0 4px 12px rgba(0, 0, 0, 0.4);
   transform: translateY(-1px);
 }
@@ -166,7 +166,7 @@
 }
 
 .helpLink {
-  color: var(--accent, #ff6b2c);
+  color: var(--accent, var(--accent));
   text-decoration: none;
 }
 
@@ -187,9 +187,9 @@
 
 @keyframes pulse {
   0%, 100% {
-    box-shadow: 0 0 0 0 rgba(255, 107, 44, 0.1);
+    box-shadow: 0 0 0 0 rgba(232, 89, 12, 0.1);
   }
   50% {
-    box-shadow: 0 0 0 16px rgba(255, 107, 44, 0);
+    box-shadow: 0 0 0 16px rgba(232, 89, 12, 0);
   }
 }

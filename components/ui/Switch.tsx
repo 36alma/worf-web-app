@@ -1,11 +1,7 @@
 import * as React from "react"
 import * as SwitchPrimitives from "@radix-ui/react-switch"
 
-import { clsx, type ClassValue } from "clsx"
-
-export function cn(...inputs: ClassValue[]) {
-  return clsx(inputs)
-}
+import { cn } from "@/lib/utils/cn"
 
 const Switch = React.forwardRef<
   React.ElementRef<typeof SwitchPrimitives.Root>,

@@ -18,10 +18,10 @@ const SelectTrigger = React.forwardRef<
   <SelectPrimitive.Trigger
     ref={ref}
     className={clsx(
-      'flex h-9 w-full items-center justify-between gap-2 rounded-lg border border-[var(--border-subtle)]',
-      'bg-[var(--bg-primary)] px-3 py-2 text-sm text-[var(--text-primary)]',
-      'outline-none transition-all duration-150',
-      'focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20',
+      'flex h-9 w-full items-center justify-between gap-2 rounded-md border border-[var(--border-default)]',
+      'bg-[var(--bg-input)] px-3 py-2 text-sm text-[var(--text-primary)]',
+      'outline-none transition-colors duration-150',
+      'focus-visible:border-[var(--border-focus)] focus-visible:ring-2 focus-visible:ring-accent/50',
       'disabled:cursor-not-allowed disabled:opacity-50',
       'placeholder:text-[var(--text-tertiary)]',
       '[&>span]:line-clamp-1',
@@ -79,7 +79,6 @@ const SelectContent = React.forwardRef<
         'relative z-[100] max-h-72 min-w-[8rem] overflow-hidden',
         'rounded-lg border border-[var(--border-subtle)]',
         'bg-[var(--bg-elevated)] text-[var(--text-primary)]',
-        'shadow-xl shadow-black/20',
         // Animations
         'data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95',
         'data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95',
@@ -115,7 +114,7 @@ const SelectLabel = React.forwardRef<
 >(({className, ...props}, ref) => (
   <SelectPrimitive.Label
     ref={ref}
-    className={clsx('px-2 py-1.5 text-xs font-semibold text-[var(--text-tertiary)]', className)}
+    className={clsx('px-2 py-1.5 text-xs font-medium text-[var(--text-tertiary)]', className)}
     {...props}
   />
 ));
@@ -131,7 +130,7 @@ const SelectItem = React.forwardRef<
     className={clsx(
       'relative flex w-full cursor-pointer select-none items-center rounded-md py-2 pl-8 pr-3 text-sm',
       'text-[var(--text-primary)] outline-none transition-colors',
-      'focus:bg-orange-500/10 focus:text-orange-500',
+      'focus:bg-[var(--bg-active)] focus:text-[var(--text-primary)]',
       'data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
       className
     )}
@@ -139,7 +138,7 @@ const SelectItem = React.forwardRef<
   >
     <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
       <SelectPrimitive.ItemIndicator>
-        <Check size={14} className="text-orange-500" />
+        <Check size={14} className="text-[var(--accent)]" />
       </SelectPrimitive.ItemIndicator>
     </span>
     <SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>

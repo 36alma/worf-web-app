@@ -180,6 +180,11 @@
       "calendar": "Naptár",
       "timeline": "Idővonalas"
     },
+    "board": {
+      "emptyColumn": "Húzz ide feladatot",
+      "taskCount": "{count} feladat",
+      "wipExceeded": "Limit túllépve!"
+    },
     "calendar": {
       "today": "Ma",
       "month": "Hónap"

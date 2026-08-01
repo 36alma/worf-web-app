@@ -3,9 +3,29 @@
 import {Calendar} from 'lucide-react';
 import clsx from 'clsx';
 import {useTranslations} from 'next-intl';
-import {Task, STATUS_COLORS, PRIORITY_COLORS} from './types';
+import {Task} from './types';
 import TaskTypeBadge from './TaskTypeBadge';
+import Badge from '@/components/ui/Badge';
+import Avatar from '@/components/ui/Avatar';
 import {translateTaskPriority, translateTaskStatus} from '@/lib/i18n/tasks';
+
+type BadgeVariant = 'neutral' | 'success' | 'warning' | 'danger' | 'info' | 'accent';
+
+const PRIORITY_VARIANT: Record<string, BadgeVariant> = {
+  LOW: 'success',
+  MEDIUM: 'warning',
+  HIGH: 'danger',
+  CRITICAL: 'danger',
+  URGENT: 'danger',
+};
+
+const STATUS_VARIANT: Record<string, BadgeVariant> = {
+  TODO: 'neutral',
+  IN_PROGRESS: 'warning',
+  IN_REVIEW: 'info',
+  DONE: 'success',
+  BLOCKED: 'danger',
+};
 
 export interface TaskListCardProps {
   task: Task;
@@ -36,14 +56,14 @@ export default function TaskListCard({
       onClick={onClick}
       style={{touchAction: 'manipulation'}}
       className={clsx(
-        'flex flex-col gap-2 border-b border-white/5 px-4 py-3.5 cursor-pointer transition-colors last:border-b-0',
+        'flex cursor-pointer flex-col gap-2 border-b border-border px-4 py-3.5 transition-colors last:border-b-0',
         isSelected
-          ? 'bg-orange-900/10 active:bg-orange-900/20'
-          : 'hover:bg-[var(--bg-hover)] active:bg-[var(--bg-hover)]'
+          ? 'bg-accent/5 active:bg-accent/10'
+          : 'hover:bg-surface-hover active:bg-surface-hover'
       )}
     >
-      {/* Sor 1: checkbox + type badge + státusz + prioritás */}
-      <div className="flex items-center gap-2 flex-wrap">
+      {/* Row 1: checkbox + type badge + status + priority */}
+      <div className="flex flex-wrap items-center gap-2">
         {showCheckbox && (
           <input
             type="checkbox"
@@ -53,49 +73,37 @@ export default function TaskListCard({
               onToggleSelection?.();
             }}
             onClick={(e) => e.stopPropagation()}
-            className="h-4 w-4 shrink-0 rounded border-gray-300 accent-orange-500 text-orange-500 focus:ring-orange-500"
+            className="size-4 shrink-0 rounded border border-border accent-[var(--accent)]"
           />
         )}
         <TaskTypeBadge task_type={task.task_type} issue_key={task.issue_key} size="sm" />
-        <span
-          className={clsx(
-            'inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold border',
-            STATUS_COLORS[task.status as keyof typeof STATUS_COLORS] ||
-              'bg-gray-100 text-gray-700 border-gray-200'
-          )}
-        >
+        <Badge variant={STATUS_VARIANT[task.status as string] ?? 'neutral'}>
           {translateTaskStatus(t, task.status)}
-        </span>
+        </Badge>
         {task.priority && (
-          <span
-            className={clsx(
-              'inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold border',
-              PRIORITY_COLORS[task.priority.toUpperCase()] ||
-                'bg-gray-100 text-gray-700 border-gray-200'
-            )}
-          >
+          <Badge variant={PRIORITY_VARIANT[task.priority.toUpperCase()] ?? 'neutral'}>
             {translateTaskPriority(t, task.priority)}
-          </span>
+          </Badge>
         )}
       </div>
 
-      {/* Sor 2: összefoglaló cím */}
-      <p className="text-sm font-medium text-[var(--text-primary)] leading-snug line-clamp-2">
+      {/* Row 2: summary */}
+      <p className="line-clamp-2 text-sm font-medium leading-snug text-fg">
         {task.summary}
       </p>
 
-      {/* Sor 3: határidő + kategóriák + felelős */}
+      {/* Row 3: due date + categories + assignee */}
       <div className="flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2 flex-wrap">
+        <div className="flex flex-wrap items-center gap-2">
           {task.due_at ? (
-            <div
+            <span
               className={clsx(
-                'inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs border',
+                'inline-flex items-center gap-1 rounded-sm px-2 py-0.5 text-caption font-medium',
                 isOverdue
-                  ? 'bg-red-900/20 border-red-800 text-red-400'
+                  ? 'bg-danger-bg text-danger'
                   : isDueSoon
-                  ? 'bg-amber-900/20 border-amber-800 text-amber-400'
-                  : 'bg-[var(--bg-surface)] border-[var(--border-subtle)] text-[var(--text-tertiary)]'
+                  ? 'bg-warning-bg text-warning'
+                  : 'text-fg-muted'
               )}
             >
               <Calendar size={11} />
@@ -103,7 +111,7 @@ export default function TaskListCard({
                 month: 'short',
                 day: 'numeric',
               })}
-            </div>
+            </span>
           ) : null}
 
           {task.categories && task.categories.length > 0 && (
@@ -111,8 +119,8 @@ export default function TaskListCard({
               {task.categories.slice(0, 2).map((c) => (
                 <span
                   key={c.task_category_id}
-                  style={{backgroundColor: c.color + '20', color: c.color}}
-                  className="px-1.5 py-0.5 text-[10px] uppercase font-semibold rounded"
+                  style={{backgroundColor: c.color + '22', color: c.color}}
+                  className="rounded-sm px-1.5 py-0.5 text-caption font-medium uppercase"
                 >
                   {c.name}
                 </span>
@@ -121,14 +129,8 @@ export default function TaskListCard({
           )}
         </div>
 
-        {/* Felelős avatar */}
         {task.assigneer_id?.assigneer_fullname && (
-          <div
-            className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-orange-100 dark:bg-orange-900/30 text-xs font-bold text-orange-700 dark:text-orange-300 ring-2 ring-white dark:ring-zinc-800"
-            title={task.assigneer_id.assigneer_fullname}
-          >
-            {task.assigneer_id.assigneer_fullname.substring(0, 2).toUpperCase()}
-          </div>
+          <Avatar name={task.assigneer_id.assigneer_fullname} size="sm" className="shrink-0" />
         )}
       </div>
     </div>

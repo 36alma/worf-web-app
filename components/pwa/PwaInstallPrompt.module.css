@@ -13,7 +13,7 @@
   border-radius: 14px;
   box-shadow:
     0 8px 32px rgba(0, 0, 0, 0.5),
-    0 0 0 1px rgba(255, 107, 44, 0.06);
+    0 0 0 1px rgba(232, 89, 12, 0.06);
   max-width: calc(100vw - 32px);
   width: auto;
   min-width: 320px;
@@ -33,10 +33,10 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255, 107, 44, 0.1);
-  border: 1px solid rgba(255, 107, 44, 0.15);
+  background: rgba(232, 89, 12, 0.1);
+  border: 1px solid rgba(232, 89, 12, 0.15);
   border-radius: 10px;
-  color: var(--accent, #ff6b2c);
+  color: var(--accent, var(--accent));
 }
 
 .textWrap {
@@ -69,7 +69,7 @@
 .installBtn {
   height: 34px;
   padding: 0 16px;
-  background: var(--accent, #ff6b2c);
+  background: var(--accent, var(--accent));
   color: #fff;
   font-size: 13px;
   font-weight: 600;
@@ -83,7 +83,7 @@
 }
 
 .installBtn:hover {
-  background: var(--accent-hover, #ff7d45);
+  background: var(--accent-hover, var(--accent-hover));
   transform: translateY(-1px);
 }
 

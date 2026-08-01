@@ -46,7 +46,7 @@ export default function CalendarView({ groupId, calendarId, canWrite = true }: C
         end: event.endAt ?? undefined,
         allDay: event.allDay,
         classNames: event.isCancelled ? ['line-through', 'opacity-70'] : [],
-        backgroundColor: event.isGlobal ? '#0ea5e9' : '#ff6b2c',
+        backgroundColor: event.isGlobal ? '#0ea5e9' : '#e8590c',
         borderColor: 'transparent',
         extendedProps: {
           source: event

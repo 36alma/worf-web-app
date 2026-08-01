@@ -1,5 +1,5 @@
 import * as React from 'react';
-import clsx from 'clsx';
+import { cn } from '@/lib/utils/cn';
 
 export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {}
 
@@ -8,16 +8,19 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
     return (
       <input
         type={type}
-        className={clsx(
-          "flex h-10 w-full rounded-md border border-[var(--border-default)] bg-[var(--bg-input)] px-3 py-2 text-sm text-[var(--text-primary)] ring-offset-[var(--bg-root)] file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-[var(--text-tertiary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-all",
+        ref={ref}
+        className={cn(
+          'flex h-9 w-full rounded-md border border-border bg-surface-input px-3 py-2 text-sm text-fg transition-colors',
+          'placeholder:text-fg-muted file:border-0 file:bg-transparent file:text-sm file:font-medium',
+          'focus-visible:border-border-focus focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50',
+          'disabled:cursor-not-allowed disabled:opacity-50',
           className
         )}
-        ref={ref}
         {...props}
       />
     );
   }
 );
-Input.displayName = "Input";
+Input.displayName = 'Input';
 
 export { Input };

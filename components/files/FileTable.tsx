@@ -3,6 +3,7 @@
 import { useTranslations } from 'next-intl';
 import DataTable, { type Column } from '@/components/ui/DataTable';
 import type { FileListItem } from '@/lib/api/files';
+import { formatFileSize, formatMimeType, formatUploadedAt } from '@/lib/utils/formatFiles';
 
 export interface FileTableProps {
   items: FileListItem[];
@@ -15,62 +16,6 @@ export interface FileTableProps {
    * pass a handler here to open the detail sheet for the clicked row.
    */
   onSelectFile?: (fileId: string) => void;
-}
-
-/** Format a byte count as a short human-readable size string, e.g. "1.2 MB". */
-function formatFileSize(bytes: number | null): string {
-  if (bytes === null || Number.isNaN(bytes)) {
-    return '-';
-  }
-  if (bytes < 1024) {
-    return `${bytes} B`;
-  }
-  const units = ['KB', 'MB', 'GB', 'TB'];
-  let value = bytes / 1024;
-  let unitIndex = 0;
-  while (value >= 1024 && unitIndex < units.length - 1) {
-    value /= 1024;
-    unitIndex += 1;
-  }
-  return `${value.toFixed(value >= 10 ? 0 : 1)} ${units[unitIndex]}`;
-}
-
-/** Shorten a MIME type to a friendly label, falling back to the raw string. */
-function formatMimeType(mimeType: string | null): string {
-  if (!mimeType) {
-    return '-';
-  }
-  const knownLabels: Record<string, string> = {
-    'application/pdf': 'PDF',
-    'image/png': 'PNG',
-    'image/jpeg': 'JPEG',
-    'image/gif': 'GIF',
-    'image/webp': 'WEBP',
-    'image/svg+xml': 'SVG',
-    'text/plain': 'TXT',
-    'text/csv': 'CSV',
-    'application/zip': 'ZIP',
-    'application/json': 'JSON',
-    'application/msword': 'DOC',
-    'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'DOCX',
-    'application/vnd.ms-excel': 'XLS',
-    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': 'XLSX',
-  };
-  if (knownLabels[mimeType]) {
-    return knownLabels[mimeType];
-  }
-  if (mimeType.startsWith('image/')) {
-    return mimeType.slice('image/'.length).toUpperCase();
-  }
-  return mimeType;
-}
-
-function formatUploadedAt(value: string): string {
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) {
-    return value;
-  }
-  return date.toLocaleString();
 }
 
 export default function FileTable({ items, onSelectFile }: FileTableProps) {

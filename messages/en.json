@@ -358,7 +358,22 @@
         "audit": "Log"
       },
       "download": "Download",
-      "delete": "Delete"
+      "delete": "Delete",
+      "fields": {
+        "name": "Name",
+        "type": "Type",
+        "size": "Size",
+        "uploadedAt": "Uploaded",
+        "scope": "Scope"
+      },
+      "scopeValues": {
+        "private": "Private",
+        "group": "Group"
+      },
+      "confirmDelete": {
+        "title": "Delete file",
+        "message": "Are you sure you want to move this file to trash? It can be restored later."
+      }
     },
     "share": {
       "title": "Share with group",

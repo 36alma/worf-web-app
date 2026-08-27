@@ -358,7 +358,22 @@
         "audit": "Napló"
       },
       "download": "Letöltés",
-      "delete": "Törlés"
+      "delete": "Törlés",
+      "fields": {
+        "name": "Név",
+        "type": "Típus",
+        "size": "Méret",
+        "uploadedAt": "Feltöltve",
+        "scope": "Hatókör"
+      },
+      "scopeValues": {
+        "private": "Privát",
+        "group": "Csoport"
+      },
+      "confirmDelete": {
+        "title": "Fájl törlése",
+        "message": "Biztosan a lomtárba helyezed ezt a fájlt? Onnan később visszaállítható."
+      }
     },
     "share": {
       "title": "Megosztás csoporttal",

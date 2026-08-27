@@ -8,6 +8,7 @@ import { translateFileApiError } from '@/lib/i18n/files';
 import Button from '@/components/ui/Button';
 import FileTable from '@/components/files/FileTable';
 import UploadDialog from '@/components/files/UploadDialog';
+import FileDetailSheet from '@/components/files/FileDetailSheet';
 
 export interface FilesFeedProps {
   mode: 'private' | 'group';
@@ -34,6 +35,7 @@ export default function FilesFeed({ mode, groupId }: FilesFeedProps) {
   const refetch = useCallback(() => setRefreshKey((key) => key + 1), []);
 
   const [isUploadOpen, setIsUploadOpen] = useState(false);
+  const [selectedFileId, setSelectedFileId] = useState<string | null>(null);
 
   useEffect(() => {
     let mounted = true;
@@ -97,8 +99,17 @@ export default function FilesFeed({ mode, groupId }: FilesFeedProps) {
           <div className="h-10 w-full animate-pulse rounded-lg bg-[var(--bg-elevated)]" />
         </div>
       ) : (
-        <FileTable items={items} />
+        <FileTable items={items} onSelectFile={setSelectedFileId} />
       )}
+
+      <FileDetailSheet
+        fileId={selectedFileId}
+        onClose={() => setSelectedFileId(null)}
+        onDeleted={() => {
+          setSelectedFileId(null);
+          refetch();
+        }}
+      />
 
       {!isLoading && total > limit && (
         <div className="flex items-center justify-between">

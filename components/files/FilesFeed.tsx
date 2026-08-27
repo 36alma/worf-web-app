@@ -7,6 +7,7 @@ import { listFiles, type FileListItem } from '@/lib/api/files';
 import { translateFileApiError } from '@/lib/i18n/files';
 import Button from '@/components/ui/Button';
 import FileTable from '@/components/files/FileTable';
+import UploadDialog from '@/components/files/UploadDialog';
 
 export interface FilesFeedProps {
   mode: 'private' | 'group';
@@ -31,6 +32,8 @@ export default function FilesFeed({ mode, groupId }: FilesFeedProps) {
   // once the upload button/dialog is added here) to pull in the new file.
   const [refreshKey, setRefreshKey] = useState(0);
   const refetch = useCallback(() => setRefreshKey((key) => key + 1), []);
+
+  const [isUploadOpen, setIsUploadOpen] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -74,7 +77,18 @@ export default function FilesFeed({ mode, groupId }: FilesFeedProps) {
     <section className="space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="text-lg font-semibold text-[var(--text-primary)]">{title}</h1>
+        <Button type="button" variant="primary" onClick={() => setIsUploadOpen(true)}>
+          {t('upload.submit')}
+        </Button>
       </div>
+
+      <UploadDialog
+        open={isUploadOpen}
+        onClose={() => setIsUploadOpen(false)}
+        mode={mode}
+        groupId={groupId}
+        onUploaded={refetch}
+      />
 
       {isLoading ? (
         <div className="space-y-2">

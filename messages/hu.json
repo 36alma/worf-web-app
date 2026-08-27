@@ -1178,6 +1178,8 @@
     "password_mismatch": "A két jelszó nem egyezik.",
     "filename_invalid": "A fájlnév nem engedélyezett karaktert tartalmaz.",
     "filename_path": "A fájlnév nem tartalmazhat '/', '\\' vagy '..' karaktert.",
+    "file_too_large": "A fájl mérete meghaladja a megengedett maximumot (25 MB).",
+    "file_type_forbidden": "Ez a fájltípus nem támogatott.",
     "required": "Ez a mező kötelező.",
     "too_long": "A megadott érték túl hosszú.",
     "invalid_chars": "A megadott érték érvénytelen karaktert tartalmaz."

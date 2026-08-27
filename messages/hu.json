@@ -323,7 +323,12 @@
       "size": "Méret",
       "uploadedAt": "Feltöltve",
       "actions": "Műveletek",
-      "emptyText": "Nincs fájl."
+      "emptyText": "Nincs fájl.",
+      "pagination": {
+        "prev": "Előző",
+        "next": "Következő",
+        "range": "{from}–{to} / {total}"
+      }
     },
     "trash": {
       "title": "Lomtár",

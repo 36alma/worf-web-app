@@ -323,7 +323,12 @@
       "size": "Size",
       "uploadedAt": "Uploaded",
       "actions": "Actions",
-      "emptyText": "No files."
+      "emptyText": "No files.",
+      "pagination": {
+        "prev": "Previous",
+        "next": "Next",
+        "range": "{from}–{to} of {total}"
+      }
     },
     "trash": {
       "title": "Trash",

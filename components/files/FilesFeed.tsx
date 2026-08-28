@@ -1,7 +1,8 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { useTranslations } from 'next-intl';
+import Link from 'next/link';
+import { useLocale, useTranslations } from 'next-intl';
 import toast from 'react-hot-toast';
 import { listFiles, type FileListItem } from '@/lib/api/files';
 import { translateFileApiError } from '@/lib/i18n/files';
@@ -19,6 +20,7 @@ const DEFAULT_LIMIT = 20;
 
 export default function FilesFeed({ mode, groupId }: FilesFeedProps) {
   const t = useTranslations('files');
+  const locale = useLocale();
 
   const [items, setItems] = useState<FileListItem[]>([]);
   const [total, setTotal] = useState(0);
@@ -79,9 +81,18 @@ export default function FilesFeed({ mode, groupId }: FilesFeedProps) {
     <section className="space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="text-lg font-semibold text-[var(--text-primary)]">{title}</h1>
-        <Button type="button" variant="primary" onClick={() => setIsUploadOpen(true)}>
-          {t('upload.submit')}
-        </Button>
+        <div className="flex items-center gap-2">
+          {mode === 'private' && (
+            <Link href={`/${locale}/files/trash`}>
+              <Button type="button" variant="secondary">
+                {t('trash.title')}
+              </Button>
+            </Link>
+          )}
+          <Button type="button" variant="primary" onClick={() => setIsUploadOpen(true)}>
+            {t('upload.submit')}
+          </Button>
+        </div>
       </div>
 
       <UploadDialog

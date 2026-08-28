@@ -16,6 +16,7 @@
     "tasks": "Tasks",
     "calendar": "Calendar",
     "posts": "Posts",
+    "files": "Files",
     "roles": "Roles",
     "permissions": "Permissions",
     "admin": "Admin",
@@ -878,7 +879,8 @@
     "sections": {
       "users": "Users",
       "groups": "Groups",
-      "roles": "Roles"
+      "roles": "Roles",
+      "storage": "Storage"
     },
     "columns": {
       "id": "ID",

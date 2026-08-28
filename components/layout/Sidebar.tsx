@@ -7,7 +7,7 @@ import * as ScrollArea from '@radix-ui/react-scroll-area';
 import * as Select from '@radix-ui/react-select';
 import * as Separator from '@radix-ui/react-separator';
 import * as Tooltip from '@radix-ui/react-tooltip';
-import { CalendarDays, Check, ChevronDown, ClipboardList, HelpCircle, Home, Shield, Sparkles, StickyNote, Users, X } from 'lucide-react';
+import { CalendarDays, Check, ChevronDown, ClipboardList, FolderOpen, HelpCircle, Home, Shield, Sparkles, StickyNote, Users, X } from 'lucide-react';
 import Link from 'next/link';
 import { useLocale, useTranslations } from 'next-intl';
 import { useParams, usePathname, useRouter } from 'next/navigation';
@@ -37,13 +37,14 @@ const navIcons: Record<NavKey, ElementType> = {
   tasks: ClipboardList,
   calendar: CalendarDays,
   posts: StickyNote,
+  files: FolderOpen,
   roles: Shield,
   permissions: Shield,
   admin: Shield,
   profile: Users
 };
 
-const navKeys: NavKey[] = ['dashboard', 'groups', 'tasks', 'calendar', 'posts', 'roles', 'permissions', 'admin'];
+const navKeys: NavKey[] = ['dashboard', 'groups', 'tasks', 'calendar', 'posts', 'files', 'roles', 'permissions', 'admin'];
 
 const readData = (payload: unknown): unknown => {
   if (!payload || typeof payload !== 'object') {
@@ -268,6 +269,7 @@ function SidebarContent({ isMobile }: { isMobile?: boolean }) {
     if (key === 'tasks') return `/${locale}/groups/${encodedGroupId}/tasks`;
     if (key === 'calendar') return `/${locale}/groups/${encodedGroupId}/calendar`;
     if (key === 'posts') return `/${locale}/posts`; // Posts feed is global and context-aware
+    if (key === 'files') return `/${locale}/groups/${encodedGroupId}/files`;
     if (key === 'roles') return `/${locale}/groups/${encodedGroupId}/roles`;
     if (key === 'permissions') return `/${locale}/groups/${encodedGroupId}/permissions`;
     return `/${locale}/${key}`;

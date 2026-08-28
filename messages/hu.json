@@ -16,6 +16,7 @@
     "tasks": "Feladatok",
     "calendar": "Naptár",
     "posts": "Posztok",
+    "files": "Fájlok",
     "roles": "Role-ok",
     "permissions": "Jogosultságok",
     "admin": "Admin",
@@ -878,7 +879,8 @@
     "sections": {
       "users": "Felhasználók",
       "groups": "Csoportok",
-      "roles": "Role-ok"
+      "roles": "Role-ok",
+      "storage": "Tárhely"
     },
     "columns": {
       "id": "Azonosító",

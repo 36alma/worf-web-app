@@ -1,11 +1,11 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import toast from 'react-hot-toast';
 import * as Tabs from '@radix-ui/react-tabs';
 import clsx from 'clsx';
-import { FileText } from 'lucide-react';
+import { FileText, History, Share2 } from 'lucide-react';
 import SideSheet from '@/components/ui/SideSheet';
 import ConfirmDialog from '@/components/ui/ConfirmDialog';
 import Button from '@/components/ui/Button';
@@ -14,10 +14,48 @@ import {
   requestDownload,
   buildDownloadUrl,
   deleteFile,
+  listGroupShares,
+  shareWithGroup,
+  revokeGroupShare,
+  getAuditLog,
   type FileMetadataResponse,
+  type FileGroupShareEntry,
+  type FileAuditLogEntry,
 } from '@/lib/api/files';
+import { getUserGroups } from '@/lib/api/groups';
 import { translateFileApiError } from '@/lib/i18n/files';
 import { formatFileSize, formatMimeType, formatUploadedAt } from '@/lib/utils/formatFiles';
+
+interface SelectableGroup {
+  id: string;
+  name: string;
+}
+
+const AUDIT_PAGE_SIZE = 20;
+
+const readGroupsResponse = (payload: unknown): SelectableGroup[] => {
+  if (!payload || typeof payload !== 'object') return [];
+  const source = ('data' in (payload as Record<string, unknown>)
+    ? (payload as Record<string, unknown>).data
+    : payload) as unknown;
+  const arrayValue = Array.isArray(source)
+    ? source
+    : source && typeof source === 'object'
+      ? ['group_users', 'groups', 'items', 'rows', 'result']
+          .map((key) => (source as Record<string, unknown>)[key])
+          .find((value) => Array.isArray(value))
+      : null;
+  if (!Array.isArray(arrayValue)) return [];
+  return arrayValue
+    .map((item) => {
+      if (!item || typeof item !== 'object') return null;
+      const row = item as Record<string, unknown>;
+      const id = String(row.group_id ?? row.id ?? '').trim();
+      if (!id) return null;
+      return { id, name: String(row.group_name ?? row.name ?? id) };
+    })
+    .filter((value): value is SelectableGroup => value !== null);
+};
 
 export interface FileDetailSheetProps {
   fileId: string | null;
@@ -36,6 +74,18 @@ export default function FileDetailSheet({ fileId, onClose, onDeleted }: FileDeta
   const [isRequesting, setIsRequesting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+
+  const [shares, setShares] = useState<FileGroupShareEntry[]>([]);
+  const [isSharesLoading, setIsSharesLoading] = useState(false);
+  const [userGroups, setUserGroups] = useState<SelectableGroup[]>([]);
+  const [selectedGroupId, setSelectedGroupId] = useState('');
+  const [isSharing, setIsSharing] = useState(false);
+  const [revokingGroupId, setRevokingGroupId] = useState<string | null>(null);
+
+  const [auditItems, setAuditItems] = useState<FileAuditLogEntry[]>([]);
+  const [auditOffset, setAuditOffset] = useState(0);
+  const [auditTotal, setAuditTotal] = useState(0);
+  const [isAuditLoading, setIsAuditLoading] = useState(false);
 
   useEffect(() => {
     if (fileId === null) {
@@ -67,6 +117,90 @@ export default function FileDetailSheet({ fileId, onClose, onDeleted }: FileDeta
       mounted = false;
     };
   }, [fileId, t]);
+
+  useEffect(() => {
+    if (fileId === null) {
+      setActiveTab('metadata');
+      setShares([]);
+      setUserGroups([]);
+      setSelectedGroupId('');
+      setAuditItems([]);
+      setAuditOffset(0);
+      setAuditTotal(0);
+    }
+  }, [fileId]);
+
+  const loadShares = useCallback(async () => {
+    if (fileId === null) return;
+    setIsSharesLoading(true);
+    try {
+      const [sharesResponse, groupsResponse] = await Promise.all([listGroupShares(fileId), getUserGroups()]);
+      setShares(sharesResponse.data.groups);
+      setUserGroups(readGroupsResponse(groupsResponse));
+    } catch (error) {
+      toast.error(translateFileApiError(t, error, 'errors.default'));
+    } finally {
+      setIsSharesLoading(false);
+    }
+  }, [fileId, t]);
+
+  const loadAudit = useCallback(
+    async (nextOffset: number) => {
+      if (fileId === null) return;
+      setIsAuditLoading(true);
+      try {
+        const response = await getAuditLog(fileId, nextOffset, AUDIT_PAGE_SIZE);
+        setAuditItems((current) => (nextOffset === 0 ? response.data.items : [...current, ...response.data.items]));
+        setAuditTotal(response.data.total);
+        setAuditOffset(nextOffset);
+      } catch (error) {
+        toast.error(translateFileApiError(t, error, 'errors.default'));
+      } finally {
+        setIsAuditLoading(false);
+      }
+    },
+    [fileId, t]
+  );
+
+  useEffect(() => {
+    if (fileId === null) return;
+    if (activeTab === 'share' && metadata?.is_owner) {
+      void loadShares();
+    }
+    if (activeTab === 'audit') {
+      void loadAudit(0);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab, fileId, metadata?.is_owner]);
+
+  const handleShare = async () => {
+    if (fileId === null || !selectedGroupId || isSharing) return;
+    setIsSharing(true);
+    try {
+      await shareWithGroup(fileId, selectedGroupId);
+      toast.success(t('toasts.shareSuccess'));
+      setSelectedGroupId('');
+      await loadShares();
+    } catch (error) {
+      toast.error(translateFileApiError(t, error, 'errors.default'));
+    } finally {
+      setIsSharing(false);
+    }
+  };
+
+  const handleRevoke = async (groupId: string) => {
+    if (fileId === null || revokingGroupId) return;
+    setRevokingGroupId(groupId);
+    try {
+      await revokeGroupShare(fileId, groupId);
+      toast.success(t('toasts.revokeSuccess'));
+      await loadShares();
+    } catch (error) {
+      toast.error(translateFileApiError(t, error, 'errors.default'));
+    } finally {
+      setRevokingGroupId(null);
+    }
+  };
 
   const handleDownload = async () => {
     if (fileId === null || isRequesting) return;
@@ -113,7 +247,28 @@ export default function FileDetailSheet({ fileId, onClose, onDeleted }: FileDeta
             >
               <FileText size={16} /> {t('detail.tabs.metadata')}
             </Tabs.Trigger>
-            {/* Task 6 (share) and Task 7 (audit) add their Tabs.Trigger/Tabs.Content pairs here. */}
+            <Tabs.Trigger
+              value="share"
+              className={clsx(
+                'flex items-center gap-2 border-b-2 px-4 py-2.5 text-sm font-semibold outline-none transition-all',
+                activeTab === 'share'
+                  ? 'border-orange-500 text-orange-500'
+                  : 'border-transparent text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]'
+              )}
+            >
+              <Share2 size={16} /> {t('detail.tabs.share')}
+            </Tabs.Trigger>
+            <Tabs.Trigger
+              value="audit"
+              className={clsx(
+                'flex items-center gap-2 border-b-2 px-4 py-2.5 text-sm font-semibold outline-none transition-all',
+                activeTab === 'audit'
+                  ? 'border-orange-500 text-orange-500'
+                  : 'border-transparent text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]'
+              )}
+            >
+              <History size={16} /> {t('detail.tabs.audit')}
+            </Tabs.Trigger>
           </Tabs.List>
 
           <Tabs.Content value="metadata" className="flex flex-col gap-4 outline-none">
@@ -174,6 +329,109 @@ export default function FileDetailSheet({ fileId, onClose, onDeleted }: FileDeta
                 {t('detail.delete')}
               </Button>
             </div>
+          </Tabs.Content>
+
+          <Tabs.Content value="share" className="flex flex-col gap-4 outline-none">
+            {!metadata ? null : !metadata.is_owner ? (
+              <p className="text-sm text-[var(--text-tertiary)]">{t('share.ownerOnly')}</p>
+            ) : (
+              <>
+                <div className="flex items-end gap-2">
+                  <div className="flex-1">
+                    <label htmlFor="share-group-select" className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-[var(--text-tertiary)]">
+                      {t('share.title')}
+                    </label>
+                    <select
+                      id="share-group-select"
+                      className="w-full rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface)] px-3 py-2 text-sm text-[var(--text-primary)] outline-none focus-visible:border-border-focus"
+                      value={selectedGroupId}
+                      onChange={(event) => setSelectedGroupId(event.target.value)}
+                    >
+                      <option value="">{t('share.selectGroupPlaceholder')}</option>
+                      {userGroups
+                        .filter((group) => !shares.some((share) => share.group_id === group.id))
+                        .map((group) => (
+                          <option key={group.id} value={group.id}>
+                            {group.name}
+                          </option>
+                        ))}
+                    </select>
+                  </div>
+                  <Button type="button" variant="primary" loading={isSharing} disabled={!selectedGroupId} onClick={handleShare}>
+                    {t('share.shareButton')}
+                  </Button>
+                </div>
+
+                <div>
+                  <p className="mb-2 text-xs font-medium uppercase tracking-wider text-[var(--text-tertiary)]">
+                    {t('share.sharedWith')}
+                  </p>
+                  {isSharesLoading ? (
+                    <div className="h-6 w-full animate-pulse rounded-lg bg-[var(--bg-elevated)]" />
+                  ) : shares.length === 0 ? (
+                    <p className="text-sm text-[var(--text-tertiary)]">{t('share.noShares')}</p>
+                  ) : (
+                    <ul className="space-y-2">
+                      {shares.map((share) => (
+                        <li
+                          key={share.group_id}
+                          className="flex items-center justify-between gap-3 rounded-lg border border-[var(--border-subtle)] px-3 py-2 text-sm"
+                        >
+                          <span className="font-medium text-[var(--text-primary)]">{share.group_name}</span>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            loading={revokingGroupId === share.group_id}
+                            onClick={() => handleRevoke(share.group_id)}
+                          >
+                            {t('share.revokeButton')}
+                          </Button>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              </>
+            )}
+          </Tabs.Content>
+
+          <Tabs.Content value="audit" className="flex flex-col gap-4 outline-none">
+            {isAuditLoading && auditItems.length === 0 ? (
+              <div className="space-y-2">
+                <div className="h-6 w-full animate-pulse rounded-lg bg-[var(--bg-elevated)]" />
+                <div className="h-6 w-full animate-pulse rounded-lg bg-[var(--bg-elevated)]" />
+              </div>
+            ) : auditItems.length === 0 ? (
+              <p className="text-sm text-[var(--text-tertiary)]">{t('audit.emptyText')}</p>
+            ) : (
+              <ul className="space-y-2">
+                {auditItems.map((entry) => (
+                  <li key={entry.id} className="rounded-lg border border-[var(--border-subtle)] px-3 py-2 text-sm">
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="font-medium text-[var(--text-primary)]">
+                        {t.has(`audit.action.${entry.action}` as any)
+                          ? t(`audit.action.${entry.action}` as any)
+                          : entry.action}
+                      </span>
+                      <span className="text-xs text-[var(--text-tertiary)]">{formatUploadedAt(entry.timestamp)}</span>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+
+            {auditItems.length < auditTotal && (
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                loading={isAuditLoading}
+                onClick={() => loadAudit(auditOffset + AUDIT_PAGE_SIZE)}
+              >
+                {t('audit.loadMore')}
+              </Button>
+            )}
           </Tabs.Content>
         </Tabs.Root>
       </SideSheet>

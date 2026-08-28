@@ -11,6 +11,7 @@ export type NavKey =
   | 'tasks'
   | 'calendar'
   | 'posts'
+  | 'files'
   | 'roles'
   | 'permissions'
   | 'admin'
@@ -22,9 +23,20 @@ export const navPermissionRequirements: Record<NavKey, PermissionRequirement | n
   tasks: 'GROUP_ONLY',
   calendar: 'GROUP_ONLY',
   posts: {anyOf: ['post.get.global']},
+  // Files domain has no RBAC permission for plain access — the backend enforces
+  // ownership/membership/share checks at runtime instead, so the nav entry stays open.
+  files: null,
   roles: 'GROUP_ONLY',
   permissions: 'GROUP_ONLY',
-  admin: {anyOf: ['role.get.all.role', 'group.get.all.group', 'user.get.prealluser']},
+  admin: {
+    anyOf: [
+      'role.get.all.role',
+      'group.get.all.group',
+      'user.get.prealluser',
+      'files.storage.limit.user.set',
+      'files.storage.limit.group.set'
+    ]
+  },
   profile: null
 };
 
@@ -42,7 +54,16 @@ export const systemRoutePermissionRequirements: Record<string, PermissionRequire
   tasks: 'GROUP_ONLY',
   calendar: 'GROUP_ONLY',
   posts: {anyOf: ['post.get.global']},
-  admin: {anyOf: ['role.get.all.role', 'group.get.all.group', 'user.get.prealluser']},
+  files: null,
+  admin: {
+    anyOf: [
+      'role.get.all.role',
+      'group.get.all.group',
+      'user.get.prealluser',
+      'files.storage.limit.user.set',
+      'files.storage.limit.group.set'
+    ]
+  },
   profile: null
 };
 
@@ -51,6 +72,7 @@ export const groupRoutePermissionRequirements: Record<string, PermissionRequirem
   tasks: {anyOf: ['group.task.read']},
   calendar: {anyOf: ['group.calendar.read', 'group.calendar.write']},
   posts: {anyOf: ['group.post.read']},
+  files: null,
   roles: {anyOf: ['group.role.get']},
   permissions: {anyOf: ['group.permission.get.all']},
   members: null

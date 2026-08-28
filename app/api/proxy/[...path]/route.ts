@@ -181,6 +181,7 @@ async function handleProxy(request: NextRequest, params: {path: string[]}) {
     request.method === 'POST' &&
     (normalizedPath === 'group/permission' || normalizedPath === 'user/permission');
   const upstreamMethod = shouldTranslatePostToGet ? 'GET' : request.method;
+  const isFilesTrash = normalizedPath === 'files/trash' && request.method === 'GET';
   const targetUrl = new URL(
     `/v1/${normalizedPath}`,
     apiBase.endsWith('/') ? apiBase : `${apiBase}/`
@@ -206,7 +207,7 @@ async function handleProxy(request: NextRequest, params: {path: string[]}) {
 
   const payload: Record<string, any> = {
     ...parsedBody,
-    ...(token ? {Bearer: token} : {})
+    ...(token && !isFilesTrash ? {Bearer: token} : {})
   };
 
   // Normalise group_id: callers sometimes pass URL-encoded base64 ids (e.g.
@@ -224,7 +225,8 @@ async function handleProxy(request: NextRequest, params: {path: string[]}) {
 
 
   const response = await sendJsonWithBody(targetUrl, upstreamMethod, payload, {
-    ...(forwardedFor ? {'x-forwarded-for': forwardedFor} : {})
+    ...(forwardedFor ? {'x-forwarded-for': forwardedFor} : {}),
+    ...(isFilesTrash && token ? {Authorization: `Bearer ${token}`} : {})
   });
   const normalizedResponse = normalizePossiblyBrokenJsonResponse(
     response.text,

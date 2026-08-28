@@ -16,6 +16,7 @@
     "tasks": "Feladatok",
     "calendar": "Naptár",
     "posts": "Posztok",
+    "files": "Fájlok",
     "roles": "Role-ok",
     "permissions": "Jogosultságok",
     "admin": "Admin",
@@ -280,6 +281,133 @@
       "high": "Magas",
       "medium": "Közepes",
       "low": "Alacsony"
+    }
+  },
+  "files": {
+    "errors": {
+      "api": {
+        "401": "A hitelesítés sikertelen. Jelentkezz be újra.",
+        "403": "Nincs jogosultságod a művelet végrehajtásához.",
+        "404": "A keresett fájl nem található.",
+        "413": "A fájl mérete meghaladja a megengedett maximumot.",
+        "415": "Ez a fájltípus nem támogatott.",
+        "422": "Az ellenőrzés sikertelen. Ellenőrizd a megadott adatokat.",
+        "429": "Túl sok kérés érkezett. Próbáld újra később."
+      },
+      "default": "Ismeretlen hiba történt a fájlművelet során."
+    },
+    "toasts": {
+      "uploadSuccess": "A fájl sikeresen feltöltve.",
+      "uploadError": "Nem sikerült feltölteni a fájlt.",
+      "downloadError": "Nem sikerült letölteni a fájlt.",
+      "deleteSuccess": "A fájl a lomtárba került.",
+      "deleteError": "Nem sikerült törölni a fájlt.",
+      "restoreSuccess": "A fájl visszaállítva.",
+      "restoreError": "Nem sikerült visszaállítani a fájlt.",
+      "permanentDeleteSuccess": "A fájl véglegesen törölve.",
+      "permanentDeleteError": "Nem sikerült véglegesen törölni a fájlt.",
+      "shareSuccess": "A fájl megosztva a csoporttal.",
+      "shareError": "Nem sikerült megosztani a fájlt.",
+      "revokeSuccess": "A megosztás visszavonva.",
+      "revokeError": "Nem sikerült visszavonni a megosztást.",
+      "loadError": "Nem sikerült betölteni a fájlokat."
+    },
+    "page": {
+      "title": "Fájlok"
+    },
+    "groupPage": {
+      "title": "Fájlok"
+    },
+    "table": {
+      "name": "Név",
+      "type": "Típus",
+      "size": "Méret",
+      "uploadedAt": "Feltöltve",
+      "actions": "Műveletek",
+      "emptyText": "Nincs fájl.",
+      "pagination": {
+        "prev": "Előző",
+        "next": "Következő",
+        "range": "{from}–{to} / {total}"
+      }
+    },
+    "trash": {
+      "title": "Lomtár",
+      "table": {
+        "deletedAt": "Törölve"
+      },
+      "restore": "Visszaállítás",
+      "permanentDelete": "Végleges törlés",
+      "confirmPermanentTitle": "Végleges törlés",
+      "confirmPermanentMessage": "Biztosan véglegesen törlöd ezt a fájlt? Ez a művelet nem vonható vissza.",
+      "emptyText": "A lomtár üres."
+    },
+    "upload": {
+      "title": "Fájl feltöltése",
+      "dropzoneLabel": "Húzd ide a fájlt, vagy kattints a tallózáshoz",
+      "selectFile": "Fájl kiválasztása",
+      "filenameLabel": "Fájlnév",
+      "uploading": "Feltöltés...",
+      "cancel": "Mégse",
+      "submit": "Feltöltés"
+    },
+    "detail": {
+      "title": "Fájl részletei",
+      "tabs": {
+        "metadata": "Adatok",
+        "share": "Megosztás",
+        "audit": "Napló"
+      },
+      "download": "Letöltés",
+      "delete": "Törlés",
+      "fields": {
+        "name": "Név",
+        "type": "Típus",
+        "size": "Méret",
+        "uploadedAt": "Feltöltve",
+        "scope": "Hatókör"
+      },
+      "scopeValues": {
+        "private": "Privát",
+        "group": "Csoport"
+      },
+      "confirmDelete": {
+        "title": "Fájl törlése",
+        "message": "Biztosan a lomtárba helyezed ezt a fájlt? Onnan később visszaállítható."
+      }
+    },
+    "share": {
+      "title": "Megosztás csoporttal",
+      "selectGroupPlaceholder": "Válassz csoportot",
+      "shareButton": "Megosztás",
+      "revokeButton": "Visszavonás",
+      "sharedWith": "Megosztva ezekkel a csoportokkal",
+      "noShares": "Nincs megosztás.",
+      "ownerOnly": "Csak a tulajdonos kezelheti a megosztásokat."
+    },
+    "audit": {
+      "title": "Naplóbejegyzések",
+      "emptyText": "Nincs naplóbejegyzés.",
+      "loadMore": "Továbbiak betöltése",
+      "action": {
+        "upload": "Feltöltés",
+        "download": "Letöltés",
+        "delete": "Törlés",
+        "restore": "Visszaállítás",
+        "share_group": "Megosztás csoporttal",
+        "revoke_share_group": "Csoportmegosztás visszavonása"
+      }
+    },
+    "admin": {
+      "title": "Tárhelykorlátok",
+      "userLimitLabel": "Felhasználói korlát",
+      "groupLimitLabel": "Csoport korlát",
+      "targetIdLabel": "Cél azonosító",
+      "limitMbLabel": "Korlát (MB)",
+      "noLimitLabel": "Nincs korlát",
+      "save": "Mentés",
+      "saveSuccess": "A korlát sikeresen mentve.",
+      "saveError": "Nem sikerült menteni a korlátot."
     }
   },
   "calendar": {
@@ -751,7 +879,8 @@
     "sections": {
       "users": "Felhasználók",
       "groups": "Csoportok",
-      "roles": "Role-ok"
+      "roles": "Role-ok",
+      "storage": "Tárhely"
     },
     "columns": {
       "id": "Azonosító",
@@ -1066,6 +1195,8 @@
     "password_mismatch": "A két jelszó nem egyezik.",
     "filename_invalid": "A fájlnév nem engedélyezett karaktert tartalmaz.",
     "filename_path": "A fájlnév nem tartalmazhat '/', '\\' vagy '..' karaktert.",
+    "file_too_large": "A fájl mérete meghaladja a megengedett maximumot (25 MB).",
+    "file_type_forbidden": "Ez a fájltípus nem támogatott.",
     "required": "Ez a mező kötelező.",
     "too_long": "A megadott érték túl hosszú.",
     "invalid_chars": "A megadott érték érvénytelen karaktert tartalmaz."

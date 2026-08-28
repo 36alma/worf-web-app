@@ -16,6 +16,7 @@
     "tasks": "Tasks",
     "calendar": "Calendar",
     "posts": "Posts",
+    "files": "Files",
     "roles": "Roles",
     "permissions": "Permissions",
     "admin": "Admin",
@@ -280,6 +281,133 @@
       "high": "High",
       "medium": "Medium",
       "low": "Low"
+    }
+  },
+  "files": {
+    "errors": {
+      "api": {
+        "401": "Authentication failed. Please log in again.",
+        "403": "You do not have permission to perform this action.",
+        "404": "The requested file was not found.",
+        "413": "The file exceeds the maximum allowed size.",
+        "415": "This file type is not supported.",
+        "422": "Validation failed. Please check the provided data.",
+        "429": "Too many requests. Please try again later."
+      },
+      "default": "An unknown error occurred during the file operation."
+    },
+    "toasts": {
+      "uploadSuccess": "The file was uploaded successfully.",
+      "uploadError": "Failed to upload the file.",
+      "downloadError": "Failed to download the file.",
+      "deleteSuccess": "The file was moved to trash.",
+      "deleteError": "Failed to delete the file.",
+      "restoreSuccess": "The file was restored.",
+      "restoreError": "Failed to restore the file.",
+      "permanentDeleteSuccess": "The file was permanently deleted.",
+      "permanentDeleteError": "Failed to permanently delete the file.",
+      "shareSuccess": "The file was shared with the group.",
+      "shareError": "Failed to share the file.",
+      "revokeSuccess": "The share was revoked.",
+      "revokeError": "Failed to revoke the share.",
+      "loadError": "Failed to load the files."
+    },
+    "page": {
+      "title": "Files"
+    },
+    "groupPage": {
+      "title": "Files"
+    },
+    "table": {
+      "name": "Name",
+      "type": "Type",
+      "size": "Size",
+      "uploadedAt": "Uploaded",
+      "actions": "Actions",
+      "emptyText": "No files.",
+      "pagination": {
+        "prev": "Previous",
+        "next": "Next",
+        "range": "{from}–{to} of {total}"
+      }
+    },
+    "trash": {
+      "title": "Trash",
+      "table": {
+        "deletedAt": "Deleted"
+      },
+      "restore": "Restore",
+      "permanentDelete": "Delete permanently",
+      "confirmPermanentTitle": "Permanent deletion",
+      "confirmPermanentMessage": "Are you sure you want to permanently delete this file? This action cannot be undone.",
+      "emptyText": "Trash is empty."
+    },
+    "upload": {
+      "title": "Upload file",
+      "dropzoneLabel": "Drag a file here, or click to browse",
+      "selectFile": "Select file",
+      "filenameLabel": "Filename",
+      "uploading": "Uploading...",
+      "cancel": "Cancel",
+      "submit": "Upload"
+    },
+    "detail": {
+      "title": "File details",
+      "tabs": {
+        "metadata": "Metadata",
+        "share": "Share",
+        "audit": "Log"
+      },
+      "download": "Download",
+      "delete": "Delete",
+      "fields": {
+        "name": "Name",
+        "type": "Type",
+        "size": "Size",
+        "uploadedAt": "Uploaded",
+        "scope": "Scope"
+      },
+      "scopeValues": {
+        "private": "Private",
+        "group": "Group"
+      },
+      "confirmDelete": {
+        "title": "Delete file",
+        "message": "Are you sure you want to move this file to trash? It can be restored later."
+      }
+    },
+    "share": {
+      "title": "Share with group",
+      "selectGroupPlaceholder": "Select a group",
+      "shareButton": "Share",
+      "revokeButton": "Revoke",
+      "sharedWith": "Shared with these groups",
+      "noShares": "No shares.",
+      "ownerOnly": "Only the owner can manage shares."
+    },
+    "audit": {
+      "title": "Log entries",
+      "emptyText": "No log entries.",
+      "loadMore": "Load more",
+      "action": {
+        "upload": "Upload",
+        "download": "Download",
+        "delete": "Delete",
+        "restore": "Restore",
+        "share_group": "Share with group",
+        "revoke_share_group": "Revoke group share"
+      }
+    },
+    "admin": {
+      "title": "Storage limits",
+      "userLimitLabel": "User limit",
+      "groupLimitLabel": "Group limit",
+      "targetIdLabel": "Target ID",
+      "limitMbLabel": "Limit (MB)",
+      "noLimitLabel": "No limit",
+      "save": "Save",
+      "saveSuccess": "The limit was saved successfully.",
+      "saveError": "Failed to save the limit."
     }
   },
   "calendar": {
@@ -751,7 +879,8 @@
     "sections": {
       "users": "Users",
       "groups": "Groups",
-      "roles": "Roles"
+      "roles": "Roles",
+      "storage": "Storage"
     },
     "columns": {
       "id": "ID",
@@ -1066,6 +1195,8 @@
     "password_mismatch": "The passwords do not match.",
     "filename_invalid": "The file name contains characters that are not allowed.",
     "filename_path": "The file name must not contain '/', '\\' or '..'.",
+    "file_too_large": "The file exceeds the maximum allowed size (25 MB).",
+    "file_type_forbidden": "This file type is not supported.",
     "required": "This field is required.",
     "too_long": "This value is too long.",
     "invalid_chars": "This value contains invalid characters."

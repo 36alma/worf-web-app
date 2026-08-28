@@ -137,16 +137,19 @@ Mindhárom a meglévő `AUTH_COOKIE_OPTIONS`-t használja (`secure` prod-ban,
 `.env` / `.env.local.example` új kulcsai:
 
 ```
+WORF_OAUTH_CLIENT_ID=     # az új, private_key_jwt móddal regisztrált kliens UUID-ja
 WORF_OAUTH_PRIVATE_KEY=   # PEM, PKCS8, \n-escapelt egysoros érték
 WORF_OAUTH_KID=           # a regisztrált JWK kid-je (RFC 7638 thumbprint)
 ```
 
-`WORF_CLIENT_ID` értéke az új, `private_key_jwt` móddal regisztrált
-kliens UUID-jára változik (az `.env`-ben, a register script kimenete
-alapján, manuálisan). `WORF_CLIENT_SECRET` **marad** — a legacy
-jelszavas login (`/v1/auth/login`, `/v1/auth/multi-factor-authentication`)
-továbbra is ugyanazt a régi client_id+secret párost használja, ez a
-munka nem érinti.
+**Fontos:** a `WORF_CLIENT_ID`+`WORF_CLIENT_SECRET` párost a legacy
+jelszavas login (`getAuthClientPayload()`, `/v1/auth/login`,
+`/v1/auth/multi-factor-authentication`, legacy refresh) használja, és
+ez **nem** változik. Az új, `private_key_jwt` móddal regisztrált
+kliens egy **külön** `client_id`-t kap (más kliens, más
+hitelesítési mód a szerveren) — ezt **nem** a meglévő `WORF_CLIENT_ID`
+env varba írjuk, hanem egy új `WORF_OAUTH_CLIENT_ID` env varba, hogy a
+két flow ne írja felül egymás konfigurációját.
 
 ## Hibakezelés
 

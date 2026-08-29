@@ -3,14 +3,25 @@ import { Bot } from 'lucide-react';
 import {redirect} from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 import LoginForm from '@/components/auth/LoginForm';
+import LoginError from '@/components/auth/LoginError';
 import {getServerRefreshToken} from '@/lib/utils/cookies';
 
-export default async function LoginPage({params}: {params: Promise<{locale: string}>}) {
+export default async function LoginPage({
+  params,
+  searchParams
+}: {
+  params: Promise<{locale: string}>;
+  searchParams: Promise<{error?: string | string[]}>;
+}) {
   const {locale} = await params;
+  const {error} = await searchParams;
+  const errorMessage = Array.isArray(error) ? error[0] : error;
   const t = await getTranslations('auth');
 
+  // With an error to show, skip the silent refresh redirect — otherwise the
+  // user is bounced to the dashboard and never sees why sign-in failed.
   const refreshToken = await getServerRefreshToken();
-  if (refreshToken) {
+  if (refreshToken && !errorMessage) {
     const fallback = encodeURIComponent(`/${locale}/auth/login`);
     const destination = encodeURIComponent(`/${locale}/dashboard`);
     redirect(`/api/auth/token?redirect=${destination}&fallback=${fallback}`);
@@ -34,6 +45,8 @@ export default async function LoginPage({params}: {params: Promise<{locale: stri
         <p className="auth-subtitle">{t('subtitle')}</p>
 
         <div className="auth-divider" />
+
+        {errorMessage ? <LoginError error={errorMessage} /> : null}
 
         <LoginForm />
       </div>

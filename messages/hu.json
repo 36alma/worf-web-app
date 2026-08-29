@@ -60,7 +60,16 @@
     "secure_connection": "Biztonságos, titkosított kapcsolat",
     "footer_copyright": "© 2025 WORF",
     "footer_terms": "Feltételek",
-    "footer_privacy": "Adatvédelem"
+    "footer_privacy": "Adatvédelem",
+    "error_title": "A bejelentkezés nem sikerült",
+    "error_access_denied": "A hozzáférést elutasítottad a jóváhagyó képernyőn.",
+    "error_invalid_issuer": "A válasz nem a várt kiszolgálótól érkezett. Biztonsági okból megszakítottuk a bejelentkezést.",
+    "error_invalid_state": "A bejelentkezési kérés nem azonosítható. Próbáld újra.",
+    "error_expired_request": "A bejelentkezési kérés lejárt. Próbáld újra.",
+    "error_invalid_request": "Hiányos válasz érkezett a bejelentkezési kiszolgálótól.",
+    "error_token_exchange_failed": "A bejelentkezés nem fejezhető be. Próbáld újra.",
+    "error_temporarily_unavailable": "A bejelentkezési szolgáltatás átmenetileg nem érhető el. Próbáld újra később.",
+    "error_server_error": "A bejelentkezés szerverhiba miatt megszakadt."
   },
   "dashboard": {
     "title": "Vezérlőpult",

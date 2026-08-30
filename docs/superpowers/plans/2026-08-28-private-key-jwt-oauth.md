@@ -1,5 +1,10 @@
 # private_key_jwt OAuth-redirect flow Implementation Plan
 
+> **ELAVULT — NE EZT HAJTSD VÉGRE.** Felváltotta a
+> `2026-08-29-oauth21-auth-compliance.md`, amely ennek a taskjait magába
+> foglalja és kiegészíti a 2026-08-28-i backend-megfelelőségi kör
+> követelményeivel. Ez a fájl csak előzményként marad meg.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Migrate the worf-app OAuth-redirect ("Bejelentkezés" button) login flow from the legacy `/v1/oauth/login` + `/v1/auth/token` endpoints to the RFC-compliant `/oauth/authorize` (PKCE) + `/oauth/token` endpoints, authenticating the client with `private_key_jwt` (RFC 7523) instead of a static secret.

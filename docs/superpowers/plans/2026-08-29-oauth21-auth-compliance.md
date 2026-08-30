@@ -35,7 +35,7 @@
 - Fogyaszt: semmit korábbi taskból.
 - Előállít: `generateCodeVerifier(): string`, `generateCodeChallenge(codeVerifier: string): string`, `generatePkcePair(): {codeVerifier: string; codeChallenge: string}`, `generateState(): string`, `PkcePair` típus.
 
-- [ ] **1. lépés: Írd meg a bukó teszteket**
+- [x] **1. lépés: Írd meg a bukó teszteket**
 
 ```typescript
 // lib/server/__tests__/pkce.test.ts
@@ -80,12 +80,12 @@ describe('pkce', () => {
 });
 ```
 
-- [ ] **2. lépés: Futtasd, ellenőrizd, hogy bukik**
+- [x] **2. lépés: Futtasd, ellenőrizd, hogy bukik**
 
 Futtatás: `npx vitest run lib/server/__tests__/pkce.test.ts`
 Várt: FAIL — `Cannot find module '../pkce'`.
 
-- [ ] **3. lépés: Írd meg a `lib/server/pkce.ts`-t**
+- [x] **3. lépés: Írd meg a `lib/server/pkce.ts`-t**
 
 ```typescript
 import {createHash, randomBytes} from 'node:crypto';
@@ -111,12 +111,12 @@ export const generatePkcePair = (): PkcePair => {
 export const generateState = (): string => base64UrlEncode(randomBytes(16));
 ```
 
-- [ ] **4. lépés: Futtasd, ellenőrizd, hogy átmegy**
+- [x] **4. lépés: Futtasd, ellenőrizd, hogy átmegy**
 
 Futtatás: `npx vitest run lib/server/__tests__/pkce.test.ts`
 Várt: PASS (5 teszt).
 
-- [ ] **5. lépés: Commit**
+- [x] **5. lépés: Commit**
 
 ```bash
 git add lib/server/pkce.ts lib/server/__tests__/pkce.test.ts
@@ -139,7 +139,7 @@ git commit -m "feat: add PKCE code verifier/challenge helper"
   - `buildAuthorizeScope(metadata: AuthServerMetadata): string` — `openid profile offline_access` + `scopes_supported`, duplikátumok nélkül, szóközzel elválasztva.
   - `resetDiscoveryCache(): void` — csak tesztekhez.
 
-- [ ] **1. lépés: Írd meg a bukó teszteket**
+- [x] **1. lépés: Írd meg a bukó teszteket**
 
 ```typescript
 // lib/server/__tests__/oauth-discovery.test.ts
@@ -222,12 +222,12 @@ describe('oauth-discovery', () => {
 });
 ```
 
-- [ ] **2. lépés: Futtasd, ellenőrizd, hogy bukik**
+- [x] **2. lépés: Futtasd, ellenőrizd, hogy bukik**
 
 Futtatás: `npx vitest run lib/server/__tests__/oauth-discovery.test.ts`
 Várt: FAIL — `Cannot find module '../oauth-discovery'`.
 
-- [ ] **3. lépés: Írd meg a `lib/server/oauth-discovery.ts`-t**
+- [x] **3. lépés: Írd meg a `lib/server/oauth-discovery.ts`-t**
 
 ```typescript
 export type AuthServerMetadata = {
@@ -286,12 +286,12 @@ export function buildAuthorizeScope(metadata: AuthServerMetadata): string {
 }
 ```
 
-- [ ] **4. lépés: Futtasd, ellenőrizd, hogy átmegy**
+- [x] **4. lépés: Futtasd, ellenőrizd, hogy átmegy**
 
 Futtatás: `npx vitest run lib/server/__tests__/oauth-discovery.test.ts`
 Várt: PASS (6 teszt).
 
-- [ ] **5. lépés: Commit**
+- [x] **5. lépés: Commit**
 
 ```bash
 git add lib/server/oauth-discovery.ts lib/server/__tests__/oauth-discovery.test.ts
@@ -313,12 +313,12 @@ git commit -m "feat: read OAuth authorization server metadata from discovery"
 
 Az `audience` paraméter a Task 2 discovery `token_endpoint`-jából érkezik — a modul **nem** épít maga URL-t.
 
-- [ ] **1. lépés: Telepítsd a `jose`-t**
+- [x] **1. lépés: Telepítsd a `jose`-t**
 
 Futtatás: `npm install jose`
 Várt: a `package.json` `dependencies` blokkjában megjelenik a `jose`.
 
-- [ ] **2. lépés: Írd meg a bukó teszteket**
+- [x] **2. lépés: Írd meg a bukó teszteket**
 
 ```typescript
 // lib/server/__tests__/oauth-client-assertion.test.ts
@@ -385,12 +385,12 @@ describe('buildClientAssertion', () => {
 });
 ```
 
-- [ ] **3. lépés: Futtasd, ellenőrizd, hogy bukik**
+- [x] **3. lépés: Futtasd, ellenőrizd, hogy bukik**
 
 Futtatás: `npx vitest run lib/server/__tests__/oauth-client-assertion.test.ts`
 Várt: FAIL — `Cannot find module '../oauth-client-assertion'`.
 
-- [ ] **4. lépés: Írd meg a `lib/server/oauth-client-assertion.ts`-t**
+- [x] **4. lépés: Írd meg a `lib/server/oauth-client-assertion.ts`-t**
 
 ```typescript
 import {randomUUID} from 'node:crypto';
@@ -423,12 +423,12 @@ export async function buildClientAssertion(audience: string): Promise<string | n
 }
 ```
 
-- [ ] **5. lépés: Futtasd, ellenőrizd, hogy átmegy**
+- [x] **5. lépés: Futtasd, ellenőrizd, hogy átmegy**
 
 Futtatás: `npx vitest run lib/server/__tests__/oauth-client-assertion.test.ts`
 Várt: PASS (5 teszt).
 
-- [ ] **6. lépés: Commit**
+- [x] **6. lépés: Commit**
 
 ```bash
 git add package.json package-lock.json lib/server/oauth-client-assertion.ts lib/server/__tests__/oauth-client-assertion.test.ts
@@ -453,7 +453,7 @@ git commit -m "feat: sign private_key_jwt client assertions with jose"
 
 Egyik függvény sem küld `resource` paramétert, és a `refresh` ág nem küld `scope`-ot (nem akarunk szűkíteni).
 
-- [ ] **1. lépés: Írd meg a bukó teszteket**
+- [x] **1. lépés: Írd meg a bukó teszteket**
 
 ```typescript
 // lib/server/__tests__/oauth-token.test.ts
@@ -613,12 +613,12 @@ describe('oauth-token', () => {
 });
 ```
 
-- [ ] **2. lépés: Futtasd, ellenőrizd, hogy bukik**
+- [x] **2. lépés: Futtasd, ellenőrizd, hogy bukik**
 
 Futtatás: `npx vitest run lib/server/__tests__/oauth-token.test.ts`
 Várt: FAIL — `Cannot find module '../oauth-token'`.
 
-- [ ] **3. lépés: Írd meg a `lib/server/oauth-token.ts`-t**
+- [x] **3. lépés: Írd meg a `lib/server/oauth-token.ts`-t**
 
 ```typescript
 import {buildClientAssertion, CLIENT_ASSERTION_TYPE} from './oauth-client-assertion';
@@ -703,12 +703,12 @@ export async function refreshWithOAuthToken(refreshToken: string): Promise<OAuth
 }
 ```
 
-- [ ] **4. lépés: Futtasd, ellenőrizd, hogy átmegy**
+- [x] **4. lépés: Futtasd, ellenőrizd, hogy átmegy**
 
 Futtatás: `npx vitest run lib/server/__tests__/oauth-token.test.ts`
 Várt: PASS (6 teszt).
 
-- [ ] **5. lépés: Commit**
+- [x] **5. lépés: Commit**
 
 ```bash
 git add lib/server/oauth-token.ts lib/server/__tests__/oauth-token.test.ts
@@ -733,7 +733,7 @@ git commit -m "feat: add form-urlencoded /oauth/token client with client asserti
   - `setAuthCookies` új opcionális `expires_in` mezője; `clearAuthCookies` az `AUTH_ORIGIN_COOKIE`-t is törli
   - `getServerAuthOrigin(): Promise<string | undefined>` a `lib/utils/cookies.ts`-ben
 
-- [ ] **1. lépés: Írd meg a bukó teszteket**
+- [x] **1. lépés: Írd meg a bukó teszteket**
 
 ```typescript
 // lib/utils/__tests__/constants.test.ts
@@ -787,12 +787,12 @@ describe('resolveAccessTokenMaxAge', () => {
 });
 ```
 
-- [ ] **2. lépés: Futtasd, ellenőrizd, hogy bukik**
+- [x] **2. lépés: Futtasd, ellenőrizd, hogy bukik**
 
 Futtatás: `npx vitest run lib/utils/__tests__/constants.test.ts`
 Várt: FAIL — az új named exportok nem léteznek.
 
-- [ ] **3. lépés: Bővítsd a `lib/utils/constants.ts`-t**
+- [x] **3. lépés: Bővítsd a `lib/utils/constants.ts`-t**
 
 Fűzd a fájl végére (a meglévő négy exportot ne módosítsd):
 
@@ -827,12 +827,12 @@ export const resolveAccessTokenMaxAge = (expiresIn?: number): number => {
 };
 ```
 
-- [ ] **4. lépés: Futtasd, ellenőrizd, hogy átmegy**
+- [x] **4. lépés: Futtasd, ellenőrizd, hogy átmegy**
 
 Futtatás: `npx vitest run lib/utils/__tests__/constants.test.ts`
 Várt: PASS (5 teszt).
 
-- [ ] **5. lépés: Kösd be a `lib/server/auth.ts`-be**
+- [x] **5. lépés: Kösd be a `lib/server/auth.ts`-be**
 
 Cseréld a fájl tartalmát erre (a `jsonWithStatus` változatlan marad):
 
@@ -895,7 +895,7 @@ export function jsonWithStatus(payload: unknown, status: number) {
 }
 ```
 
-- [ ] **6. lépés: Adj hozzá egy olvasót a `lib/utils/cookies.ts`-hez**
+- [x] **6. lépés: Adj hozzá egy olvasót a `lib/utils/cookies.ts`-hez**
 
 Fűzd a fájl végére, és bővítsd az importot `AUTH_ORIGIN_COOKIE`-val:
 
@@ -903,12 +903,12 @@ Fűzd a fájl végére, és bővítsd az importot `AUTH_ORIGIN_COOKIE`-val:
 export const getServerAuthOrigin = async () => (await cookies()).get(AUTH_ORIGIN_COOKIE)?.value;
 ```
 
-- [ ] **7. lépés: Típusellenőrzés**
+- [x] **7. lépés: Típusellenőrzés**
 
 Futtatás: `npx tsc --noEmit`
 Várt: nincs hiba.
 
-- [ ] **8. lépés: Commit**
+- [x] **8. lépés: Commit**
 
 ```bash
 git add lib/utils/constants.ts lib/utils/__tests__/constants.test.ts lib/server/auth.ts lib/utils/cookies.ts
@@ -929,7 +929,7 @@ git commit -m "feat: add PKCE/auth-origin cookies and expires_in-based access co
 
 **FONTOS:** ez a script valódi kliens-regisztrációt hoz létre a backendben. `--dry-run` nélkül csak a felhasználó kifejezett kérésére futtatható.
 
-- [ ] **1. lépés: Írd meg a `scripts/register-oauth-client.mjs`-t**
+- [x] **1. lépés: Írd meg a `scripts/register-oauth-client.mjs`-t**
 
 ```javascript
 #!/usr/bin/env node
@@ -1048,7 +1048,7 @@ main().catch((err) => {
 });
 ```
 
-- [ ] **2. lépés: Vedd fel az npm scriptet**
+- [x] **2. lépés: Vedd fel az npm scriptet**
 
 A `package.json` `"scripts"` blokkjába, a `"test:watch"` sor után:
 
@@ -1056,12 +1056,12 @@ A `package.json` `"scripts"` blokkjába, a `"test:watch"` sor után:
     "register-oauth-client": "node scripts/register-oauth-client.mjs"
 ```
 
-- [ ] **3. lépés: Futtasd dry-run módban**
+- [x] **3. lépés: Futtasd dry-run módban**
 
 Futtatás: `node scripts/register-oauth-client.mjs --dry-run --redirect-uri http://localhost:3000/api/auth/oauth/callback`
 Várt: kiír egy `Generated JWK (public):` blokkot `"kty": "EC"` és `"crv": "P-256"` mezőkkel, egy `-----BEGIN PRIVATE KEY-----` blokkot, egy `kid:` sort, végül a `--dry-run set, skipping registration.` üzenetet a payloaddal. Hálózati hívás nem történik.
 
-- [ ] **4. lépés: Frissítsd a `.env.local.example`-t**
+- [x] **4. lépés: Frissítsd a `.env.local.example`-t**
 
 ```
 WORF_API_URL=https://api.yourworfserver.com
@@ -1080,7 +1080,7 @@ NEXT_PUBLIC_API_PROXY_URL=/api/proxy
 
 A `WORF_CLIENT_ID`/`WORF_CLIENT_SECRET` és a `WORF_OAUTH_*` **két külön, egymástól függetlenül regisztrált kliens**. Ne vond össze őket.
 
-- [ ] **5. lépés: Vedd fel az üres kulcsokat a helyi `.env`-be**
+- [x] **5. lépés: Vedd fel az üres kulcsokat a helyi `.env`-be**
 
 A meglévő `WORF_CLIENT_SECRET` sor után (a `WORF_CLIENT_ID`/`WORF_CLIENT_SECRET` sorokat ne töröld — a logout route-nak kellenek):
 
@@ -1092,12 +1092,12 @@ WORF_OAUTH_KID=
 
 Mindhárom üresen marad addig, amíg a script éles futtatása meg nem történt és az értékek be nem másolódtak.
 
-- [ ] **6. lépés: Ellenőrzés**
+- [x] **6. lépés: Ellenőrzés**
 
 Futtatás: `grep -c "WORF_OAUTH_" .env .env.local.example`
 Várt: mindkét fájlnál `4` (`WORF_OAUTH_CLIENT_ID`, `WORF_OAUTH_PRIVATE_KEY`, `WORF_OAUTH_KID`, `WORF_OAUTH_REDIRECT_URI`).
 
-- [ ] **7. lépés: Commit**
+- [x] **7. lépés: Commit**
 
 ```bash
 git add scripts/register-oauth-client.mjs package.json .env.local.example
@@ -1117,7 +1117,7 @@ Megjegyzés: a `.env` git-ignorált (`.gitignore:37`), ezért csak a `.env.local
 - Fogyaszt: `generatePkcePair()`, `generateState()` (Task 1); `getAuthServerMetadata()`, `buildAuthorizeScope()` (Task 2); `PKCE_VERIFIER_COOKIE`, `PKCE_STATE_COOKIE`, `PKCE_COOKIE_OPTIONS` (Task 5).
 - Előállít: beállítja a PKCE cookie-kat, amelyeket a Task 8 callbackje olvas.
 
-- [ ] **1. lépés: Cseréld a fájl teljes tartalmát**
+- [x] **1. lépés: Cseréld a fájl teljes tartalmát**
 
 ```typescript
 import {NextRequest, NextResponse} from 'next/server';
@@ -1173,17 +1173,17 @@ export async function GET(request: NextRequest) {
 }
 ```
 
-- [ ] **2. lépés: Típusellenőrzés és lint**
+- [x] **2. lépés: Típusellenőrzés és lint**
 
 Futtatás: `npx tsc --noEmit` és `npm run lint`
 Várt: nincs új hiba ehhez a fájlhoz.
 
-- [ ] **3. lépés: Ellenőrizd, hogy eltűnt a secret-szivárgás**
+- [x] **3. lépés: Ellenőrizd, hogy eltűnt a secret-szivárgás**
 
 Futtatás: `grep -rn "client_secret" app/api/auth/oauth/`
 Várt: nincs találat.
 
-- [ ] **4. lépés: Commit**
+- [x] **4. lépés: Commit**
 
 ```bash
 git add app/api/auth/oauth/login/route.ts
@@ -1203,7 +1203,7 @@ git commit -m "feat: redirect to PKCE-based /oauth/authorize without client_secr
 
 Az ellenőrzési sorrend kötött: **`iss` először**, még a `error` és a `state` feldolgozása előtt (RFC 9207 — az `iss` a hibaágon is megérkezik).
 
-- [ ] **1. lépés: Cseréld a fájl teljes tartalmát**
+- [x] **1. lépés: Cseréld a fájl teljes tartalmát**
 
 ```typescript
 import {timingSafeEqual} from 'node:crypto';
@@ -1308,17 +1308,17 @@ export async function GET(request: NextRequest) {
 }
 ```
 
-- [ ] **2. lépés: Típusellenőrzés és lint**
+- [x] **2. lépés: Típusellenőrzés és lint**
 
 Futtatás: `npx tsc --noEmit` és `npm run lint`
 Várt: nincs új hiba ehhez a fájlhoz.
 
-- [ ] **3. lépés: Ellenőrizd, hogy nincs token a query-ből olvasva**
+- [x] **3. lépés: Ellenőrizd, hogy nincs token a query-ből olvasva**
 
 Futtatás: `grep -n "access_token" app/api/auth/oauth/callback/route.ts`
 Várt: az `access_token` csak a token-válasz (`data.access_token`) kontextusában szerepel, `searchParams.get('access_token')` nem fordul elő.
 
-- [ ] **4. lépés: Commit**
+- [x] **4. lépés: Commit**
 
 ```bash
 git add app/api/auth/oauth/callback/route.ts
@@ -1335,7 +1335,7 @@ git commit -m "feat: validate iss and state, exchange code via /oauth/token"
 **Interfészek:**
 - Fogyaszt: `refreshWithOAuthToken`, `isInvalidGrant` (Task 4); `AUTH_ORIGIN_COOKIE`, `AUTH_ORIGIN_COOKIE_OPTIONS`, `OAUTH_AUTH_ORIGIN` (Task 5); a meglévő `getAuthClientPayload`, `MISSING_AUTH_CLIENT_MESSAGE`, `callWorfApi`, `clearAuthCookies`, `setAuthCookies`, `getServerRefreshToken`, `getServerAuthOrigin`.
 
-- [ ] **1. lépés: Cseréld az importokat és a `refreshAccessToken`-t**
+- [x] **1. lépés: Cseréld az importokat és a `refreshAccessToken`-t**
 
 A fájl elejét (az importoktól a `refreshAccessToken` végéig) cseréld erre:
 
@@ -1439,12 +1439,12 @@ async function refreshAccessToken(): Promise<RefreshResult> {
 
 A fájl többi része (`sanitizeRedirectPath`, `POST`, `GET`) változatlan marad.
 
-- [ ] **2. lépés: Típusellenőrzés és lint**
+- [x] **2. lépés: Típusellenőrzés és lint**
 
 Futtatás: `npx tsc --noEmit` és `npm run lint`
 Várt: nincs új hiba ehhez a fájlhoz.
 
-- [ ] **3. lépés: Commit**
+- [x] **3. lépés: Commit**
 
 ```bash
 git add app/api/auth/token/route.ts
@@ -1466,7 +1466,7 @@ git commit -m "feat: refresh OAuth sessions against /oauth/token with rotation h
 - A proxy 403 + `insufficient_scope` esetén a válasz JSON-jébe `{"error": "insufficient_scope", "required_scope": "..."}` mezőket tesz, és minden válaszban továbbadja a `WWW-Authenticate` headert.
 - A `lib/api/client.ts` interceptora az axios error objektumra teszi a `requiredScope` mezőt, amikor a válasz `insufficient_scope`.
 
-- [ ] **1. lépés: Írd meg a bukó tesztet**
+- [x] **1. lépés: Írd meg a bukó tesztet**
 
 ```typescript
 // lib/server/__tests__/www-authenticate.test.ts
@@ -1503,12 +1503,12 @@ describe('parseWwwAuthenticate', () => {
 });
 ```
 
-- [ ] **2. lépés: Futtasd, ellenőrizd, hogy bukik**
+- [x] **2. lépés: Futtasd, ellenőrizd, hogy bukik**
 
 Futtatás: `npx vitest run lib/server/__tests__/www-authenticate.test.ts`
 Várt: FAIL — `Cannot find module '../www-authenticate'`.
 
-- [ ] **3. lépés: Írd meg a `lib/server/www-authenticate.ts`-t**
+- [x] **3. lépés: Írd meg a `lib/server/www-authenticate.ts`-t**
 
 ```typescript
 export type WwwAuthenticateChallenge = {
@@ -1544,12 +1544,12 @@ export function parseWwwAuthenticate(header: string | null | undefined): WwwAuth
 }
 ```
 
-- [ ] **4. lépés: Futtasd, ellenőrizd, hogy átmegy**
+- [x] **4. lépés: Futtasd, ellenőrizd, hogy átmegy**
 
 Futtatás: `npx vitest run lib/server/__tests__/www-authenticate.test.ts`
 Várt: PASS (4 teszt).
 
-- [ ] **5. lépés: Add a Bearer headert és a header-továbbítást a proxyhoz**
+- [x] **5. lépés: Add a Bearer headert és a header-továbbítást a proxyhoz**
 
 Az `app/api/proxy/[...path]/route.ts`-ben négy pontosan meghatározott változtatás kell.
 
@@ -1642,7 +1642,7 @@ majd lentebb:
   });
 ```
 
-- [ ] **6. lépés: Jelöld meg a hibát a kliensoldali interceptorban**
+- [x] **6. lépés: Jelöld meg a hibát a kliensoldali interceptorban**
 
 A `lib/api/client.ts` response interceptorában, a `return Promise.reject(error)` záró sor **elé** szúrd be:
 
@@ -1658,12 +1658,12 @@ A `lib/api/client.ts` response interceptorában, a `return Promise.reject(error)
 
 Ez szándékosan nem dob toastot: a fájl meglévő elve szerint az interceptor csak elutasított promise-t ad vissza, a megjelenítés a hívó komponensé.
 
-- [ ] **7. lépés: Típusellenőrzés, lint és teljes tesztfuttatás**
+- [x] **7. lépés: Típusellenőrzés, lint és teljes tesztfuttatás**
 
 Futtatás: `npx tsc --noEmit`, `npm run lint`, `npm run test`
 Várt: nincs hiba, minden teszt zöld.
 
-- [ ] **8. lépés: Commit**
+- [x] **8. lépés: Commit**
 
 ```bash
 git add lib/server/www-authenticate.ts lib/server/__tests__/www-authenticate.test.ts app/api/proxy/[...path]/route.ts lib/api/client.ts
@@ -1685,7 +1685,7 @@ git commit -m "feat: send bearer header and surface insufficient_scope through t
 
 Enélkül a Task 7/8 minden hibaága némán a login oldalra dob vissza, magyarázat nélkül — ma a `page.tsx` nem olvassa a `searchParams`-ot.
 
-- [ ] **1. lépés: Vedd fel az i18n kulcsokat a `messages/hu.json` `auth` blokkjába**
+- [x] **1. lépés: Vedd fel az i18n kulcsokat a `messages/hu.json` `auth` blokkjába**
 
 ```json
     "error_title": "A bejelentkezés nem sikerült",
@@ -1699,7 +1699,7 @@ Enélkül a Task 7/8 minden hibaága némán a login oldalra dob vissza, magyar�
     "error_server_error": "A bejelentkezés szerverhiba miatt megszakadt."
 ```
 
-- [ ] **2. lépés: Vedd fel ugyanezeket a `messages/en.json` `auth` blokkjába**
+- [x] **2. lépés: Vedd fel ugyanezeket a `messages/en.json` `auth` blokkjába**
 
 ```json
     "error_title": "Sign-in failed",
@@ -1713,7 +1713,7 @@ Enélkül a Task 7/8 minden hibaága némán a login oldalra dob vissza, magyar�
     "error_server_error": "Sign-in was interrupted by a server error."
 ```
 
-- [ ] **3. lépés: Írd meg a `components/auth/LoginError.tsx`-t**
+- [x] **3. lépés: Írd meg a `components/auth/LoginError.tsx`-t**
 
 ```typescript
 import {AlertTriangle} from 'lucide-react';
@@ -1751,7 +1751,7 @@ export default async function LoginError({error}: {error: string}) {
 }
 ```
 
-- [ ] **4. lépés: Kösd be a `app/[locale]/auth/login/page.tsx`-be**
+- [x] **4. lépés: Kösd be a `app/[locale]/auth/login/page.tsx`-be**
 
 A komponens szignatúrája bővül a `searchParams`-szal, és a `<div className="auth-divider" />` elé kerül a hibablokk:
 
@@ -1781,7 +1781,7 @@ majd a JSX-ben, közvetlenül a `<div className="auth-divider" />` sor előtt:
 import LoginError from '@/components/auth/LoginError';
 ```
 
-- [ ] **5. lépés: Adj stílust az `app/globals.css`-hez**
+- [x] **5. lépés: Adj stílust az `app/globals.css`-hez**
 
 Keresd meg az `.auth-info` szabályt, és utána szúrd be:
 
@@ -1805,17 +1805,17 @@ Keresd meg az `.auth-info` szabályt, és utána szúrd be:
 }
 ```
 
-- [ ] **6. lépés: Típusellenőrzés és lint**
+- [x] **6. lépés: Típusellenőrzés és lint**
 
 Futtatás: `npx tsc --noEmit` és `npm run lint`
 Várt: nincs hiba.
 
-- [ ] **7. lépés: Kézi ellenőrzés**
+- [x] **7. lépés: Kézi ellenőrzés**
 
 `npm run dev` mellett nyisd meg: `http://localhost:3000/hu/auth/login?error=invalid_issuer`
 Várt: a bejelentkezés gomb fölött megjelenik a piros hibadoboz a magyar szöveggel. Ugyanez `?error=valami-ismeretlen` esetén a nyers szöveget mutatja.
 
-- [ ] **8. lépés: Commit**
+- [x] **8. lépés: Commit**
 
 ```bash
 git add app/[locale]/auth/login/page.tsx components/auth/LoginError.tsx messages/hu.json messages/en.json app/globals.css
@@ -1834,7 +1834,7 @@ git commit -m "feat: show OAuth sign-in errors on the login page"
 - A `lib/api/auth.ts`-ből csak a `logout` marad (egyetlen hívója: `components/layout/Header.tsx:42`).
 - `lib/server/auth-client.ts` **változatlan**: a `getAuthClientPayload` mindkét grant típusa használatban marad (a logout `password`-öt, a Task 9 legacy ága `refresh_token`-t kér).
 
-- [ ] **1. lépés: Igazold, hogy tényleg nincs hívójuk**
+- [x] **1. lépés: Igazold, hogy tényleg nincs hívójuk**
 
 Futtatás:
 
@@ -1844,13 +1844,13 @@ grep -rnE "verifyMfa|forgetPassword|resetPassword|verifyEmail|sendEmailVerificat
 
 Várt: nincs találat. **Ha van, állj meg**, és jelezd — az adott route mégis használatban van, nem törölhető.
 
-- [ ] **2. lépés: Töröld a route-okat**
+- [x] **2. lépés: Töröld a route-okat**
 
 ```bash
 rm -r "app/api/auth/login" "app/api/auth/mfa" "app/api/auth/register" "app/api/auth/forget-password" "app/api/auth/reset-password" "app/api/auth/verify-email" "app/api/auth/send-verification"
 ```
 
-- [ ] **3. lépés: Írd újra a `lib/api/auth.ts`-t**
+- [x] **3. lépés: Írd újra a `lib/api/auth.ts`-t**
 
 ```typescript
 import axios from 'axios';
@@ -1858,17 +1858,17 @@ import axios from 'axios';
 export const logout = () => axios.post('/api/auth/logout', {}, {withCredentials: true});
 ```
 
-- [ ] **4. lépés: Ellenőrizd, mi maradt**
+- [x] **4. lépés: Ellenőrizd, mi maradt**
 
 Futtatás: `ls app/api/auth`
 Várt: pontosan `logout`, `oauth`, `token`.
 
-- [ ] **5. lépés: Típusellenőrzés, lint és build**
+- [x] **5. lépés: Típusellenőrzés, lint és build**
 
 Futtatás: `npx tsc --noEmit`, `npm run lint`, `npm run build`
 Várt: nincs hiba; a build lefut (ez fogja meg, ha valamelyik törölt route-ra mégis hivatkozik egy oldal).
 
-- [ ] **6. lépés: Commit**
+- [x] **6. lépés: Commit**
 
 ```bash
 git add -A app/api/auth lib/api/auth.ts
@@ -1879,17 +1879,17 @@ git commit -m "chore: remove unused legacy auth routes and API helpers"
 
 ## Task 13: Teljes ellenőrzés
 
-- [ ] **1. lépés: Teljes tesztfuttatás**
+- [x] **1. lépés: Teljes tesztfuttatás**
 
 Futtatás: `npm run test`
 Várt: minden teszt zöld, beleértve az új suite-okat (`pkce`, `oauth-discovery`, `oauth-client-assertion`, `oauth-token`, `constants`, `www-authenticate`).
 
-- [ ] **2. lépés: Típusellenőrzés és build**
+- [x] **2. lépés: Típusellenőrzés és build**
 
 Futtatás: `npx tsc --noEmit` és `npm run build`
 Várt: nincs hiba.
 
-- [ ] **3. lépés: Statikus megfelelőségi ellenőrzések**
+- [x] **3. lépés: Statikus megfelelőségi ellenőrzések**
 
 ```bash
 grep -rn "client_secret" app/api/auth/oauth/ ; echo "--- (üres kell legyen)"

@@ -223,19 +223,24 @@ endpointja a discovery-ben, ezért a helyi cookie-törlés a mérvadó lépés.
 | `MFA_COOKIE` | `worf_mfa_token` | 600 s | változatlan |
 | `PKCE_VERIFIER_COOKIE` | `worf_pkce_verifier` | 600 s | új |
 | `PKCE_STATE_COOKIE` | `worf_pkce_state` | 600 s | új |
+| `PKCE_LOCALE_COOKIE` | `worf_pkce_locale` | 600 s | új, a `redirect_uri` nem hordozhatja |
 | `AUTH_ORIGIN_COOKIE` | `worf_auth_origin` | a refresh cookie-val megegyező | új, értéke `"oauth"` |
 
 Mind a meglévő `AUTH_COOKIE_OPTIONS`-t használja (`httpOnly`, `secure`
-prodban, `sameSite: 'strict'`, `path: '/'`).
+prodban, `sameSite: 'lax'`, `path: '/'`).
 
-`sameSite: 'strict'` megjegyzés: a callback egy **top-level navigáció**
-(302 redirect a böngésző címsorában), amelyre a strict korlátozás nem
-vonatkozik úgy, mint egy cross-site POST-ra — a Chromium/Firefox a
-felhasználó által kezdeményezett top-level GET navigációnál elküldi a
-strict cookie-t. Az implementáció során ezt élesben ellenőrizni kell
-(lásd Tesztelés); ha bármelyik böngésző mégis eldobná a PKCE cookie-kat,
-a **PKCE/state cookie-k** (és csak azok) `sameSite: 'lax'`-ra állnak,
-a session cookie-k strictek maradnak.
+**`sameSite` — javítva `strict`-ről `lax`-ra (2026-08-30).** A spec eredetileg
+abból indult ki, hogy a strict cookie-k átjönnek a callback top-level
+navigációján; ez téves. A `SameSite=Strict` cookie-t a böngésző **minden**
+cross-site kérésnél visszatartja, a top-level navigációt is beleértve — a
+callback pedig a `worf.vaultdrive.eu`-ról érkezik, tehát a PKCE verifier és
+state nem érkezne meg (`invalid_state` / `expired_request`). Ugyanez érinti a
+callback válaszában beállított session cookie-kat: a rájuk következő
+`/{locale}/dashboard` redirect még a cross-site redirect-lánc része, így az
+első dashboard-kérés sem vinné őket. Ezért **az összes auth cookie `lax`** — a
+`lax` továbbra is visszatartja a cookie-t cross-site POST-nál és
+subresource-kérésnél, a CSRF-védelmet pedig elsődlegesen a `state` paraméter
+adja.
 
 ## Konfiguráció
 
@@ -307,7 +312,7 @@ Kézi (a valós backend ellen, `npm run dev`):
 2. Teljes bejelentkezési kör: gomb → backend login → (MFA, ha aktív) →
    consent → dashboard. Ellenőrizendő: a címsorban **nincs** `client_secret`,
    a callback `code`+`state`+`iss` paraméterekkel jön, és a PKCE cookie-k
-   megérkeznek a callbackbe (`sameSite: 'strict'` viselkedés).
+   megérkeznek a callbackbe (`sameSite: 'lax'` viselkedés).
 3. A dashboard adatai betöltenek (a scope elég az API-hívásokhoz).
 4. Access token lejárta utáni néma refresh (a 900 s kivárható, vagy az access
    cookie kézi törlésével kikényszeríthető).

@@ -1,21 +1,24 @@
 import {describe, expect, it} from 'vitest';
 import {
   ACCESS_TOKEN_FALLBACK_TTL_SECONDS,
+  AUTH_COOKIE_OPTIONS,
   AUTH_ORIGIN_COOKIE,
   AUTH_ORIGIN_COOKIE_OPTIONS,
   OAUTH_AUTH_ORIGIN,
   PKCE_COOKIE_OPTIONS,
+  PKCE_LOCALE_COOKIE,
   PKCE_STATE_COOKIE,
   PKCE_VERIFIER_COOKIE,
   resolveAccessTokenMaxAge
 } from '../constants';
 
 describe('OAuth cookie constants', () => {
-  it('defines distinct cookie names for PKCE verifier, PKCE state, and auth origin', () => {
-    const names = [PKCE_VERIFIER_COOKIE, PKCE_STATE_COOKIE, AUTH_ORIGIN_COOKIE];
+  it('defines distinct cookie names for PKCE verifier, PKCE state, locale, and auth origin', () => {
+    const names = [PKCE_VERIFIER_COOKIE, PKCE_STATE_COOKIE, PKCE_LOCALE_COOKIE, AUTH_ORIGIN_COOKIE];
     expect(new Set(names).size).toBe(names.length);
     expect(PKCE_VERIFIER_COOKIE).toBe('worf_pkce_verifier');
     expect(PKCE_STATE_COOKIE).toBe('worf_pkce_state');
+    expect(PKCE_LOCALE_COOKIE).toBe('worf_pkce_locale');
     expect(AUTH_ORIGIN_COOKIE).toBe('worf_auth_origin');
     expect(OAUTH_AUTH_ORIGIN).toBe('oauth');
   });
@@ -25,6 +28,16 @@ describe('OAuth cookie constants', () => {
     expect(PKCE_COOKIE_OPTIONS.httpOnly).toBe(true);
     expect(AUTH_ORIGIN_COOKIE_OPTIONS.maxAge).toBe(60 * 60 * 24 * 30);
     expect(AUTH_ORIGIN_COOKIE_OPTIONS.httpOnly).toBe(true);
+  });
+
+  it('uses SameSite=Lax so cookies survive the authorization server redirect', () => {
+    // The callback is a cross-site top-level navigation from the authorization
+    // server. SameSite=Strict cookies are withheld on such a request, which
+    // would lose the PKCE verifier and state, and the freshly set session
+    // cookies would not reach the dashboard redirect either.
+    expect(AUTH_COOKIE_OPTIONS.sameSite).toBe('lax');
+    expect(PKCE_COOKIE_OPTIONS.sameSite).toBe('lax');
+    expect(AUTH_ORIGIN_COOKIE_OPTIONS.sameSite).toBe('lax');
   });
 });
 

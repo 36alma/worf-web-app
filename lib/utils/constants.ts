@@ -5,7 +5,12 @@ export const MFA_COOKIE = 'worf_mfa_token';
 export const AUTH_COOKIE_OPTIONS = {
   httpOnly: true,
   secure: process.env.NODE_ENV === 'production',
-  sameSite: 'strict' as const,
+  // Lax, not Strict: the OAuth callback is a cross-site top-level navigation
+  // from the authorization server, and Strict cookies are withheld on it — the
+  // PKCE verifier and state would be lost, and the session cookies set on that
+  // response would not reach the dashboard redirect that follows. Lax still
+  // withholds cookies from cross-site POSTs and subresource requests.
+  sameSite: 'lax' as const,
   path: '/'
 };
 
@@ -13,6 +18,9 @@ export const WORF_DEVICE_TYPE = process.env.WORF_DEVICE_TYPE ?? 'web';
 
 export const PKCE_VERIFIER_COOKIE = 'worf_pkce_verifier';
 export const PKCE_STATE_COOKIE = 'worf_pkce_state';
+// The locale cannot ride along on redirect_uri (it must match the registered
+// value exactly), so it travels with the other short-lived flow cookies.
+export const PKCE_LOCALE_COOKIE = 'worf_pkce_locale';
 export const AUTH_ORIGIN_COOKIE = 'worf_auth_origin';
 export const OAUTH_AUTH_ORIGIN = 'oauth';
 

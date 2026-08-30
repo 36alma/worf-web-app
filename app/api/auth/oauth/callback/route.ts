@@ -3,11 +3,13 @@ import {NextRequest, NextResponse} from 'next/server';
 import {cookies} from 'next/headers';
 import {setAuthCookies} from '@/lib/server/auth';
 import {getAuthServerMetadata} from '@/lib/server/oauth-discovery';
+import {getOAuthRedirectUri} from '@/lib/server/oauth-redirect-uri';
 import {exchangeAuthorizationCode} from '@/lib/server/oauth-token';
 import {
   AUTH_ORIGIN_COOKIE,
   AUTH_ORIGIN_COOKIE_OPTIONS,
   OAUTH_AUTH_ORIGIN,
+  PKCE_LOCALE_COOKIE,
   PKCE_STATE_COOKIE,
   PKCE_VERIFIER_COOKIE
 } from '@/lib/utils/constants';
@@ -19,7 +21,6 @@ const safeEquals = (a: string, b: string): boolean => {
 };
 
 export async function GET(request: NextRequest) {
-  const locale = request.nextUrl.searchParams.get('locale') ?? process.env.NEXT_PUBLIC_DEFAULT_LOCALE ?? 'hu';
   const code = request.nextUrl.searchParams.get('code');
   const state = request.nextUrl.searchParams.get('state');
   const issuer = request.nextUrl.searchParams.get('iss');
@@ -29,8 +30,13 @@ export async function GET(request: NextRequest) {
   const jar = await cookies();
   const storedVerifier = jar.get(PKCE_VERIFIER_COOKIE)?.value;
   const storedState = jar.get(PKCE_STATE_COOKIE)?.value;
+  // The locale rode here in a cookie rather than on redirect_uri, which has to
+  // stay byte-identical to the registered value.
+  const locale =
+    jar.get(PKCE_LOCALE_COOKIE)?.value ?? process.env.NEXT_PUBLIC_DEFAULT_LOCALE ?? 'hu';
   jar.delete(PKCE_VERIFIER_COOKIE);
   jar.delete(PKCE_STATE_COOKIE);
+  jar.delete(PKCE_LOCALE_COOKIE);
 
   const failWith = (reason: string) => {
     const redirectUrl = new URL(`/${locale}/auth/login`, request.nextUrl.origin);
@@ -69,13 +75,9 @@ export async function GET(request: NextRequest) {
     return failWith('expired_request');
   }
 
-  const appBase = process.env.NEXT_PUBLIC_APP_URL ?? request.nextUrl.origin;
-  const callbackUrl = new URL('/api/auth/oauth/callback', appBase.endsWith('/') ? appBase : `${appBase}/`);
-  callbackUrl.searchParams.set('locale', locale);
-
   const {status, data} = await exchangeAuthorizationCode({
     code,
-    redirectUri: callbackUrl.toString(),
+    redirectUri: getOAuthRedirectUri(request.nextUrl.origin),
     codeVerifier: storedVerifier
   });
 

@@ -139,6 +139,20 @@ async function main() {
   }
 
   console.log(`\nRegistration succeeded. client_id: ${body.client_id}`);
+
+  // The whole response matters: whether the server echoed the jwks back and
+  // kept token_endpoint_auth_method=private_key_jwt is what decides if the
+  // client assertion can ever verify.
+  console.log('\nFull registration response:');
+  console.log(JSON.stringify(body, null, 2));
+
+  if (!body.jwks && !body.jwks_uri) {
+    console.warn('\nWarning: the response echoed no jwks/jwks_uri — the server may not have stored the public key.');
+  }
+  if (body.token_endpoint_auth_method && body.token_endpoint_auth_method !== 'private_key_jwt') {
+    console.warn(`\nWarning: the server registered token_endpoint_auth_method=${body.token_endpoint_auth_method}, not private_key_jwt.`);
+  }
+
   console.log('\nAdd these to .env (a separate client from WORF_CLIENT_ID, which stays as-is):');
   console.log(`WORF_OAUTH_CLIENT_ID=${body.client_id}`);
   console.log(`WORF_OAUTH_KID=${kid}`);

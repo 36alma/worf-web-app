@@ -1,15 +1,23 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useLocale, useTranslations } from 'next-intl';
 import toast from 'react-hot-toast';
+import { LayoutGrid, List, Search } from 'lucide-react';
 import { listFiles, type FileListItem } from '@/lib/api/files';
 import { translateFileApiError } from '@/lib/i18n/files';
+import { getFileCategory, type FileCategory } from '@/lib/utils/formatFiles';
 import Button from '@/components/ui/Button';
+import { Input } from '@/components/ui/Input';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/Tabs';
 import FileTable from '@/components/files/FileTable';
+import FileGrid from '@/components/files/FileGrid';
 import UploadDialog from '@/components/files/UploadDialog';
 import FileDetailSheet from '@/components/files/FileDetailSheet';
+
+type CategoryFilter = FileCategory | 'all';
+type ViewMode = 'list' | 'grid';
 
 export interface FilesFeedProps {
   mode: 'private' | 'group';
@@ -38,6 +46,10 @@ export default function FilesFeed({ mode, groupId }: FilesFeedProps) {
 
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [selectedFileId, setSelectedFileId] = useState<string | null>(null);
+
+  const [search, setSearch] = useState('');
+  const [category, setCategory] = useState<CategoryFilter>('all');
+  const [view, setView] = useState<ViewMode>('list');
 
   useEffect(() => {
     let mounted = true;
@@ -77,6 +89,21 @@ export default function FilesFeed({ mode, groupId }: FilesFeedProps) {
   const hasPrev = offset > 0;
   const hasNext = offset + limit < total;
 
+  // Search/category filtering runs client-side over the currently loaded page,
+  // since the list API has no query/category params yet.
+  const filteredItems = useMemo(() => {
+    const query = search.trim().toLowerCase();
+    return items.filter((item) => {
+      if (category !== 'all' && getFileCategory(item.mime_type) !== category) {
+        return false;
+      }
+      if (query && !item.original_name.toLowerCase().includes(query)) {
+        return false;
+      }
+      return true;
+    });
+  }, [items, search, category]);
+
   return (
     <section className="space-y-4">
       <div className="flex items-center justify-between">
@@ -95,6 +122,61 @@ export default function FilesFeed({ mode, groupId }: FilesFeedProps) {
         </div>
       </div>
 
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="relative w-full max-w-sm">
+          <Search
+            size={15}
+            strokeWidth={1.75}
+            className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-[var(--text-tertiary)]"
+          />
+          <Input
+            type="text"
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            placeholder={t('toolbar.searchPlaceholder')}
+            className="pl-8"
+          />
+        </div>
+
+        <div className="flex items-center gap-2">
+          <Tabs value={category} onValueChange={(value) => setCategory(value as CategoryFilter)}>
+            <TabsList>
+              <TabsTrigger value="all">{t('toolbar.filters.all')}</TabsTrigger>
+              <TabsTrigger value="document">{t('toolbar.filters.documents')}</TabsTrigger>
+              <TabsTrigger value="image">{t('toolbar.filters.images')}</TabsTrigger>
+              <TabsTrigger value="spreadsheet">{t('toolbar.filters.spreadsheets')}</TabsTrigger>
+            </TabsList>
+          </Tabs>
+
+          <div className="flex items-center gap-1 rounded-lg border border-[var(--border-subtle)] p-1">
+            <button
+              type="button"
+              aria-label={t('toolbar.view.list')}
+              onClick={() => setView('list')}
+              className={`inline-flex h-7 w-7 items-center justify-center rounded-[var(--radius-sm)] ${
+                view === 'list'
+                  ? 'bg-[var(--bg-active)] text-[var(--text-primary)]'
+                  : 'text-[var(--text-tertiary)] hover:text-[var(--text-primary)]'
+              }`}
+            >
+              <List size={15} strokeWidth={1.75} />
+            </button>
+            <button
+              type="button"
+              aria-label={t('toolbar.view.grid')}
+              onClick={() => setView('grid')}
+              className={`inline-flex h-7 w-7 items-center justify-center rounded-[var(--radius-sm)] ${
+                view === 'grid'
+                  ? 'bg-[var(--bg-active)] text-[var(--text-primary)]'
+                  : 'text-[var(--text-tertiary)] hover:text-[var(--text-primary)]'
+              }`}
+            >
+              <LayoutGrid size={15} strokeWidth={1.75} />
+            </button>
+          </div>
+        </div>
+      </div>
+
       <UploadDialog
         open={isUploadOpen}
         onClose={() => setIsUploadOpen(false)}
@@ -109,8 +191,10 @@ export default function FilesFeed({ mode, groupId }: FilesFeedProps) {
           <div className="h-10 w-full animate-pulse rounded-lg bg-[var(--bg-elevated)]" />
           <div className="h-10 w-full animate-pulse rounded-lg bg-[var(--bg-elevated)]" />
         </div>
+      ) : view === 'grid' ? (
+        <FileGrid items={filteredItems} onSelectFile={setSelectedFileId} />
       ) : (
-        <FileTable items={items} onSelectFile={setSelectedFileId} />
+        <FileTable items={filteredItems} onSelectFile={setSelectedFileId} />
       )}
 
       <FileDetailSheet

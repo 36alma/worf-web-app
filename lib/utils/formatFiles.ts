@@ -54,3 +54,35 @@ export function formatUploadedAt(value: string): string {
   }
   return date.toLocaleString();
 }
+
+export type FileCategory = 'image' | 'document' | 'spreadsheet' | 'other';
+
+const SPREADSHEET_MIME_TYPES = new Set([
+  'text/csv',
+  'application/vnd.ms-excel',
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+]);
+
+const DOCUMENT_MIME_TYPES = new Set([
+  'application/pdf',
+  'text/plain',
+  'application/msword',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+]);
+
+/** Bucket a MIME type into a coarse category used for filtering (image/document/spreadsheet/other). */
+export function getFileCategory(mimeType: string | null): FileCategory {
+  if (!mimeType) {
+    return 'other';
+  }
+  if (mimeType.startsWith('image/')) {
+    return 'image';
+  }
+  if (SPREADSHEET_MIME_TYPES.has(mimeType)) {
+    return 'spreadsheet';
+  }
+  if (DOCUMENT_MIME_TYPES.has(mimeType)) {
+    return 'document';
+  }
+  return 'other';
+}

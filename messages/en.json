@@ -327,6 +327,19 @@
     "groupPage": {
       "title": "Files"
     },
+    "toolbar": {
+      "searchPlaceholder": "Search files...",
+      "filters": {
+        "all": "All",
+        "documents": "Documents",
+        "images": "Images",
+        "spreadsheets": "Spreadsheets"
+      },
+      "view": {
+        "grid": "Grid view",
+        "list": "List view"
+      }
+    },
     "table": {
       "name": "Name",
       "type": "Type",

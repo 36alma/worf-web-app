@@ -327,6 +327,19 @@
     "groupPage": {
       "title": "Fájlok"
     },
+    "toolbar": {
+      "searchPlaceholder": "Fájlok keresése...",
+      "filters": {
+        "all": "Összes",
+        "documents": "Dokumentumok",
+        "images": "Képek",
+        "spreadsheets": "Táblázatok"
+      },
+      "view": {
+        "grid": "Rács nézet",
+        "list": "Lista nézet"
+      }
+    },
     "table": {
       "name": "Név",
       "type": "Típus",

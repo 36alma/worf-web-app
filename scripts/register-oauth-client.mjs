@@ -8,8 +8,31 @@
 //
 // Without --dry-run this creates a real client on the server.
 import {webcrypto} from 'node:crypto';
+import {existsSync} from 'node:fs';
+import {fileURLToPath} from 'node:url';
 
 const {subtle} = webcrypto;
+
+/**
+ * Plain `node` does not read .env the way `next` does, so load the same files
+ * Next.js would, with the same precedence: .env, then .env.local on top, and
+ * anything the shell exported explicitly wins over both.
+ */
+function loadEnvFiles() {
+  const shellEnv = {...process.env};
+
+  for (const name of ['.env', '.env.local']) {
+    const path = fileURLToPath(new URL(`../${name}`, import.meta.url));
+    if (!existsSync(path)) continue;
+    try {
+      process.loadEnvFile(path);
+    } catch (error) {
+      console.warn(`Could not read ${name}: ${error.message}`);
+    }
+  }
+
+  Object.assign(process.env, shellEnv);
+}
 
 function base64url(buffer) {
   return Buffer.from(buffer).toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
@@ -53,6 +76,8 @@ function parseArgs(argv) {
 }
 
 async function main() {
+  loadEnvFiles();
+
   const args = parseArgs(process.argv.slice(2));
   const apiBase = process.env.WORF_API_URL;
 
@@ -89,13 +114,17 @@ async function main() {
   console.log(privateKeyPem);
   console.log(`kid: ${kid}`);
 
+  const registerUrl = apiBase
+    ? new URL('/oauth/register', apiBase.endsWith('/') ? apiBase : `${apiBase}/`)
+    : null;
+
   if (args.dryRun) {
-    console.log('\n--dry-run set, skipping registration. Payload that would be sent to /oauth/register:');
+    console.log(`\n--dry-run set, skipping registration. Target: ${registerUrl ?? '(WORF_API_URL is not set)'}`);
+    console.log('Payload that would be sent:');
     console.log(JSON.stringify(registrationPayload, null, 2));
     return;
   }
 
-  const registerUrl = new URL('/oauth/register', apiBase.endsWith('/') ? apiBase : `${apiBase}/`);
   const response = await fetch(registerUrl, {
     method: 'POST',
     headers: {'Content-Type': 'application/json'},
@@ -110,6 +139,20 @@ async function main() {
   }
 
   console.log(`\nRegistration succeeded. client_id: ${body.client_id}`);
+
+  // The whole response matters: whether the server echoed the jwks back and
+  // kept token_endpoint_auth_method=private_key_jwt is what decides if the
+  // client assertion can ever verify.
+  console.log('\nFull registration response:');
+  console.log(JSON.stringify(body, null, 2));
+
+  if (!body.jwks && !body.jwks_uri) {
+    console.warn('\nWarning: the response echoed no jwks/jwks_uri — the server may not have stored the public key.');
+  }
+  if (body.token_endpoint_auth_method && body.token_endpoint_auth_method !== 'private_key_jwt') {
+    console.warn(`\nWarning: the server registered token_endpoint_auth_method=${body.token_endpoint_auth_method}, not private_key_jwt.`);
+  }
+
   console.log('\nAdd these to .env (a separate client from WORF_CLIENT_ID, which stays as-is):');
   console.log(`WORF_OAUTH_CLIENT_ID=${body.client_id}`);
   console.log(`WORF_OAUTH_KID=${kid}`);

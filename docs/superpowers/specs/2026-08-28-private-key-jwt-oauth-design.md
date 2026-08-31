@@ -1,7 +1,13 @@
 # private_key_jwt kliens-hitelesítés bevezetése az OAuth-redirect login flow-ba
 
 Dátum: 2026-08-28
-Státusz: jóváhagyva, implementációs tervre vár
+Státusz: **elavult** — felváltotta a
+`2026-08-29-oauth21-auth-compliance-design.md`, amely ennek a tartalmát
+magába foglalja, és kiegészíti a 2026-08-28-i backend-megfelelőségi kör
+kliensoldali követelményeivel (`iss` validáció, `offline_access`,
+`resource`-konzisztencia, `insufficient_scope` kezelés, Bearer-header).
+Ez a dokumentum csak előzményként marad meg; implementációhoz az újat
+kell követni.
 
 ## Kontextus
 

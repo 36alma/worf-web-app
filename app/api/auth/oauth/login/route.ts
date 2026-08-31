@@ -1,8 +1,14 @@
 import {NextRequest, NextResponse} from 'next/server';
 import {cookies} from 'next/headers';
 import {buildAuthorizeScope, getAuthServerMetadata} from '@/lib/server/oauth-discovery';
+import {getOAuthRedirectUri} from '@/lib/server/oauth-redirect-uri';
 import {generatePkcePair, generateState} from '@/lib/server/pkce';
-import {PKCE_COOKIE_OPTIONS, PKCE_STATE_COOKIE, PKCE_VERIFIER_COOKIE} from '@/lib/utils/constants';
+import {
+  PKCE_COOKIE_OPTIONS,
+  PKCE_LOCALE_COOKIE,
+  PKCE_STATE_COOKIE,
+  PKCE_VERIFIER_COOKIE
+} from '@/lib/utils/constants';
 
 export async function GET(request: NextRequest) {
   const clientId = process.env.WORF_OAUTH_CLIENT_ID;
@@ -26,9 +32,7 @@ export async function GET(request: NextRequest) {
     return failWith('temporarily_unavailable');
   }
 
-  const appBase = process.env.NEXT_PUBLIC_APP_URL ?? request.nextUrl.origin;
-  const callbackUrl = new URL('/api/auth/oauth/callback', appBase.endsWith('/') ? appBase : `${appBase}/`);
-  callbackUrl.searchParams.set('locale', locale);
+  const redirectUri = getOAuthRedirectUri(request.nextUrl.origin);
 
   const {codeVerifier, codeChallenge} = generatePkcePair();
   const state = generateState();
@@ -36,11 +40,12 @@ export async function GET(request: NextRequest) {
   const jar = await cookies();
   jar.set(PKCE_VERIFIER_COOKIE, codeVerifier, PKCE_COOKIE_OPTIONS);
   jar.set(PKCE_STATE_COOKIE, state, PKCE_COOKIE_OPTIONS);
+  jar.set(PKCE_LOCALE_COOKIE, locale, PKCE_COOKIE_OPTIONS);
 
   const authorizeUrl = new URL(metadata.authorization_endpoint);
   authorizeUrl.searchParams.set('response_type', 'code');
   authorizeUrl.searchParams.set('client_id', clientId);
-  authorizeUrl.searchParams.set('redirect_uri', callbackUrl.toString());
+  authorizeUrl.searchParams.set('redirect_uri', redirectUri);
   authorizeUrl.searchParams.set('code_challenge', codeChallenge);
   authorizeUrl.searchParams.set('code_challenge_method', 'S256');
   authorizeUrl.searchParams.set('scope', buildAuthorizeScope(metadata));

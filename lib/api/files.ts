@@ -7,6 +7,7 @@ export interface UploadStartPayload {
   mime_type: string;
   scope: FileScope;
   group_id?: string | null;
+  folder_id?: string | null;
 }
 
 export interface UploadStartResponse {
@@ -15,6 +16,7 @@ export interface UploadStartResponse {
   presigned_post_fields: Record<string, string>;
   file_id: string;
   expires_in: number;
+  folder_id: string | null;
 }
 
 export const startUpload = (data: UploadStartPayload) =>
@@ -44,11 +46,14 @@ export interface FileListItem {
   scope: FileScope;
   uploaded_at: string;
   is_owner: boolean;
+  folder_id: string | null;
+  is_starred: boolean;
 }
 
 export interface ListFilesPayload {
   scope?: FileScope;
   group_id?: string | null;
+  folder_id?: string | null;
   offset?: number;
   limit?: number;
 }
@@ -82,6 +87,11 @@ export interface FileMetadataResponse {
   uploaded_at: string;
   scope: FileScope;
   is_owner: boolean;
+  folder_id: string | null;
+  thumbnail_status: 'pending' | 'ready' | 'failed' | null;
+  width: number | null;
+  height: number | null;
+  is_starred: boolean;
 }
 
 export const getFileMetadata = (file_id: string) =>
@@ -176,3 +186,19 @@ export const setUserStorageLimit = (target_id: string, limit_bytes: number | nul
 
 export const setGroupStorageLimit = (target_id: string, limit_bytes: number | null) =>
   apiClient.post('/v1/files/storage/limit/group', {target_id, limit_bytes, scope: 'group'});
+
+export const renameFile = (file_id: string, name: string) =>
+  apiClient.post<{file_id: string; original_name: string}>('/v1/files/rename', {file_id, name});
+
+export const moveFile = (file_id: string, target_folder_id?: string | null) =>
+  apiClient.post<{file_id: string; folder_id: string | null}>('/v1/files/move', {file_id, target_folder_id});
+
+export interface CopyFileResponse {
+  file_id: string;
+  original_name: string;
+  size_bytes: number;
+  folder_id: string | null;
+}
+
+export const copyFile = (file_id: string, target_folder_id?: string | null) =>
+  apiClient.post<CopyFileResponse>('/v1/files/copy', {file_id, target_folder_id});

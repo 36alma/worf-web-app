@@ -8,6 +8,7 @@ kliensoldali követelményeivel (`iss` validáció, `offline_access`,
 `resource`-konzisztencia, `insufficient_scope` kezelés, Bearer-header).
 Ez a dokumentum csak előzményként marad meg; implementációhoz az újat
 kell követni.
+Státusz: jóváhagyva, implementációs tervre vár
 
 ## Kontextus
 

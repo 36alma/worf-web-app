@@ -1218,6 +1218,7 @@
     "filename_invalid": "The file name contains characters that are not allowed.",
     "filename_path": "The file name must not contain '/', '\\' or '..'.",
     "file_too_large": "The file exceeds the maximum allowed size (25 MB).",
+    "image_too_large": "The image exceeds the 20 MB limit.",
     "file_type_forbidden": "This file type is not supported.",
     "required": "This field is required.",
     "too_long": "This value is too long.",

@@ -86,3 +86,16 @@ export function getFileCategory(mimeType: string | null): FileCategory {
   }
   return 'other';
 }
+
+/**
+ * Best-effort client-side cleanup for filenames the backend would reject
+ * (accented characters, disallowed symbols, path separators). Strips
+ * diacritics via Unicode NFD decomposition, then replaces any character
+ * outside [a-zA-Z0-9._-()\s] with "_". Does not guarantee the backend will
+ * accept the result (length/emptiness are not re-checked here) — callers
+ * still run it through `filenameSchema` afterwards.
+ */
+export function sanitizeFilename(name: string): string {
+  const withoutAccents = name.normalize('NFD').replace(/[̀-ͯ]/g, '');
+  return withoutAccents.replace(/[^a-zA-Z0-9._\-\s()]/g, '_');
+}

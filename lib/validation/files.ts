@@ -2,6 +2,8 @@ import {z} from 'zod';
 import {filenameSchema} from './schemas';
 
 export const MAX_FILE_SIZE_BYTES = 25 * 1024 * 1024;
+export const MAX_IMAGE_UPLOAD_BYTES = 20 * 1024 * 1024;
+export const IMAGE_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'] as const;
 export const ALLOWED_MIME_TYPES = [
   'application/pdf', 'image/jpeg', 'image/png', 'image/webp', 'image/gif',
   'text/plain', 'text/csv', 'application/json',
@@ -13,5 +15,9 @@ export const uploadFileSchema = z.object({
   filename: filenameSchema,
   file: z.instanceof(File)
     .refine((f) => f.size <= MAX_FILE_SIZE_BYTES, {message: 'file_too_large'})
+    .refine(
+      (f) => !(IMAGE_MIME_TYPES as readonly string[]).includes(f.type) || f.size <= MAX_IMAGE_UPLOAD_BYTES,
+      {message: 'image_too_large'}
+    )
     .refine((f) => (ALLOWED_MIME_TYPES as readonly string[]).includes(f.type), {message: 'file_type_forbidden'}),
 });

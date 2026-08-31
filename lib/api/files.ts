@@ -157,6 +157,91 @@ export interface FileShareGroupListResponse {
 export const listGroupShares = (file_id: string) =>
   apiClient.post<FileShareGroupListResponse>('/v1/files/share/group/list', {file_id});
 
+export interface ShareFlags {
+  can_view?: boolean;
+  can_download?: boolean;
+  can_edit?: boolean;
+  can_delete?: boolean;
+  can_share?: boolean;
+  expiration_date?: string | null;
+}
+
+export interface FileUserShareEntry {
+  user_id: string;
+  user_name: string;
+  can_view: boolean;
+  can_download: boolean;
+  can_edit: boolean;
+  can_delete: boolean;
+  can_share: boolean;
+  shared_at: string;
+  expiration_date: string | null;
+}
+
+export const shareWithUser = (file_id: string, target_user_id: string, flags: ShareFlags = {}) =>
+  apiClient.post<FileUserShareEntry>('/v1/files/share/user', {file_id, target_user_id, ...flags});
+
+export const revokeUserShare = (file_id: string, target_user_id: string) =>
+  apiClient.post<{status: string; file_id: string; target_user_id: string}>(
+    '/v1/files/share/user/revoke',
+    {file_id, target_user_id}
+  );
+
+export const listUserShares = (file_id: string) =>
+  apiClient.post<{file_id: string; users: FileUserShareEntry[]}>('/v1/files/share/user/list', {file_id});
+
+export interface FileShareGroupBulkResponse {
+  group_id: string;
+  succeeded: string[];
+  failed: Array<{file_id: string; reason: string}>;
+}
+
+export const bulkShareWithGroup = (
+  file_ids: string[],
+  group_id: string,
+  flags: Omit<ShareFlags, 'expiration_date'> & {expiration_date?: string | null} = {}
+) =>
+  apiClient.post<FileShareGroupBulkResponse>('/v1/files/share/group/bulk', {file_ids, group_id, ...flags});
+
+export type ShareLinkPermission = 'view' | 'download';
+
+export interface ShareLinkCreateResponse {
+  link_id: string;
+  token: string;
+  permission: ShareLinkPermission;
+  expires_at: string | null;
+  has_password: boolean;
+}
+
+export const createShareLink = (
+  file_id: string,
+  permission: ShareLinkPermission = 'download',
+  expires_at?: string | null,
+  password?: string | null
+) =>
+  apiClient.post<ShareLinkCreateResponse>('/v1/files/share/link/create', {
+    file_id,
+    permission,
+    expires_at,
+    password,
+  });
+
+export const revokeShareLink = (link_id: string) =>
+  apiClient.post<{status: string; link_id: string}>('/v1/files/share/link/revoke', {link_id});
+
+export interface ShareLinkEntry {
+  link_id: string;
+  permission: ShareLinkPermission;
+  expires_at: string | null;
+  has_password: boolean;
+  access_count: number;
+  last_accessed_at: string | null;
+  created_at: string;
+}
+
+export const listShareLinks = (file_id: string) =>
+  apiClient.post<{file_id: string; links: ShareLinkEntry[]}>('/v1/files/share/link/list', {file_id});
+
 export interface AuditMetadataEntry {
   key: string;
   value: string | null;

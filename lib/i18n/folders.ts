@@ -1,12 +1,12 @@
 import {useTranslations} from 'next-intl';
 import {translateApiError} from './apiError';
 
-export type FilesTranslations = ReturnType<typeof useTranslations<'files'>>;
+export type FoldersTranslations = ReturnType<typeof useTranslations<'folders'>>;
 
-export function translateFileApiError(
-  t: FilesTranslations,
+export function translateFolderApiError(
+  t: FoldersTranslations,
   error: unknown,
-  fallbackKey: Parameters<FilesTranslations>[0]
+  fallbackKey: Parameters<FoldersTranslations>[0]
 ) {
   return translateApiError(t as unknown as Parameters<typeof translateApiError>[0], error, fallbackKey as string);
 }

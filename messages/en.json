@@ -432,6 +432,7 @@
       "saveError": "Failed to save the limit."
     }
   },
+  "folders": {},
   "calendar": {
     "page": {
       "title": "Calendar",

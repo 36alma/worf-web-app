@@ -1,4 +1,5 @@
 import apiClient from './client';
+import type {FolderListEntry} from './folders';
 
 export type FileScope = 'private' | 'group';
 
@@ -202,3 +203,49 @@ export interface CopyFileResponse {
 
 export const copyFile = (file_id: string, target_folder_id?: string | null) =>
   apiClient.post<CopyFileResponse>('/v1/files/copy', {file_id, target_folder_id});
+
+export interface StarResponse {
+  status: 'starred' | 'unstarred';
+  file_id: string;
+  is_starred: boolean;
+}
+
+export const starFile = (file_id: string) =>
+  apiClient.post<StarResponse>('/v1/files/star', {file_id});
+
+export const unstarFile = (file_id: string) =>
+  apiClient.post<StarResponse>('/v1/files/unstar', {file_id});
+
+export interface StarredListResponse {
+  files: FileListItem[];
+  folders: FolderListEntry[];
+  file_total: number;
+  folder_total: number;
+  offset: number;
+  limit: number;
+}
+
+export const getStarred = (offset = 0, limit = 20) =>
+  apiClient.post<StarredListResponse>('/v1/files/starred/list', {offset, limit});
+
+export interface SharedWithMeListResponse {
+  files: FileListItem[];
+  folders: FolderListEntry[];
+  file_total: number;
+  folder_total: number;
+  offset: number;
+  limit: number;
+}
+
+export const getSharedWithMe = (offset = 0, limit = 20) =>
+  apiClient.post<SharedWithMeListResponse>('/v1/files/shared-with-me/list', {offset, limit});
+
+export interface StorageUsageResponse {
+  scope: FileScope;
+  target_id: string | null;
+  used_bytes: number;
+  limit_bytes: number | null;
+}
+
+export const getStorageUsage = (scope: FileScope = 'private', group_id?: string | null) =>
+  apiClient.post<StorageUsageResponse>('/v1/files/storage/usage', {scope, group_id});

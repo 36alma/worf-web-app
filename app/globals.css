@@ -2646,6 +2646,25 @@ div[style*='position: fixed'][style*='bottom'][style*='right'] {
   color: var(--border-hover);
 }
 
+.auth-error {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  width: 100%;
+  margin: 0 0 16px;
+  padding: 12px;
+  border: 1px solid var(--danger-border, rgba(220, 38, 38, 0.35));
+  border-radius: 8px;
+  background: var(--danger-surface, rgba(220, 38, 38, 0.08));
+  color: var(--danger-text, #b91c1c);
+  font-size: 13px;
+  text-align: left;
+}
+
+.auth-error p {
+  margin: 2px 0 0;
+}
+
 .auth-security {
   display: flex;
   align-items: center;

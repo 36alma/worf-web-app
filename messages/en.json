@@ -60,7 +60,16 @@
     "secure_connection": "Secure, encrypted connection",
     "footer_copyright": "© 2025 WORF",
     "footer_terms": "Terms",
-    "footer_privacy": "Privacy"
+    "footer_privacy": "Privacy",
+    "error_title": "Sign-in failed",
+    "error_access_denied": "You declined access on the consent screen.",
+    "error_invalid_issuer": "The response did not come from the expected server. Sign-in was aborted for security reasons.",
+    "error_invalid_state": "The sign-in request could not be identified. Please try again.",
+    "error_expired_request": "The sign-in request expired. Please try again.",
+    "error_invalid_request": "The sign-in server returned an incomplete response.",
+    "error_token_exchange_failed": "Sign-in could not be completed. Please try again.",
+    "error_temporarily_unavailable": "The sign-in service is temporarily unavailable. Please try again later.",
+    "error_server_error": "Sign-in was interrupted by a server error."
   },
   "dashboard": {
     "title": "Dashboard",

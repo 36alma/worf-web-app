@@ -112,6 +112,16 @@ apiClient.interceptors.response.use(
       }
     }
 
+    // Egy 403 kétféle lehet: szerepkör-alapú tiltás, vagy a tokenből hiányzó
+    // scope. A proxy csak az utóbbihoz teszi be az insufficient_scope mezőt.
+    if (error.response?.status === 403) {
+      const payload = error.response.data as {error?: string; required_scope?: string} | undefined;
+      if (payload?.error === 'insufficient_scope') {
+        error.isInsufficientScope = true;
+        error.requiredScope = payload.required_scope;
+      }
+    }
+
     return Promise.reject(error);
   }
 )

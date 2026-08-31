@@ -1,11 +1,19 @@
 ﻿import {cookies} from 'next/headers';
 import {NextResponse} from 'next/server';
-import {ACCESS_COOKIE, AUTH_COOKIE_OPTIONS, MFA_COOKIE, REFRESH_COOKIE} from '@/lib/utils/constants';
+import {
+  ACCESS_COOKIE,
+  AUTH_COOKIE_OPTIONS,
+  AUTH_ORIGIN_COOKIE,
+  MFA_COOKIE,
+  REFRESH_COOKIE,
+  resolveAccessTokenMaxAge
+} from '@/lib/utils/constants';
 
 type Tokens = {
   access_token?: string;
   refresh_token?: string;
   multi_factor_token?: string;
+  expires_in?: number;
 };
 
 export async function setAuthCookies(tokens: Tokens) {
@@ -14,7 +22,7 @@ export async function setAuthCookies(tokens: Tokens) {
   if (tokens.access_token) {
     jar.set(ACCESS_COOKIE, tokens.access_token, {
       ...AUTH_COOKIE_OPTIONS,
-      maxAge: 60 * 60
+      maxAge: resolveAccessTokenMaxAge(tokens.expires_in)
     });
   }
 
@@ -40,6 +48,7 @@ export async function clearAuthCookies() {
   jar.delete(ACCESS_COOKIE);
   jar.delete(REFRESH_COOKIE);
   jar.delete(MFA_COOKIE);
+  jar.delete(AUTH_ORIGIN_COOKIE);
 }
 
 export function jsonWithStatus(payload: unknown, status: number) {

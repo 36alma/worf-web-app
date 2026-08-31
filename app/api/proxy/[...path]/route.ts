@@ -1,6 +1,7 @@
 import {request as httpRequest} from 'node:http';
 import {request as httpsRequest} from 'node:https';
 import {NextRequest, NextResponse} from 'next/server';
+import {parseWwwAuthenticate} from '@/lib/server/www-authenticate';
 import {getServerAccessToken} from '@/lib/utils/cookies';
 import {normalizeGroupId} from '@/lib/utils/groupId';
 
@@ -8,6 +9,7 @@ type RawHttpResponse = {
   status: number;
   text: string;
   contentType: string;
+  wwwAuthenticate?: string;
 };
 
 const tryExtractFirstJson = (input: string): string | null => {
@@ -157,7 +159,8 @@ function sendJsonWithBody(
           resolve({
             status: res.statusCode ?? 500,
             text: Buffer.concat(chunks).toString('utf8'),
-            contentType: (res.headers['content-type'] as string | undefined) ?? 'application/json'
+            contentType: (res.headers['content-type'] as string | undefined) ?? 'application/json',
+            wwwAuthenticate: res.headers['www-authenticate'] as string | undefined
           });
         });
       }
@@ -207,6 +210,10 @@ async function handleProxy(request: NextRequest, params: {path: string[]}) {
 
   const payload: Record<string, any> = {
     ...parsedBody,
+    // The native REST endpoints read the token from the JSON body, while the
+    // OAuth resource server advertises bearer_methods_supported: ["header"].
+    // The token goes into both (see the Authorization header below) so either
+    // kind of endpoint can find it.
     ...(token && !isFilesTrash ? {Bearer: token} : {})
   };
 
@@ -226,7 +233,7 @@ async function handleProxy(request: NextRequest, params: {path: string[]}) {
 
   const response = await sendJsonWithBody(targetUrl, upstreamMethod, payload, {
     ...(forwardedFor ? {'x-forwarded-for': forwardedFor} : {}),
-    ...(isFilesTrash && token ? {Authorization: `Bearer ${token}`} : {})
+    ...(token ? {Authorization: `Bearer ${token}`} : {})
   });
   const normalizedResponse = normalizePossiblyBrokenJsonResponse(
     response.text,
@@ -238,10 +245,36 @@ async function handleProxy(request: NextRequest, params: {path: string[]}) {
     console.error(`[Proxy] Backend error for ${upstreamMethod} ${joinedPath}:`, response.status, response.text);
   }
 
-  return new NextResponse(normalizedResponse.text, {
+  const challenge = parseWwwAuthenticate(response.wwwAuthenticate);
+  let responseText = normalizedResponse.text;
+  let responseContentType = normalizedResponse.contentType;
+
+  // A 403 can mean two different things: the role lacks the permission, or the
+  // token simply was not granted the scope. Only the latter carries an
+  // insufficient_scope challenge, so surface the missing scope to the caller.
+  if (response.status === 403 && challenge.error === 'insufficient_scope') {
+    let base: Record<string, unknown> = {};
+    if (responseContentType.toLowerCase().includes('json') && responseText.trim()) {
+      try {
+        base = JSON.parse(responseText) as Record<string, unknown>;
+      } catch {
+        base = {};
+      }
+    }
+
+    responseText = JSON.stringify({
+      ...base,
+      error: 'insufficient_scope',
+      ...(challenge.scope ? {required_scope: challenge.scope} : {})
+    });
+    responseContentType = 'application/json';
+  }
+
+  return new NextResponse(responseText, {
     status: response.status,
     headers: {
-      'Content-Type': normalizedResponse.contentType
+      'Content-Type': responseContentType,
+      ...(response.wwwAuthenticate ? {'WWW-Authenticate': response.wwwAuthenticate} : {})
     }
   });
 }

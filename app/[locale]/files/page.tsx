@@ -1,7 +1,12 @@
 'use client';
 
 import FilesFeed from '@/components/files/FilesFeed';
+import FilesShell from '@/components/files/FilesShell';
 
 export default function FilesPage() {
-  return <FilesFeed mode="private" />;
+  return (
+    <FilesShell>
+      <FilesFeed mode="private" />
+    </FilesShell>
+  );
 }

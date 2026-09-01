@@ -23,5 +23,5 @@ export default function GroupFilesPage() {
     );
   }
 
-  return <FilesFeed mode="group" groupId={groupId} />;
+  return <FilesFeed mode="group" groupId={groupId} basePath={`/groups/${groupId}/files`} />;
 }

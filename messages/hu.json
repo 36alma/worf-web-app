@@ -319,7 +319,13 @@
       "shareError": "Nem sikerült megosztani a fájlt.",
       "revokeSuccess": "A megosztás visszavonva.",
       "revokeError": "Nem sikerült visszavonni a megosztást.",
-      "loadError": "Nem sikerült betölteni a fájlokat."
+      "loadError": "Nem sikerült betölteni a fájlokat.",
+      "renameSuccess": "Átnevezve."
+    },
+    "rename": {
+      "fileTitle": "Fájl átnevezése",
+      "label": "Fájlnév",
+      "submit": "Átnevezés"
     },
     "page": {
       "title": "Fájlok"
@@ -356,6 +362,8 @@
       "unstar": "Csillag eltávolítása",
       "selectRow": "Kijelölés",
       "emptyText": "Nincs fájl.",
+      "loadMore": "Több betöltése",
+      "rename": "Átnevezés",
       "pagination": {
         "prev": "Előző",
         "next": "Következő",
@@ -447,7 +455,38 @@
       "unlimited": "Korlátlan"
     }
   },
-  "folders": {},
+  "folders": {
+    "newFolder": {
+      "trigger": "Új mappa",
+      "title": "Új mappa",
+      "label": "Mappa neve",
+      "submit": "Létrehozás"
+    },
+    "rename": {
+      "title": "Mappa átnevezése",
+      "label": "Mappa neve"
+    },
+    "confirmDelete": {
+      "title": "Mappa törlése",
+      "message": "A mappa és a benne lévő összes almappa/fájl a Kukába kerül."
+    },
+    "toasts": {
+      "createSuccess": "Mappa létrehozva.",
+      "deleteSuccess": "A mappa a lomtárba került."
+    },
+    "errors": {
+      "api": {
+        "401": "A hitelesítés sikertelen. Jelentkezz be újra.",
+        "403": "Nincs jogosultságod a művelethez.",
+        "404": "A mappa már nem érhető el.",
+        "409": "Ütközés történt.",
+        "413": "Nincs elég tárhely.",
+        "422": "Az ellenőrzés sikertelen.",
+        "429": "Túl sok kérés."
+      },
+      "default": "Ismeretlen hiba történt a mappaművelet során."
+    }
+  },
   "calendar": {
     "page": {
       "title": "Naptár",

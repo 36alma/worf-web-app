@@ -6,7 +6,7 @@ import FilesShell from '@/components/files/FilesShell';
 export default function FilesPage() {
   return (
     <FilesShell>
-      <FilesFeed mode="private" />
+      <FilesFeed mode="private" basePath="/files" />
     </FilesShell>
   );
 }

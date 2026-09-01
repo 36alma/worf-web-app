@@ -394,6 +394,9 @@
       "confirmPermanentMessage": "Biztosan véglegesen törlöd ezt a fájlt? Ez a művelet nem vonható vissza.",
       "emptyText": "A lomtár üres."
     },
+    "starred": {
+      "emptyText": "Nincs csillagozott elemed."
+    },
     "upload": {
       "title": "Fájl feltöltése",
       "dropzoneLabel": "Húzd ide a fájlt, vagy kattints a tallózáshoz",

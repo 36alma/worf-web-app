@@ -394,6 +394,9 @@
       "confirmPermanentMessage": "Are you sure you want to permanently delete this file? This action cannot be undone.",
       "emptyText": "Trash is empty."
     },
+    "starred": {
+      "emptyText": "You have no starred items."
+    },
     "upload": {
       "title": "Upload file",
       "dropzoneLabel": "Drag a file here, or click to browse",

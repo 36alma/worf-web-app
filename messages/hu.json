@@ -511,7 +511,17 @@
         "delete": "Törlés",
         "restore": "Visszaállítás",
         "share_group": "Megosztás csoporttal",
-        "revoke_share_group": "Csoportmegosztás visszavonása"
+        "revoke_share_group": "Csoportmegosztás visszavonása",
+        "rename": "Átnevezés",
+        "move": "Áthelyezés",
+        "copy": "Másolás",
+        "share_user": "Megosztás felhasználóval",
+        "revoke_share_user": "Felhasználó-megosztás visszavonása",
+        "share_link_create": "Publikus link létrehozva",
+        "share_link_revoke": "Publikus link visszavonva",
+        "share_link_access": "Megnyitva publikus linken",
+        "star": "Csillagozva",
+        "unstar": "Csillag eltávolítva"
       }
     },
     "admin": {

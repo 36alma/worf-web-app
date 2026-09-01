@@ -95,7 +95,7 @@ export default function SharedWithMeView() {
           <Button type="button" variant="secondary" onClick={loadMore}>{t('table.loadMore')}</Button>
         </div>
       )}
-      <FileDetailSheet fileId={selectedFileId} onClose={() => setSelectedFileId(null)} />
+      <FileDetailSheet fileId={selectedFileId} onClose={() => setSelectedFileId(null)} readOnly />
       <FolderDetailSheet folderId={selectedFolderId} onClose={() => setSelectedFolderId(null)} />
     </section>
   );

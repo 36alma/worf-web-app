@@ -519,7 +519,13 @@ export default function FilesFeed({ mode, groupId, folderId = null, basePath }: 
         </div>
       )}
 
-      <FileDetailSheet fileId={selectedFileId} onClose={() => setSelectedFileId(null)} onDeleted={() => { setSelectedFileId(null); refetch(); }} />
+      <FileDetailSheet
+        fileId={selectedFileId}
+        onClose={() => setSelectedFileId(null)}
+        onDeleted={() => { setSelectedFileId(null); refetch(); }}
+        onChanged={refetch}
+        onPreview={(id) => { setSelectedFileId(null); setPreviewFileId(id); }}
+      />
       <FolderDetailSheet folderId={selectedFolderDetailId} onClose={() => setSelectedFolderDetailId(null)} onDeleted={() => { setSelectedFolderDetailId(null); refetch(); }} onRenamed={refetch} />
 
       <ShareModal

@@ -511,7 +511,17 @@
         "delete": "Delete",
         "restore": "Restore",
         "share_group": "Share with group",
-        "revoke_share_group": "Revoke group share"
+        "revoke_share_group": "Revoke group share",
+        "rename": "Rename",
+        "move": "Move",
+        "copy": "Copy",
+        "share_user": "Share with user",
+        "revoke_share_user": "Revoke user share",
+        "share_link_create": "Public link created",
+        "share_link_revoke": "Public link revoked",
+        "share_link_access": "Opened via public link",
+        "star": "Starred",
+        "unstar": "Unstarred"
       }
     },
     "admin": {

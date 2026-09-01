@@ -5,7 +5,7 @@ import { useTranslations } from 'next-intl';
 import toast from 'react-hot-toast';
 import * as Tabs from '@radix-ui/react-tabs';
 import clsx from 'clsx';
-import { FileText, History, Share2 } from 'lucide-react';
+import { Eye, FileText, History, Pencil, Share2, Star } from 'lucide-react';
 import SideSheet from '@/components/ui/SideSheet';
 import ConfirmDialog from '@/components/ui/ConfirmDialog';
 import Button from '@/components/ui/Button';
@@ -14,58 +14,40 @@ import {
   requestDownload,
   buildDownloadUrl,
   deleteFile,
-  listGroupShares,
-  shareWithGroup,
-  revokeGroupShare,
+  renameFile,
+  starFile,
+  unstarFile,
   getAuditLog,
   type FileMetadataResponse,
-  type FileGroupShareEntry,
   type FileAuditLogEntry,
 } from '@/lib/api/files';
-import { getUserGroups } from '@/lib/api/groups';
 import { translateFileApiError } from '@/lib/i18n/files';
 import { formatFileSize, formatMimeType, formatUploadedAt } from '@/lib/utils/formatFiles';
-
-interface SelectableGroup {
-  id: string;
-  name: string;
-}
+import NameDialog from './NameDialog';
+import ShareModal from './ShareModal';
 
 const AUDIT_PAGE_SIZE = 20;
-
-const readGroupsResponse = (payload: unknown): SelectableGroup[] => {
-  if (!payload || typeof payload !== 'object') return [];
-  const source = ('data' in (payload as Record<string, unknown>)
-    ? (payload as Record<string, unknown>).data
-    : payload) as unknown;
-  const arrayValue = Array.isArray(source)
-    ? source
-    : source && typeof source === 'object'
-      ? ['group_users', 'groups', 'items', 'rows', 'result']
-          .map((key) => (source as Record<string, unknown>)[key])
-          .find((value) => Array.isArray(value))
-      : null;
-  if (!Array.isArray(arrayValue)) return [];
-  return arrayValue
-    .map((item) => {
-      if (!item || typeof item !== 'object') return null;
-      const row = item as Record<string, unknown>;
-      const id = String(row.group_id ?? row.id ?? '').trim();
-      if (!id) return null;
-      return { id, name: String(row.group_name ?? row.name ?? id) };
-    })
-    .filter((value): value is SelectableGroup => value !== null);
-};
 
 export interface FileDetailSheetProps {
   fileId: string | null;
   onClose: () => void;
   onDeleted?: () => void;
+  onChanged?: () => void;
+  onPreview?: (fileId: string) => void;
+  /**
+   * When true, hides Rename/Share/Star/Delete entirely (not just disables
+   * them) and shows only Download + the optional Preview shortcut. Used by
+   * SharedWithMeView per backend spec §9.3: shared-with-me items always have
+   * is_owner: false and the UI must offer a reduced action set — view/preview
+   * + download only. Defaults to false, so FilesFeed's and StarredView's
+   * full-featured usage is unaffected.
+   */
+  readOnly?: boolean;
 }
 
 const DOWNLOAD_DEBOUNCE_MS = 2000;
 
-export default function FileDetailSheet({ fileId, onClose, onDeleted }: FileDetailSheetProps) {
+export default function FileDetailSheet({ fileId, onClose, onDeleted, onChanged, onPreview, readOnly = false }: FileDetailSheetProps) {
   const t = useTranslations('files');
 
   const [activeTab, setActiveTab] = useState('metadata');
@@ -74,75 +56,38 @@ export default function FileDetailSheet({ fileId, onClose, onDeleted }: FileDeta
   const [isRequesting, setIsRequesting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
-
-  const [shares, setShares] = useState<FileGroupShareEntry[]>([]);
-  const [isSharesLoading, setIsSharesLoading] = useState(false);
-  const [userGroups, setUserGroups] = useState<SelectableGroup[]>([]);
-  const [selectedGroupId, setSelectedGroupId] = useState('');
-  const [isSharing, setIsSharing] = useState(false);
-  const [revokingGroupId, setRevokingGroupId] = useState<string | null>(null);
+  const [isShareOpen, setIsShareOpen] = useState(false);
+  const [isRenameOpen, setIsRenameOpen] = useState(false);
 
   const [auditItems, setAuditItems] = useState<FileAuditLogEntry[]>([]);
   const [auditOffset, setAuditOffset] = useState(0);
   const [auditTotal, setAuditTotal] = useState(0);
   const [isAuditLoading, setIsAuditLoading] = useState(false);
 
-  useEffect(() => {
-    if (fileId === null) {
-      setMetadata(null);
-      return;
-    }
-
-    let mounted = true;
-
-    const load = async () => {
-      setIsLoading(true);
-      try {
-        const response = await getFileMetadata(fileId);
-        if (!mounted) return;
-        setMetadata(response.data);
-      } catch (error) {
-        if (!mounted) return;
-        toast.error(translateFileApiError(t, error, 'errors.default'));
-      } finally {
-        if (mounted) {
-          setIsLoading(false);
-        }
-      }
-    };
-
-    void load();
-
-    return () => {
-      mounted = false;
-    };
-  }, [fileId, t]);
-
-  useEffect(() => {
-    if (fileId === null) {
-      setActiveTab('metadata');
-      setShares([]);
-      setUserGroups([]);
-      setSelectedGroupId('');
-      setAuditItems([]);
-      setAuditOffset(0);
-      setAuditTotal(0);
-    }
-  }, [fileId]);
-
-  const loadShares = useCallback(async () => {
+  const loadMetadata = useCallback(async () => {
     if (fileId === null) return;
-    setIsSharesLoading(true);
+    setIsLoading(true);
     try {
-      const [sharesResponse, groupsResponse] = await Promise.all([listGroupShares(fileId), getUserGroups()]);
-      setShares(sharesResponse.data.groups);
-      setUserGroups(readGroupsResponse(groupsResponse));
+      const response = await getFileMetadata(fileId);
+      setMetadata(response.data);
     } catch (error) {
       toast.error(translateFileApiError(t, error, 'errors.default'));
     } finally {
-      setIsSharesLoading(false);
+      setIsLoading(false);
     }
   }, [fileId, t]);
+
+  useEffect(() => {
+    if (fileId === null) {
+      setMetadata(null);
+      setActiveTab('metadata');
+      setAuditItems([]);
+      setAuditOffset(0);
+      setAuditTotal(0);
+      return;
+    }
+    void loadMetadata();
+  }, [fileId, loadMetadata]);
 
   const loadAudit = useCallback(
     async (nextOffset: number) => {
@@ -163,44 +108,10 @@ export default function FileDetailSheet({ fileId, onClose, onDeleted }: FileDeta
   );
 
   useEffect(() => {
-    if (fileId === null) return;
-    if (activeTab === 'share' && metadata?.is_owner) {
-      void loadShares();
-    }
-    if (activeTab === 'audit') {
-      void loadAudit(0);
-    }
+    if (fileId === null || activeTab !== 'audit') return;
+    void loadAudit(0);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeTab, fileId, metadata?.is_owner]);
-
-  const handleShare = async () => {
-    if (fileId === null || !selectedGroupId || isSharing) return;
-    setIsSharing(true);
-    try {
-      await shareWithGroup(fileId, selectedGroupId);
-      toast.success(t('toasts.shareSuccess'));
-      setSelectedGroupId('');
-      await loadShares();
-    } catch (error) {
-      toast.error(translateFileApiError(t, error, 'errors.default'));
-    } finally {
-      setIsSharing(false);
-    }
-  };
-
-  const handleRevoke = async (groupId: string) => {
-    if (fileId === null || revokingGroupId) return;
-    setRevokingGroupId(groupId);
-    try {
-      await revokeGroupShare(fileId, groupId);
-      toast.success(t('toasts.revokeSuccess'));
-      await loadShares();
-    } catch (error) {
-      toast.error(translateFileApiError(t, error, 'errors.default'));
-    } finally {
-      setRevokingGroupId(null);
-    }
-  };
+  }, [activeTab, fileId]);
 
   const handleDownload = async () => {
     if (fileId === null || isRequesting) return;
@@ -212,6 +123,31 @@ export default function FileDetailSheet({ fileId, onClose, onDeleted }: FileDeta
       toast.error(translateFileApiError(t, error, 'errors.default'));
     } finally {
       setTimeout(() => setIsRequesting(false), DOWNLOAD_DEBOUNCE_MS);
+    }
+  };
+
+  const handleToggleStar = async () => {
+    if (fileId === null || !metadata) return;
+    try {
+      if (metadata.is_starred) await unstarFile(fileId);
+      else await starFile(fileId);
+      await loadMetadata();
+      onChanged?.();
+    } catch (error) {
+      toast.error(translateFileApiError(t, error, 'errors.default'));
+    }
+  };
+
+  const handleRename = async (name: string) => {
+    if (fileId === null) return;
+    try {
+      await renameFile(fileId, name);
+      toast.success(t('toasts.renameSuccess'));
+      await loadMetadata();
+      onChanged?.();
+    } catch (error) {
+      toast.error(translateFileApiError(t, error, 'errors.default'));
+      throw error;
     }
   };
 
@@ -236,37 +172,10 @@ export default function FileDetailSheet({ fileId, onClose, onDeleted }: FileDeta
       <SideSheet open={fileId !== null} title={t('detail.title')} onClose={onClose}>
         <Tabs.Root value={activeTab} onValueChange={setActiveTab} className="flex h-full w-full flex-col">
           <Tabs.List className="mb-6 mt-[-10px] flex border-b border-[var(--border-subtle)]">
-            <Tabs.Trigger
-              value="metadata"
-              className={clsx(
-                'flex items-center gap-2 border-b-2 px-4 py-2.5 text-sm font-semibold outline-none transition-all',
-                activeTab === 'metadata'
-                  ? 'border-orange-500 text-orange-500'
-                  : 'border-transparent text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]'
-              )}
-            >
+            <Tabs.Trigger value="metadata" className={clsx('flex items-center gap-2 border-b-2 px-4 py-2.5 text-sm font-semibold outline-none transition-all', activeTab === 'metadata' ? 'border-[var(--accent)] text-[var(--accent)]' : 'border-transparent text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]')}>
               <FileText size={16} /> {t('detail.tabs.metadata')}
             </Tabs.Trigger>
-            <Tabs.Trigger
-              value="share"
-              className={clsx(
-                'flex items-center gap-2 border-b-2 px-4 py-2.5 text-sm font-semibold outline-none transition-all',
-                activeTab === 'share'
-                  ? 'border-orange-500 text-orange-500'
-                  : 'border-transparent text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]'
-              )}
-            >
-              <Share2 size={16} /> {t('detail.tabs.share')}
-            </Tabs.Trigger>
-            <Tabs.Trigger
-              value="audit"
-              className={clsx(
-                'flex items-center gap-2 border-b-2 px-4 py-2.5 text-sm font-semibold outline-none transition-all',
-                activeTab === 'audit'
-                  ? 'border-orange-500 text-orange-500'
-                  : 'border-transparent text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]'
-              )}
-            >
+            <Tabs.Trigger value="audit" className={clsx('flex items-center gap-2 border-b-2 px-4 py-2.5 text-sm font-semibold outline-none transition-all', activeTab === 'audit' ? 'border-[var(--accent)] text-[var(--accent)]' : 'border-transparent text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]')}>
               <History size={16} /> {t('detail.tabs.audit')}
             </Tabs.Trigger>
           </Tabs.List>
@@ -282,118 +191,54 @@ export default function FileDetailSheet({ fileId, onClose, onDeleted }: FileDeta
               <dl className="space-y-3 text-sm">
                 <div className="flex items-center justify-between gap-3">
                   <dt className="text-[var(--text-tertiary)]">{t('detail.fields.name')}</dt>
-                  <dd className="text-right font-medium text-[var(--text-primary)]">{metadata.original_name}</dd>
+                  <dd className="flex items-center gap-2 text-right font-medium text-[var(--text-primary)]">
+                    {metadata.original_name}
+                    {!readOnly && (
+                      <button type="button" onClick={() => setIsRenameOpen(true)} aria-label={t('table.rename')} className="rounded p-1 hover:bg-[var(--bg-hover)]">
+                        <Pencil size={14} strokeWidth={1.75} className="text-[var(--text-tertiary)]" />
+                      </button>
+                    )}
+                  </dd>
                 </div>
                 <div className="flex items-center justify-between gap-3">
                   <dt className="text-[var(--text-tertiary)]">{t('detail.fields.type')}</dt>
-                  <dd className="text-right font-medium text-[var(--text-primary)]">
-                    {formatMimeType(metadata.mime_type)}
-                  </dd>
+                  <dd className="text-right font-medium text-[var(--text-primary)]">{formatMimeType(metadata.mime_type)}</dd>
                 </div>
                 <div className="flex items-center justify-between gap-3">
                   <dt className="text-[var(--text-tertiary)]">{t('detail.fields.size')}</dt>
-                  <dd className="text-right font-medium text-[var(--text-primary)]">
-                    {formatFileSize(metadata.size_bytes)}
-                  </dd>
+                  <dd className="text-right font-medium text-[var(--text-primary)]">{formatFileSize(metadata.size_bytes)}</dd>
                 </div>
                 <div className="flex items-center justify-between gap-3">
                   <dt className="text-[var(--text-tertiary)]">{t('detail.fields.uploadedAt')}</dt>
-                  <dd className="text-right font-medium text-[var(--text-primary)]">
-                    {formatUploadedAt(metadata.uploaded_at)}
-                  </dd>
+                  <dd className="text-right font-medium text-[var(--text-primary)]">{formatUploadedAt(metadata.uploaded_at)}</dd>
                 </div>
                 <div className="flex items-center justify-between gap-3">
                   <dt className="text-[var(--text-tertiary)]">{t('detail.fields.scope')}</dt>
-                  <dd className="text-right font-medium text-[var(--text-primary)]">
-                    {metadata.scope === 'group' ? t('detail.scopeValues.group') : t('detail.scopeValues.private')}
-                  </dd>
+                  <dd className="text-right font-medium text-[var(--text-primary)]">{metadata.scope === 'group' ? t('detail.scopeValues.group') : t('detail.scopeValues.private')}</dd>
                 </div>
               </dl>
             )}
 
-            <div className="mt-4 flex gap-2">
-              <Button
-                type="button"
-                variant="primary"
-                onClick={handleDownload}
-                disabled={fileId === null || isRequesting}
-              >
-                {t('detail.download')}
-              </Button>
-              <Button
-                type="button"
-                variant="danger"
-                onClick={() => setIsConfirmOpen(true)}
-                disabled={fileId === null || isLoading}
-              >
-                {t('detail.delete')}
-              </Button>
-            </div>
-          </Tabs.Content>
-
-          <Tabs.Content value="share" className="flex flex-col gap-4 outline-none">
-            {!metadata ? null : !metadata.is_owner ? (
-              <p className="text-sm text-[var(--text-tertiary)]">{t('share.ownerOnly')}</p>
-            ) : (
-              <>
-                <div className="flex items-end gap-2">
-                  <div className="flex-1">
-                    <label htmlFor="share-group-select" className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-[var(--text-tertiary)]">
-                      {t('share.title')}
-                    </label>
-                    <select
-                      id="share-group-select"
-                      className="w-full rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface)] px-3 py-2 text-sm text-[var(--text-primary)] outline-none focus-visible:border-border-focus"
-                      value={selectedGroupId}
-                      onChange={(event) => setSelectedGroupId(event.target.value)}
-                    >
-                      <option value="">{t('share.selectGroupPlaceholder')}</option>
-                      {userGroups
-                        .filter((group) => !shares.some((share) => share.group_id === group.id))
-                        .map((group) => (
-                          <option key={group.id} value={group.id}>
-                            {group.name}
-                          </option>
-                        ))}
-                    </select>
-                  </div>
-                  <Button type="button" variant="primary" loading={isSharing} disabled={!selectedGroupId} onClick={handleShare}>
-                    {t('share.shareButton')}
+            <div className="mt-4 flex flex-wrap gap-2">
+              <Button type="button" variant="primary" onClick={handleDownload} disabled={fileId === null || isRequesting}>{t('detail.download')}</Button>
+              {onPreview && metadata?.mime_type?.startsWith('image/') && (
+                <Button type="button" variant="secondary" onClick={() => fileId && onPreview(fileId)}>
+                  <Eye size={16} strokeWidth={1.75} className="mr-1.5" /> {t('preview.details')}
+                </Button>
+              )}
+              {!readOnly && (
+                <>
+                  <Button type="button" variant="secondary" onClick={() => setIsShareOpen(true)}>
+                    <Share2 size={16} strokeWidth={1.75} className="mr-1.5" /> {t('share.modalTitle')}
                   </Button>
-                </div>
-
-                <div>
-                  <p className="mb-2 text-xs font-medium uppercase tracking-wider text-[var(--text-tertiary)]">
-                    {t('share.sharedWith')}
-                  </p>
-                  {isSharesLoading ? (
-                    <div className="h-6 w-full animate-pulse rounded-lg bg-[var(--bg-elevated)]" />
-                  ) : shares.length === 0 ? (
-                    <p className="text-sm text-[var(--text-tertiary)]">{t('share.noShares')}</p>
-                  ) : (
-                    <ul className="space-y-2">
-                      {shares.map((share) => (
-                        <li
-                          key={share.group_id}
-                          className="flex items-center justify-between gap-3 rounded-lg border border-[var(--border-subtle)] px-3 py-2 text-sm"
-                        >
-                          <span className="font-medium text-[var(--text-primary)]">{share.group_name}</span>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            loading={revokingGroupId === share.group_id}
-                            onClick={() => handleRevoke(share.group_id)}
-                          >
-                            {t('share.revokeButton')}
-                          </Button>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
-              </>
-            )}
+                  <Button type="button" variant="secondary" onClick={() => void handleToggleStar()} disabled={!metadata}>
+                    <Star size={16} strokeWidth={1.75} className={clsx('mr-1.5', metadata?.is_starred && 'fill-[var(--accent)] text-[var(--accent)]')} />
+                    {metadata?.is_starred ? t('table.unstar') : t('table.star')}
+                  </Button>
+                  <Button type="button" variant="danger" onClick={() => setIsConfirmOpen(true)} disabled={fileId === null || isLoading}>{t('detail.delete')}</Button>
+                </>
+              )}
+            </div>
           </Tabs.Content>
 
           <Tabs.Content value="audit" className="flex flex-col gap-4 outline-none">
@@ -410,9 +255,7 @@ export default function FileDetailSheet({ fileId, onClose, onDeleted }: FileDeta
                   <li key={entry.id} className="rounded-lg border border-[var(--border-subtle)] px-3 py-2 text-sm">
                     <div className="flex items-center justify-between gap-3">
                       <span className="font-medium text-[var(--text-primary)]">
-                        {t.has(`audit.action.${entry.action}` as any)
-                          ? t(`audit.action.${entry.action}` as any)
-                          : entry.action}
+                        {t.has(`audit.action.${entry.action}` as never) ? t(`audit.action.${entry.action}` as never) : entry.action}
                       </span>
                       <span className="text-xs text-[var(--text-tertiary)]">{formatUploadedAt(entry.timestamp)}</span>
                     </div>
@@ -420,33 +263,38 @@ export default function FileDetailSheet({ fileId, onClose, onDeleted }: FileDeta
                 ))}
               </ul>
             )}
-
             {auditItems.length < auditTotal && (
-              <Button
-                type="button"
-                variant="secondary"
-                size="sm"
-                loading={isAuditLoading}
-                onClick={() => loadAudit(auditOffset + AUDIT_PAGE_SIZE)}
-              >
-                {t('audit.loadMore')}
-              </Button>
+              <Button type="button" variant="secondary" size="sm" loading={isAuditLoading} onClick={() => loadAudit(auditOffset + AUDIT_PAGE_SIZE)}>{t('audit.loadMore')}</Button>
             )}
           </Tabs.Content>
         </Tabs.Root>
       </SideSheet>
 
-      <ConfirmDialog
-        open={isConfirmOpen}
-        title={t('detail.confirmDelete.title')}
-        message={t('detail.confirmDelete.message')}
-        onCancel={() => setIsConfirmOpen(false)}
-        onConfirm={() => {
-          if (!isDeleting) {
-            void handleDeleteConfirm();
-          }
-        }}
-      />
+      {!readOnly && (
+        <>
+          <ConfirmDialog
+            open={isConfirmOpen}
+            title={t('detail.confirmDelete.title')}
+            message={t('detail.confirmDelete.message')}
+            onCancel={() => setIsConfirmOpen(false)}
+            onConfirm={() => { if (!isDeleting) void handleDeleteConfirm(); }}
+          />
+
+          <NameDialog
+            open={isRenameOpen}
+            title={t('rename.fileTitle')}
+            label={t('rename.label')}
+            initialValue={metadata?.original_name ?? ''}
+            submitLabel={t('rename.submit')}
+            onSubmit={handleRename}
+            onClose={() => setIsRenameOpen(false)}
+          />
+
+          {fileId !== null && (
+            <ShareModal open={isShareOpen} kind="file" entityId={fileId} isOwner={metadata?.is_owner ?? false} onClose={() => setIsShareOpen(false)} />
+          )}
+        </>
+      )}
     </>
   );
 }

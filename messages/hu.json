@@ -469,6 +469,21 @@
           "can_delete": "Törlés",
           "can_share": "Megosztás"
         }
+      },
+      "link": {
+        "oneTimeWarning": "Ez a link csak most jelenik meg — mentsd el, mert később nem kérhető vissza.",
+        "copied": "Vágólapra másolva.",
+        "copyFailed": "Nem sikerült másolni.",
+        "permissionView": "Megtekintés",
+        "permissionDownload": "Letöltés",
+        "expiresAt": "Lejárat (opcionális)",
+        "passwordOptional": "Jelszó (opcionális)",
+        "create": "Link létrehozása",
+        "existing": "Meglévő linkek",
+        "none": "Nincs publikus link.",
+        "passwordProtected": "jelszóval védett",
+        "accessCount": "{count}x megnyitva",
+        "revokeSuccess": "A link visszavonva."
       }
     },
     "audit": {

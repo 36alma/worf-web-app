@@ -469,6 +469,21 @@
           "can_delete": "Delete",
           "can_share": "Share"
         }
+      },
+      "link": {
+        "oneTimeWarning": "This link is shown only once — save it now, it can't be retrieved later.",
+        "copied": "Copied to clipboard.",
+        "copyFailed": "Failed to copy.",
+        "permissionView": "View",
+        "permissionDownload": "Download",
+        "expiresAt": "Expires (optional)",
+        "passwordOptional": "Password (optional)",
+        "create": "Create link",
+        "existing": "Existing links",
+        "none": "No public links.",
+        "passwordProtected": "password protected",
+        "accessCount": "Opened {count}x",
+        "revokeSuccess": "Link revoked."
       }
     },
     "audit": {

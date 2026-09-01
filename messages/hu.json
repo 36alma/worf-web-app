@@ -493,10 +493,16 @@
       "title": "Mappa törlése",
       "message": "A mappa és a benne lévő összes almappa/fájl a Kukába kerül."
     },
+    "confirmPermanentDelete": {
+      "message": "Ez a művelet nem vonható vissza. A mappa és teljes tartalma véglegesen törlődik."
+    },
     "toasts": {
       "createSuccess": "Mappa létrehozva.",
       "deleteSuccess": "A mappa a lomtárba került."
     },
+    "restoreSuccess": "A mappa visszaállítva.",
+    "permanentDeleteSuccess": "A mappa véglegesen törölve.",
+    "trashHelperText": "A mappa visszaállítása nem állítja vissza automatikusan a benne lévő fájlokat/almappákat — azokat egyenként kell visszaállítani.",
     "errors": {
       "api": {
         "401": "A hitelesítés sikertelen. Jelentkezz be újra.",

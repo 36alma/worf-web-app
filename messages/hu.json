@@ -430,6 +430,9 @@
       "save": "Mentés",
       "saveSuccess": "A korlát sikeresen mentve.",
       "saveError": "Nem sikerült menteni a korlátot."
+    },
+    "storage": {
+      "unlimited": "Korlátlan"
     }
   },
   "folders": {},

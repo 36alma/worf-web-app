@@ -430,6 +430,9 @@
       "save": "Save",
       "saveSuccess": "The limit was saved successfully.",
       "saveError": "Failed to save the limit."
+    },
+    "storage": {
+      "unlimited": "Unlimited"
     }
   },
   "folders": {},

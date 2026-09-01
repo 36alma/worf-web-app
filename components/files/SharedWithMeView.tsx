@@ -96,7 +96,7 @@ export default function SharedWithMeView() {
         </div>
       )}
       <FileDetailSheet fileId={selectedFileId} onClose={() => setSelectedFileId(null)} readOnly />
-      <FolderDetailSheet folderId={selectedFolderId} onClose={() => setSelectedFolderId(null)} />
+      <FolderDetailSheet folderId={selectedFolderId} onClose={() => setSelectedFolderId(null)} readOnly />
     </section>
   );
 }

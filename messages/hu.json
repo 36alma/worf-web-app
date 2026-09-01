@@ -553,6 +553,34 @@
     "share": {
       "modalTitle": "Mappa megosztása"
     },
+    "detail": {
+      "title": "Mappa részletei",
+      "tabs": {
+        "metadata": "Adatok",
+        "audit": "Napló"
+      },
+      "fields": {
+        "name": "Név",
+        "createdAt": "Létrehozva",
+        "scope": "Hatókör"
+      }
+    },
+    "audit": {
+      "action": {
+        "folder_create": "Létrehozva",
+        "folder_rename": "Átnevezés",
+        "folder_move": "Áthelyezés",
+        "folder_delete": "Törlés",
+        "folder_restore": "Visszaállítás",
+        "folder_permanent_delete": "Végleges törlés",
+        "folder_share_user": "Megosztás felhasználóval",
+        "folder_revoke_share_user": "Felhasználó-megosztás visszavonása",
+        "folder_share_group": "Megosztás csoporttal",
+        "folder_revoke_share_group": "Csoportmegosztás visszavonása",
+        "folder_star": "Csillagozva",
+        "folder_unstar": "Csillag eltávolítva"
+      }
+    },
     "confirmDelete": {
       "title": "Mappa törlése",
       "message": "A mappa és a benne lévő összes almappa/fájl a Kukába kerül."
@@ -571,7 +599,8 @@
       "createSuccess": "Mappa létrehozva.",
       "deleteSuccess": "A mappa a lomtárba került.",
       "shareSuccess": "A mappa megosztva a csoporttal.",
-      "revokeSuccess": "A megosztás visszavonva."
+      "revokeSuccess": "A megosztás visszavonva.",
+      "renameSuccess": "Átnevezve."
     },
     "restoreSuccess": "A mappa visszaállítva.",
     "permanentDeleteSuccess": "A mappa véglegesen törölve.",

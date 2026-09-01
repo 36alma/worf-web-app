@@ -553,6 +553,34 @@
     "share": {
       "modalTitle": "Share folder"
     },
+    "detail": {
+      "title": "Folder details",
+      "tabs": {
+        "metadata": "Details",
+        "audit": "Audit log"
+      },
+      "fields": {
+        "name": "Name",
+        "createdAt": "Created",
+        "scope": "Scope"
+      }
+    },
+    "audit": {
+      "action": {
+        "folder_create": "Created",
+        "folder_rename": "Renamed",
+        "folder_move": "Moved",
+        "folder_delete": "Deleted",
+        "folder_restore": "Restored",
+        "folder_permanent_delete": "Permanently deleted",
+        "folder_share_user": "Shared with user",
+        "folder_revoke_share_user": "User share revoked",
+        "folder_share_group": "Shared with group",
+        "folder_revoke_share_group": "Group share revoked",
+        "folder_star": "Starred",
+        "folder_unstar": "Unstarred"
+      }
+    },
     "confirmDelete": {
       "title": "Delete folder",
       "message": "The folder and everything inside it (subfolders and files) will be moved to trash."
@@ -571,7 +599,8 @@
       "createSuccess": "Folder created.",
       "deleteSuccess": "The folder was moved to trash.",
       "shareSuccess": "The folder has been shared with the group.",
-      "revokeSuccess": "Sharing revoked."
+      "revokeSuccess": "Sharing revoked.",
+      "renameSuccess": "Renamed."
     },
     "restoreSuccess": "The folder was restored.",
     "permanentDeleteSuccess": "The folder was permanently deleted.",

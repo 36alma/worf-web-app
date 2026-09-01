@@ -333,6 +333,12 @@
     "groupPage": {
       "title": "Fájlok"
     },
+    "subnav": {
+      "root": "Saját fájlok",
+      "starred": "Csillagozott",
+      "sharedWithMe": "Megosztva velem",
+      "trash": "Kuka"
+    },
     "breadcrumb": {
       "label": "Mappa útvonal",
       "collapsedLabel": "Elrejtett mappák megjelenítése",

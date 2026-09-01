@@ -333,6 +333,12 @@
     "groupPage": {
       "title": "Files"
     },
+    "subnav": {
+      "root": "My files",
+      "starred": "Starred",
+      "sharedWithMe": "Shared with me",
+      "trash": "Trash"
+    },
     "breadcrumb": {
       "label": "Folder path",
       "collapsedLabel": "Show hidden folders",

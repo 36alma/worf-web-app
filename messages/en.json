@@ -441,6 +441,13 @@
         "message": "Are you sure you want to move this file to trash? It can be restored later."
       }
     },
+    "preview": {
+      "details": "Details",
+      "close": "Close",
+      "prev": "Previous",
+      "next": "Next",
+      "noPreview": "No preview available for this file type."
+    },
     "share": {
       "title": "Share with group",
       "selectGroupPlaceholder": "Select a group",

@@ -25,10 +25,11 @@ import UploadDialog from '@/components/files/UploadDialog';
 import UploadProgressPanel from '@/components/files/UploadProgressPanel';
 import FileDetailSheet from '@/components/files/FileDetailSheet';
 import FolderDetailSheet from '@/components/files/FolderDetailSheet';
+import PreviewModal from '@/components/files/PreviewModal';
 import FilesBreadcrumb from '@/components/files/FilesBreadcrumb';
 import NameDialog from '@/components/files/NameDialog';
 import EntryActionsMenu, { type ActionMenuItem } from '@/components/files/EntryActionsMenu';
-import { toFileEntries, toFolderEntries, type FsEntry } from '@/components/files/entryTypes';
+import { toFileEntries, toFolderEntries, type FsEntry, type FileEntry } from '@/components/files/entryTypes';
 
 type CategoryFilter = FileCategory | 'all';
 type ViewMode = 'list' | 'grid';
@@ -60,6 +61,7 @@ export default function FilesFeed({ mode, groupId, folderId = null, basePath }: 
   const [deleteTarget, setDeleteTarget] = useState<FsEntry | null>(null);
   const [selectedFileId, setSelectedFileId] = useState<string | null>(null);
   const [selectedFolderDetailId, setSelectedFolderDetailId] = useState<string | null>(null);
+  const [previewFileId, setPreviewFileId] = useState<string | null>(null);
 
   const {
     listA: subfolders,
@@ -247,6 +249,12 @@ export default function FilesFeed({ mode, groupId, folderId = null, basePath }: 
             icon: <Download size={16} strokeWidth={1.75} />,
             onSelect: () => void handleDownload(entry),
             hidden: isForbidden(scope, 'download', entry.id),
+          },
+          {
+            key: 'details',
+            label: t('preview.details'),
+            icon: <Info size={16} strokeWidth={1.75} />,
+            onSelect: () => setSelectedFileId(entry.id),
           }]
         : [{
             // Primary click now navigates into the folder instead of opening
@@ -368,7 +376,7 @@ export default function FilesFeed({ mode, groupId, folderId = null, basePath }: 
             entries={filteredEntries}
             selectedIds={selectedIds}
             onToggleSelect={(entry) => setSelectedIds((current) => toggleSet(current, entry.id))}
-            onOpenFile={setSelectedFileId}
+            onOpenFile={setPreviewFileId}
             onOpenFolder={handleOpenFolder}
             onToggleStar={handleToggleStar}
             renderActions={renderActions}
@@ -378,7 +386,7 @@ export default function FilesFeed({ mode, groupId, folderId = null, basePath }: 
             entries={filteredEntries}
             selectedIds={selectedIds}
             onToggleSelect={(entry) => setSelectedIds((current) => toggleSet(current, entry.id))}
-            onOpenFile={setSelectedFileId}
+            onOpenFile={setPreviewFileId}
             onOpenFolder={handleOpenFolder}
             onToggleStar={handleToggleStar}
             renderActions={renderActions}
@@ -404,6 +412,13 @@ export default function FilesFeed({ mode, groupId, folderId = null, basePath }: 
 
       <FileDetailSheet fileId={selectedFileId} onClose={() => setSelectedFileId(null)} onDeleted={() => { setSelectedFileId(null); refetch(); }} />
       <FolderDetailSheet folderId={selectedFolderDetailId} onClose={() => setSelectedFolderDetailId(null)} onDeleted={() => { setSelectedFolderDetailId(null); refetch(); }} onRenamed={refetch} />
+      <PreviewModal
+        files={filteredEntries.filter((e): e is FileEntry => e.kind === 'file')}
+        currentFileId={previewFileId}
+        onNavigate={setPreviewFileId}
+        onClose={() => setPreviewFileId(null)}
+        onOpenDetails={(fileId) => { setPreviewFileId(null); setSelectedFileId(fileId); }}
+      />
 
       <ConfirmDialog
         open={deleteTarget !== null}

@@ -441,6 +441,13 @@
         "message": "Biztosan a lomtárba helyezed ezt a fájlt? Onnan később visszaállítható."
       }
     },
+    "preview": {
+      "details": "Részletek",
+      "close": "Bezárás",
+      "prev": "Előző",
+      "next": "Következő",
+      "noPreview": "Nincs előnézet ehhez a fájltípushoz."
+    },
     "share": {
       "title": "Megosztás csoporttal",
       "selectGroupPlaceholder": "Válassz csoportot",

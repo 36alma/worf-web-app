@@ -327,6 +327,11 @@
     "groupPage": {
       "title": "Fájlok"
     },
+    "breadcrumb": {
+      "label": "Mappa útvonal",
+      "collapsedLabel": "Elrejtett mappák megjelenítése",
+      "incompleteTitle": "Néhány szülőmappa nem volt betölthető"
+    },
     "toolbar": {
       "searchPlaceholder": "Fájlok keresése...",
       "filters": {

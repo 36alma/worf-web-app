@@ -327,6 +327,11 @@
     "groupPage": {
       "title": "Files"
     },
+    "breadcrumb": {
+      "label": "Folder path",
+      "collapsedLabel": "Show hidden folders",
+      "incompleteTitle": "Some parent folders could not be loaded"
+    },
     "toolbar": {
       "searchPlaceholder": "Search files...",
       "filters": {

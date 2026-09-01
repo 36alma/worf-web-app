@@ -370,6 +370,7 @@
       "emptyText": "No files.",
       "loadMore": "Load more",
       "rename": "Rename",
+      "details": "Details",
       "pagination": {
         "prev": "Previous",
         "next": "Next",

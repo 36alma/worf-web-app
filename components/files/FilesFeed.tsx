@@ -1,9 +1,10 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { useTranslations } from 'next-intl';
+import { useRouter } from 'next/navigation';
+import { useLocale, useTranslations } from 'next-intl';
 import toast from 'react-hot-toast';
-import { Download, FolderPlus, Pencil, Star, Trash2 } from 'lucide-react';
+import { Download, FolderPlus, Info, Pencil, Star, Trash2 } from 'lucide-react';
 import { LayoutGrid, List, Search } from 'lucide-react';
 import { requestDownload, buildDownloadUrl, deleteFile, renameFile, starFile, unstarFile } from '@/lib/api/files';
 import { listFolder, createFolder, deleteFolder, renameFolder, starFolder, unstarFolder } from '@/lib/api/folders';
@@ -45,6 +46,8 @@ const PAGE_SIZE = 20;
 export default function FilesFeed({ mode, groupId, folderId = null, basePath }: FilesFeedProps) {
   const t = useTranslations('files');
   const tf = useTranslations('folders');
+  const router = useRouter();
+  const locale = useLocale();
 
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState<CategoryFilter>('all');
@@ -223,6 +226,13 @@ export default function FilesFeed({ mode, groupId, folderId = null, basePath }: 
     }
   };
 
+  // Clicking a folder's name/card navigates into it (basePath + /folder/{id})
+  // rather than opening the metadata sheet — see the 'details' menu item
+  // below for how the sheet stays reachable.
+  const handleOpenFolder = (id: string) => {
+    router.push(`/${locale}${basePath}/folder/${encodeURIComponent(id)}`);
+  };
+
   // Extension point: the Move/Copy task and the Share task each add one more
   // ActionMenuItem to this exact array (after "download", before the
   // trailing "delete" entry — delete stays last since it's the most
@@ -238,7 +248,14 @@ export default function FilesFeed({ mode, groupId, folderId = null, basePath }: 
             onSelect: () => void handleDownload(entry),
             hidden: isForbidden(scope, 'download', entry.id),
           }]
-        : []),
+        : [{
+            // Primary click now navigates into the folder instead of opening
+            // this metadata sheet, so it stays reachable from the kebab menu.
+            key: 'details',
+            label: t('table.details'),
+            icon: <Info size={16} strokeWidth={1.75} />,
+            onSelect: () => setSelectedFolderDetailId(entry.id),
+          }]),
       {
         key: 'rename',
         label: t('table.rename'),
@@ -352,7 +369,7 @@ export default function FilesFeed({ mode, groupId, folderId = null, basePath }: 
             selectedIds={selectedIds}
             onToggleSelect={(entry) => setSelectedIds((current) => toggleSet(current, entry.id))}
             onOpenFile={setSelectedFileId}
-            onOpenFolder={setSelectedFolderDetailId}
+            onOpenFolder={handleOpenFolder}
             onToggleStar={handleToggleStar}
             renderActions={renderActions}
           />
@@ -362,7 +379,7 @@ export default function FilesFeed({ mode, groupId, folderId = null, basePath }: 
             selectedIds={selectedIds}
             onToggleSelect={(entry) => setSelectedIds((current) => toggleSet(current, entry.id))}
             onOpenFile={setSelectedFileId}
-            onOpenFolder={setSelectedFolderDetailId}
+            onOpenFolder={handleOpenFolder}
             onToggleStar={handleToggleStar}
             renderActions={renderActions}
           />

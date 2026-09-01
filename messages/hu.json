@@ -539,6 +539,13 @@
       "unlimited": "Korlátlan"
     }
   },
+  "sharedLink": {
+    "title": "Megosztott fájl",
+    "description": "Ha a link jelszóval védett, add meg lent. Ha nem, csak kattints a Megnyitásra.",
+    "passwordPlaceholder": "Jelszó (ha szükséges)",
+    "invalidOrExpired": "A link érvénytelen vagy lejárt.",
+    "open": "Megnyitás"
+  },
   "folders": {
     "newFolder": {
       "trigger": "Új mappa",

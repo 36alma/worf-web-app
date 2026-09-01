@@ -539,6 +539,13 @@
       "unlimited": "Unlimited"
     }
   },
+  "sharedLink": {
+    "title": "Shared file",
+    "description": "If this link is password-protected, enter it below. Otherwise just click Open.",
+    "passwordPlaceholder": "Password (if required)",
+    "invalidOrExpired": "This link is invalid or has expired.",
+    "open": "Open"
+  },
   "folders": {
     "newFolder": {
       "trigger": "New folder",

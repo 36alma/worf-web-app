@@ -22,7 +22,12 @@ export default function AppShell({children}: AppShellProps) {
   const params = useParams<{groupId?: string}>();
   const locale = useLocale();
   const router = useRouter();
-  const isAuthRoute = pathname.includes('/auth/');
+  // Public routes: /auth/* (login/register flows) and /shared/* (the
+  // unauthenticated share-link landing page, Task 33) skip Header/Sidebar
+  // chrome and the permission-guard effects below, which assume a logged-in
+  // user's data. '/shared/' (with trailing slash) does not match
+  // '/files/shared-with-me' (Task 23), which has a hyphen after "shared".
+  const isPublicRoute = pathname.includes('/auth/') || pathname.includes('/shared/');
   const {
     systemPermissions,
     isSystemPermissionsLoaded,
@@ -43,7 +48,7 @@ export default function AppShell({children}: AppShellProps) {
   // Only redirects for system-level permission failures (e.g., admin).
   // GROUP_ONLY routes (calendar, tasks) without a groupId → dashboard.
   useEffect(() => {
-    if (isAuthRoute || !isSystemPermissionsLoaded) return;
+    if (isPublicRoute || !isSystemPermissionsLoaded) return;
     if (systemRequirement === 'GROUP_ONLY' && !groupId) {
       router.replace(`/${locale}/dashboard`);
       return;
@@ -55,13 +60,13 @@ export default function AppShell({children}: AppShellProps) {
     ) {
       router.replace(`/${locale}/dashboard`);
     }
-  }, [isAuthRoute, isSystemPermissionsLoaded, systemRequirement, systemPermissions, router, locale, groupId]);
+  }, [isPublicRoute, isSystemPermissionsLoaded, systemRequirement, systemPermissions, router, locale, groupId]);
 
   // ── Bootstrap group permissions into the store ─────────────────────
   // This feeds the Sidebar's permission-based nav filtering.
   // It does NOT trigger any redirects on failure.
   useEffect(() => {
-    if (isAuthRoute || !groupId) return;
+    if (isPublicRoute || !groupId) return;
     const status = groupPermissionsStatusById[groupId];
     if (status === 'loading' || status === 'loaded' || status === 'error') return;
 
@@ -87,7 +92,7 @@ export default function AppShell({children}: AppShellProps) {
       mounted = false;
     };
   }, [
-    isAuthRoute,
+    isPublicRoute,
     groupId,
     groupPermissionsStatusById,
     setGroupPermissions,
@@ -107,7 +112,7 @@ export default function AppShell({children}: AppShellProps) {
   // own permission check via GroupPermissionContext and returns null
   // (Silent Policy) when access is denied. No redirect needed.
 
-  if (isAuthRoute) {
+  if (isPublicRoute) {
     return <main id="main-content" className="min-h-screen p-4 md:p-8">{children}</main>;
   }
 

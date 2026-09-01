@@ -382,6 +382,9 @@
       "cancel": "Cancel",
       "submit": "Upload"
     },
+    "nameDialog": {
+      "sanitizeSuggestion": "Suggested instead: \"{suggestion}\""
+    },
     "detail": {
       "title": "File details",
       "tabs": {

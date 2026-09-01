@@ -397,6 +397,9 @@
     "starred": {
       "emptyText": "You have no starred items."
     },
+    "sharedWithMe": {
+      "emptyText": "No one has shared any files or folders with you yet."
+    },
     "upload": {
       "title": "Upload file",
       "dropzoneLabel": "Drag a file here, or click to browse",

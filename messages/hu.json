@@ -397,6 +397,9 @@
     "starred": {
       "emptyText": "Nincs csillagozott elemed."
     },
+    "sharedWithMe": {
+      "emptyText": "Senki nem osztott meg veled fájlt vagy mappát."
+    },
     "upload": {
       "title": "Fájl feltöltése",
       "dropzoneLabel": "Húzd ide a fájlt, vagy kattints a tallózáshoz",

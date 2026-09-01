@@ -184,7 +184,8 @@ async function handleProxy(request: NextRequest, params: {path: string[]}) {
     request.method === 'POST' &&
     (normalizedPath === 'group/permission' || normalizedPath === 'user/permission');
   const upstreamMethod = shouldTranslatePostToGet ? 'GET' : request.method;
-  const isFilesTrash = normalizedPath === 'files/trash' && request.method === 'GET';
+  const HEADER_ONLY_AUTH_GET_ROUTES = new Set(['files/trash', 'folders/trash']);
+  const isHeaderOnlyAuthRoute = HEADER_ONLY_AUTH_GET_ROUTES.has(normalizedPath) && request.method === 'GET';
   const targetUrl = new URL(
     `/v1/${normalizedPath}`,
     apiBase.endsWith('/') ? apiBase : `${apiBase}/`
@@ -214,7 +215,7 @@ async function handleProxy(request: NextRequest, params: {path: string[]}) {
     // OAuth resource server advertises bearer_methods_supported: ["header"].
     // The token goes into both (see the Authorization header below) so either
     // kind of endpoint can find it.
-    ...(token && !isFilesTrash ? {Bearer: token} : {})
+    ...(token && !isHeaderOnlyAuthRoute ? {Bearer: token} : {})
   };
 
   // Normalise group_id: callers sometimes pass URL-encoded base64 ids (e.g.

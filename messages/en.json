@@ -395,7 +395,10 @@
       "filenameLabel": "Filename",
       "uploading": "Uploading...",
       "cancel": "Cancel",
-      "submit": "Upload"
+      "submit": "Upload",
+      "itemFailed": "Failed.",
+      "retry": "Retry",
+      "dismiss": "Dismiss"
     },
     "nameDialog": {
       "sanitizeSuggestion": "Suggested instead: \"{suggestion}\""

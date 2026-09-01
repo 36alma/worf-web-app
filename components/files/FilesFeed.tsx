@@ -12,6 +12,7 @@ import { translateFolderApiError } from '@/lib/i18n/folders';
 import { getFileCategory, type FileCategory } from '@/lib/utils/formatFiles';
 import { markForbidden, isForbidden } from '@/lib/permissions/filesGuard';
 import { usePagedDualList } from '@/hooks/usePagedDualList';
+import { useUploadQueue } from '@/hooks/useUploadQueue';
 import Button from '@/components/ui/Button';
 import ConfirmDialog from '@/components/ui/ConfirmDialog';
 import { Input } from '@/components/ui/Input';
@@ -20,6 +21,7 @@ import FileTable from '@/components/files/FileTable';
 import FileGrid from '@/components/files/FileGrid';
 import BulkActionBar from '@/components/files/BulkActionBar';
 import UploadDialog from '@/components/files/UploadDialog';
+import UploadProgressPanel from '@/components/files/UploadProgressPanel';
 import FileDetailSheet from '@/components/files/FileDetailSheet';
 import FolderDetailSheet from '@/components/files/FolderDetailSheet';
 import FilesBreadcrumb from '@/components/files/FilesBreadcrumb';
@@ -85,6 +87,13 @@ export default function FilesFeed({ mode, groupId, folderId = null, basePath }: 
     PAGE_SIZE,
     [mode, groupId, folderId]
   );
+
+  const {
+    items: uploadItems,
+    enqueue: enqueueUploads,
+    retry: retryUpload,
+    removeSettled: removeSettledUpload,
+  } = useUploadQueue({ mode, groupId, folderId, onAllSettled: refetch });
 
   const entries = useMemo<FsEntry[]>(() => [...toFolderEntries(subfolders), ...toFileEntries(files)], [subfolders, files]);
 
@@ -303,7 +312,15 @@ export default function FilesFeed({ mode, groupId, folderId = null, basePath }: 
         </div>
       </div>
 
-      <UploadDialog open={isUploadOpen} onClose={() => setIsUploadOpen(false)} mode={mode} groupId={groupId} folderId={folderId} onUploaded={refetch} />
+      <UploadDialog
+        open={isUploadOpen}
+        onClose={() => setIsUploadOpen(false)}
+        mode={mode}
+        groupId={groupId}
+        folderId={folderId}
+        onUploaded={refetch}
+        enqueue={enqueueUploads}
+      />
       <NameDialog open={isNewFolderOpen} title={tf('newFolder.title')} label={tf('newFolder.label')} submitLabel={tf('newFolder.submit')} onSubmit={handleCreateFolder} onClose={() => setIsNewFolderOpen(false)} />
       <NameDialog
         open={renameTarget !== null}
@@ -315,33 +332,42 @@ export default function FilesFeed({ mode, groupId, folderId = null, basePath }: 
         onClose={() => setRenameTarget(null)}
       />
 
-      {isLoading && entries.length === 0 ? (
-        <div className="space-y-2">
-          <div className="h-10 w-full animate-pulse rounded-lg bg-[var(--bg-elevated)]" />
-          <div className="h-10 w-full animate-pulse rounded-lg bg-[var(--bg-elevated)]" />
-          <div className="h-10 w-full animate-pulse rounded-lg bg-[var(--bg-elevated)]" />
-        </div>
-      ) : view === 'grid' ? (
-        <FileGrid
-          entries={filteredEntries}
-          selectedIds={selectedIds}
-          onToggleSelect={(entry) => setSelectedIds((current) => toggleSet(current, entry.id))}
-          onOpenFile={setSelectedFileId}
-          onOpenFolder={setSelectedFolderDetailId}
-          onToggleStar={handleToggleStar}
-          renderActions={renderActions}
-        />
-      ) : (
-        <FileTable
-          entries={filteredEntries}
-          selectedIds={selectedIds}
-          onToggleSelect={(entry) => setSelectedIds((current) => toggleSet(current, entry.id))}
-          onOpenFile={setSelectedFileId}
-          onOpenFolder={setSelectedFolderDetailId}
-          onToggleStar={handleToggleStar}
-          renderActions={renderActions}
-        />
-      )}
+      <div
+        onDragOver={(event) => event.preventDefault()}
+        onDrop={(event) => {
+          event.preventDefault();
+          const files = Array.from(event.dataTransfer.files);
+          if (files.length > 0) enqueueUploads(files);
+        }}
+      >
+        {isLoading && entries.length === 0 ? (
+          <div className="space-y-2">
+            <div className="h-10 w-full animate-pulse rounded-lg bg-[var(--bg-elevated)]" />
+            <div className="h-10 w-full animate-pulse rounded-lg bg-[var(--bg-elevated)]" />
+            <div className="h-10 w-full animate-pulse rounded-lg bg-[var(--bg-elevated)]" />
+          </div>
+        ) : view === 'grid' ? (
+          <FileGrid
+            entries={filteredEntries}
+            selectedIds={selectedIds}
+            onToggleSelect={(entry) => setSelectedIds((current) => toggleSet(current, entry.id))}
+            onOpenFile={setSelectedFileId}
+            onOpenFolder={setSelectedFolderDetailId}
+            onToggleStar={handleToggleStar}
+            renderActions={renderActions}
+          />
+        ) : (
+          <FileTable
+            entries={filteredEntries}
+            selectedIds={selectedIds}
+            onToggleSelect={(entry) => setSelectedIds((current) => toggleSet(current, entry.id))}
+            onOpenFile={setSelectedFileId}
+            onOpenFolder={setSelectedFolderDetailId}
+            onToggleStar={handleToggleStar}
+            renderActions={renderActions}
+          />
+        )}
+      </div>
 
       <BulkActionBar
         count={selectedIds.size}
@@ -369,6 +395,11 @@ export default function FilesFeed({ mode, groupId, folderId = null, basePath }: 
         onCancel={() => setDeleteTarget(null)}
         onConfirm={() => void handleDeleteConfirm()}
       />
+
+      {/* Rendered once here (not inside UploadDialog) so it persists across the
+          dialog opening/closing and across drag&drop uploads that never open
+          the dialog at all. */}
+      <UploadProgressPanel items={uploadItems} onRetry={retryUpload} onRemove={removeSettledUpload} />
     </section>
   );
 }

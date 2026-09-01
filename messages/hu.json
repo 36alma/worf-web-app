@@ -395,7 +395,10 @@
       "filenameLabel": "Fájlnév",
       "uploading": "Feltöltés...",
       "cancel": "Mégse",
-      "submit": "Feltöltés"
+      "submit": "Feltöltés",
+      "itemFailed": "Sikertelen.",
+      "retry": "Újra",
+      "dismiss": "Bezárás"
     },
     "nameDialog": {
       "sanitizeSuggestion": "Ezt javasoljuk helyette: \"{suggestion}\""

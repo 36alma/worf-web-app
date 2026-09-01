@@ -4,9 +4,9 @@ import {ArrowUpDown, MoreHorizontal, Table2} from 'lucide-react';
 import type {ReactNode} from 'react';
 
 export interface Column<T> {
-  key: keyof T;
+  key: string;
   label: string;
-  render?: (value: T[keyof T], row: T) => ReactNode;
+  render?: (value: unknown, row: T) => ReactNode;
 }
 
 export interface DataTableProps<T extends object> {
@@ -79,7 +79,7 @@ export default function DataTable<T extends object>({columns, rows, emptyState}:
                     >
                       {columns.map((column) => (
                         <td key={String(column.key)} className="px-4 py-3 text-[var(--text-primary)]">
-                          {column.render ? column.render(row[column.key], row) : String(row[column.key] ?? '-')}
+                          {column.render ? column.render((row as Record<string, unknown>)[column.key], row) : String((row as Record<string, unknown>)[column.key] ?? '-')}
                         </td>
                       ))}
                       <td className="px-2 text-[var(--text-secondary)]">

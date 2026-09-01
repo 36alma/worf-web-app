@@ -351,6 +351,10 @@
       "size": "Méret",
       "uploadedAt": "Feltöltve",
       "actions": "Műveletek",
+      "folderType": "Mappa",
+      "star": "Csillagozás",
+      "unstar": "Csillag eltávolítása",
+      "selectRow": "Kijelölés",
       "emptyText": "Nincs fájl.",
       "pagination": {
         "prev": "Előző",

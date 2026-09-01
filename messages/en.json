@@ -351,6 +351,10 @@
       "size": "Size",
       "uploadedAt": "Uploaded",
       "actions": "Actions",
+      "folderType": "Folder",
+      "star": "Star",
+      "unstar": "Unstar",
+      "selectRow": "Select",
       "emptyText": "No files.",
       "pagination": {
         "prev": "Previous",

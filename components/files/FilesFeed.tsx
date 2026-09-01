@@ -18,6 +18,7 @@ import { Input } from '@/components/ui/Input';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/Tabs';
 import FileTable from '@/components/files/FileTable';
 import FileGrid from '@/components/files/FileGrid';
+import BulkActionBar from '@/components/files/BulkActionBar';
 import UploadDialog from '@/components/files/UploadDialog';
 import FileDetailSheet from '@/components/files/FileDetailSheet';
 import FolderDetailSheet from '@/components/files/FolderDetailSheet';
@@ -47,6 +48,7 @@ export default function FilesFeed({ mode, groupId, folderId = null, basePath }: 
   const [category, setCategory] = useState<CategoryFilter>('all');
   const [view, setView] = useState<ViewMode>('list');
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [isBulkBusy, setIsBulkBusy] = useState(false);
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [isNewFolderOpen, setIsNewFolderOpen] = useState(false);
   const [renameTarget, setRenameTarget] = useState<FsEntry | null>(null);
@@ -164,6 +166,41 @@ export default function FilesFeed({ mode, groupId, folderId = null, basePath }: 
       }
       toast.error(deleteTarget.kind === 'file' ? translateFileApiError(t, error, 'errors.default') : translateFolderApiError(tf, error, 'errors.default'));
     }
+  };
+
+  const handleBulkDownload = async () => {
+    setIsBulkBusy(true);
+    const fileIds = entries.filter((e) => e.kind === 'file' && selectedIds.has(e.id)).map((e) => e.id);
+    for (const fileId of fileIds) {
+      try {
+        const response = await requestDownload(fileId);
+        window.location.href = buildDownloadUrl(response.data.download_token);
+      } catch (error) {
+        toast.error(translateFileApiError(t, error, 'errors.default'));
+      }
+    }
+    setIsBulkBusy(false);
+  };
+
+  const handleBulkDelete = async () => {
+    setIsBulkBusy(true);
+    const targets = entries.filter((e) => selectedIds.has(e.id));
+    let succeeded = 0;
+    for (const entry of targets) {
+      try {
+        if (entry.kind === 'file') await deleteFile(entry.id);
+        else await deleteFolder(entry.id);
+        succeeded += 1;
+      } catch (error) {
+        const status = (error as {response?: {status?: number}} | undefined)?.response?.status;
+        if (status === 403) markForbidden(entry.kind, 'delete', entry.id);
+        // individual failure — counted in the summary toast below
+      }
+    }
+    toast.success(t('bulk.deleteSummary', { succeeded, total: targets.length }));
+    setSelectedIds(new Set());
+    setIsBulkBusy(false);
+    refetch();
   };
 
   const handleCreateFolder = async (name: string) => {
@@ -305,6 +342,14 @@ export default function FilesFeed({ mode, groupId, folderId = null, basePath }: 
           renderActions={renderActions}
         />
       )}
+
+      <BulkActionBar
+        count={selectedIds.size}
+        onDownloadAll={() => void handleBulkDownload()}
+        onDeleteAll={() => void handleBulkDelete()}
+        onClear={() => setSelectedIds(new Set())}
+        isBusy={isBulkBusy}
+      />
 
       {!isLoading && hasMore && (
         <div className="flex justify-center">

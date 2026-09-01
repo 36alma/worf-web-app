@@ -370,6 +370,13 @@
         "range": "{from}–{to} / {total}"
       }
     },
+    "bulk": {
+      "selectedCount": "{count} kijelölve",
+      "download": "Letöltés",
+      "delete": "Törlés",
+      "clear": "Kijelölés törlése",
+      "deleteSummary": "{succeeded}/{total} elem törölve."
+    },
     "trash": {
       "title": "Lomtár",
       "table": {

@@ -320,7 +320,8 @@
       "revokeSuccess": "A megosztás visszavonva.",
       "revokeError": "Nem sikerült visszavonni a megosztást.",
       "loadError": "Nem sikerült betölteni a fájlokat.",
-      "renameSuccess": "Átnevezve."
+      "renameSuccess": "Átnevezve.",
+      "moveSuccess": "Áthelyezve."
     },
     "rename": {
       "fileTitle": "Fájl átnevezése",
@@ -371,6 +372,8 @@
       "loadMore": "Több betöltése",
       "rename": "Átnevezés",
       "details": "Részletek",
+      "move": "Áthelyezés",
+      "copy": "Másolás",
       "pagination": {
         "prev": "Előző",
         "next": "Következő",
@@ -383,6 +386,8 @@
       "delete": "Törlés",
       "clear": "Kijelölés törlése",
       "deleteSummary": "{succeeded}/{total} elem törölve.",
+      "move": "Áthelyezés",
+      "moveSummary": "{succeeded}/{total} elem áthelyezve.",
       "share": "Megosztás csoporttal",
       "tooManyForShare": "Egyszerre legfeljebb 100 elem osztható meg.",
       "shareSummary": "{succeeded}/{total} fájl megosztva.",
@@ -544,6 +549,13 @@
     },
     "confirmPermanentDelete": {
       "message": "Ez a művelet nem vonható vissza. A mappa és teljes tartalma véglegesen törlődik."
+    },
+    "moveDialog": {
+      "currentLabel": "Aktuális mappa: {name}",
+      "root": "Gyökér",
+      "up": "Fel",
+      "noSubfolders": "Nincs almappa itt.",
+      "confirm": "Ide helyezés"
     },
     "toasts": {
       "createSuccess": "Mappa létrehozva.",

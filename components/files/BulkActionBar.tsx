@@ -1,7 +1,7 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { Download, Trash2, Users, X } from 'lucide-react';
+import { Download, FolderInput, Trash2, Users, X } from 'lucide-react';
 import Button from '@/components/ui/Button';
 
 const MAX_BULK_SHARE_COUNT = 100;
@@ -13,11 +13,13 @@ export interface BulkActionBarProps {
   onDownloadAll: () => void;
   onDeleteAll: () => void;
   onShareAll: () => void;
+  /** Unlike share/download, bulk move applies to both files AND folders in the selection — no count cap. */
+  onMoveAll: () => void;
   onClear: () => void;
   isBusy?: boolean;
 }
 
-export default function BulkActionBar({ count, shareableCount, onDownloadAll, onDeleteAll, onShareAll, onClear, isBusy }: BulkActionBarProps) {
+export default function BulkActionBar({ count, shareableCount, onDownloadAll, onDeleteAll, onShareAll, onMoveAll, onClear, isBusy }: BulkActionBarProps) {
   const t = useTranslations('files');
   if (count === 0) return null;
 
@@ -42,6 +44,10 @@ export default function BulkActionBar({ count, shareableCount, onDownloadAll, on
         >
           <Users size={14} strokeWidth={1.75} className="mr-1" />
           {t('bulk.share')}
+        </Button>
+        <Button type="button" variant="secondary" size="sm" onClick={onMoveAll} disabled={isBusy}>
+          <FolderInput size={14} strokeWidth={1.75} className="mr-1" />
+          {t('bulk.move')}
         </Button>
         <Button type="button" variant="danger" size="sm" onClick={onDeleteAll} disabled={isBusy}>
           <Trash2 size={14} strokeWidth={1.75} className="mr-1" />

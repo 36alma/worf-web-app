@@ -4,10 +4,10 @@ import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useLocale, useTranslations } from 'next-intl';
 import toast from 'react-hot-toast';
-import { Download, FolderPlus, Info, Pencil, Share2, Star, Trash2 } from 'lucide-react';
+import { Copy, Download, FolderInput, FolderPlus, Info, Pencil, Share2, Star, Trash2 } from 'lucide-react';
 import { LayoutGrid, List, Search } from 'lucide-react';
-import { requestDownload, buildDownloadUrl, deleteFile, renameFile, starFile, unstarFile, bulkShareWithGroup } from '@/lib/api/files';
-import { listFolder, createFolder, deleteFolder, renameFolder, starFolder, unstarFolder } from '@/lib/api/folders';
+import { requestDownload, buildDownloadUrl, deleteFile, renameFile, starFile, unstarFile, bulkShareWithGroup, moveFile, copyFile } from '@/lib/api/files';
+import { listFolder, createFolder, deleteFolder, renameFolder, starFolder, unstarFolder, moveFolder } from '@/lib/api/folders';
 import { getUserGroups } from '@/lib/api/groups';
 import { translateFileApiError } from '@/lib/i18n/files';
 import { translateFolderApiError } from '@/lib/i18n/folders';
@@ -32,6 +32,7 @@ import FilesBreadcrumb from '@/components/files/FilesBreadcrumb';
 import NameDialog from '@/components/files/NameDialog';
 import EntryActionsMenu, { type ActionMenuItem } from '@/components/files/EntryActionsMenu';
 import ShareModal from '@/components/files/ShareModal';
+import MoveToFolderDialog from '@/components/files/MoveToFolderDialog';
 import { toFileEntries, toFolderEntries, type FsEntry, type FileEntry } from '@/components/files/entryTypes';
 
 type CategoryFilter = FileCategory | 'all';
@@ -70,6 +71,8 @@ export default function FilesFeed({ mode, groupId, folderId = null, basePath }: 
   const [bulkShareGroups, setBulkShareGroups] = useState<Array<{ id: string; name: string }>>([]);
   const [selectedBulkGroupId, setSelectedBulkGroupId] = useState('');
   const [isBulkSharing, setIsBulkSharing] = useState(false);
+  const [moveTarget, setMoveTarget] = useState<{ entry: FsEntry; mode: 'move' | 'copy' } | null>(null);
+  const [isBulkMoveOpen, setIsBulkMoveOpen] = useState(false);
 
   const {
     listA: subfolders,
@@ -233,6 +236,31 @@ export default function FilesFeed({ mode, groupId, folderId = null, basePath }: 
     refetch();
   };
 
+  // Bulk move (Task 30): unlike bulk share/download, this applies to BOTH
+  // files and folders in the selection (mirrors handleBulkDelete's pattern,
+  // not handleBulkDownload's files-only one). excludeFolderId is left null
+  // for the bulk case — it can't exclude every selected folder's subtree at
+  // once, so this is best-effort UX only; the backend's own cycle-detection
+  // 409 remains the real safety net for any folder moved into its own child.
+  const handleBulkMoveSelect = async (targetFolderId: string | null) => {
+    const targets = entries.filter((e) => selectedIds.has(e.id));
+    let succeeded = 0;
+    for (const entry of targets) {
+      try {
+        if (entry.kind === 'file') await moveFile(entry.id, targetFolderId);
+        else await moveFolder(entry.id, targetFolderId);
+        succeeded += 1;
+      } catch (error) {
+        const status = (error as {response?: {status?: number}} | undefined)?.response?.status;
+        if (status === 403) markForbidden(entry.kind, 'edit', entry.id);
+        // individual failure — counted in the summary toast below
+      }
+    }
+    toast.success(t('bulk.moveSummary', { succeeded, total: targets.length }));
+    setSelectedIds(new Set());
+    refetch();
+  };
+
   // Bulk group-share (spec §3.3): files only, capped at 100 by the backend
   // (BulkActionBar disables the trigger past that count). Opening the modal
   // fetches the user's groups using the same defensive multi-key response
@@ -334,6 +362,21 @@ export default function FilesFeed({ mode, groupId, folderId = null, basePath }: 
         icon: <Share2 size={16} strokeWidth={1.75} />,
         onSelect: () => setShareTarget(entry),
       },
+      {
+        key: 'move',
+        label: t('table.move'),
+        icon: <FolderInput size={16} strokeWidth={1.75} />,
+        onSelect: () => setMoveTarget({ entry, mode: 'move' }),
+        hidden: isForbidden(scope, 'edit', entry.id),
+      },
+      ...(entry.kind === 'file'
+        ? [{
+            key: 'copy',
+            label: t('table.copy'),
+            icon: <Copy size={16} strokeWidth={1.75} />,
+            onSelect: () => setMoveTarget({ entry, mode: 'copy' }),
+          }]
+        : []),
       {
         key: 'star',
         label: entry.is_starred ? t('table.unstar') : t('table.star'),
@@ -463,6 +506,7 @@ export default function FilesFeed({ mode, groupId, folderId = null, basePath }: 
         onDownloadAll={() => void handleBulkDownload()}
         onDeleteAll={() => void handleBulkDelete()}
         onShareAll={handleOpenBulkShare}
+        onMoveAll={() => setIsBulkMoveOpen(true)}
         onClear={() => setSelectedIds(new Set())}
         isBusy={isBulkBusy}
       />
@@ -484,6 +528,41 @@ export default function FilesFeed({ mode, groupId, folderId = null, basePath }: 
         entityId={shareTarget?.id ?? ''}
         isOwner={shareTarget?.is_owner ?? false}
         onClose={() => setShareTarget(null)}
+      />
+
+      <MoveToFolderDialog
+        open={moveTarget !== null}
+        title={moveTarget?.mode === 'copy' ? t('table.copy') : t('table.move')}
+        scope={mode}
+        groupId={groupId}
+        excludeFolderId={moveTarget?.entry.kind === 'folder' ? moveTarget.entry.id : null}
+        onSelect={async (targetFolderId) => {
+          if (!moveTarget) return;
+          try {
+            if (moveTarget.entry.kind === 'file') {
+              if (moveTarget.mode === 'copy') await copyFile(moveTarget.entry.id, targetFolderId);
+              else await moveFile(moveTarget.entry.id, targetFolderId);
+            } else {
+              await moveFolder(moveTarget.entry.id, targetFolderId);
+            }
+            toast.success(t('toasts.moveSuccess'));
+            refetch();
+          } catch (error) {
+            toast.error(moveTarget.entry.kind === 'file' ? translateFileApiError(t, error, 'errors.default') : translateFolderApiError(tf, error, 'errors.default'));
+            throw error;
+          }
+        }}
+        onClose={() => setMoveTarget(null)}
+      />
+
+      <MoveToFolderDialog
+        open={isBulkMoveOpen}
+        title={t('table.move')}
+        scope={mode}
+        groupId={groupId}
+        excludeFolderId={null}
+        onSelect={handleBulkMoveSelect}
+        onClose={() => setIsBulkMoveOpen(false)}
       />
 
       <Modal open={isBulkShareOpen} title={t('bulk.share')} onClose={() => setIsBulkShareOpen(false)}>

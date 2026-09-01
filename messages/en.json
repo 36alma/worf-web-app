@@ -320,7 +320,8 @@
       "revokeSuccess": "The share was revoked.",
       "revokeError": "Failed to revoke the share.",
       "loadError": "Failed to load the files.",
-      "renameSuccess": "Renamed."
+      "renameSuccess": "Renamed.",
+      "moveSuccess": "Moved."
     },
     "rename": {
       "fileTitle": "Rename file",
@@ -371,6 +372,8 @@
       "loadMore": "Load more",
       "rename": "Rename",
       "details": "Details",
+      "move": "Move",
+      "copy": "Copy",
       "pagination": {
         "prev": "Previous",
         "next": "Next",
@@ -383,6 +386,8 @@
       "delete": "Delete",
       "clear": "Clear selection",
       "deleteSummary": "{succeeded}/{total} items deleted.",
+      "move": "Move",
+      "moveSummary": "{succeeded}/{total} items moved.",
       "share": "Share with group",
       "tooManyForShare": "At most 100 items can be shared at once.",
       "shareSummary": "{succeeded}/{total} files shared.",
@@ -544,6 +549,13 @@
     },
     "confirmPermanentDelete": {
       "message": "This action cannot be undone. The folder and all of its contents will be permanently deleted."
+    },
+    "moveDialog": {
+      "currentLabel": "Current folder: {name}",
+      "root": "Root",
+      "up": "Up",
+      "noSubfolders": "No subfolders here.",
+      "confirm": "Move here"
     },
     "toasts": {
       "createSuccess": "Folder created.",

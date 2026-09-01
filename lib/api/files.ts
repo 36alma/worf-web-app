@@ -80,6 +80,9 @@ export const requestDownload = (file_id: string) =>
 export const buildDownloadUrl = (download_token: string) =>
   `/api/files/dl/${encodeURIComponent(download_token)}`;
 
+export const getThumbnailUrl = (file_id: string) => `/api/files/${encodeURIComponent(file_id)}/thumbnail`;
+export const getPreviewUrl = (file_id: string) => `/api/files/${encodeURIComponent(file_id)}/preview`;
+
 export interface FileMetadataResponse {
   file_id: string;
   original_name: string;

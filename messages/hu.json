@@ -382,7 +382,11 @@
       "download": "Letöltés",
       "delete": "Törlés",
       "clear": "Kijelölés törlése",
-      "deleteSummary": "{succeeded}/{total} elem törölve."
+      "deleteSummary": "{succeeded}/{total} elem törölve.",
+      "share": "Megosztás csoporttal",
+      "tooManyForShare": "Egyszerre legfeljebb 100 elem osztható meg.",
+      "shareSummary": "{succeeded}/{total} fájl megosztva.",
+      "shareFailedDetail": "Sikertelen elemek: {items}"
     },
     "trash": {
       "title": "Lomtár",
@@ -449,6 +453,12 @@
       "noPreview": "Nincs előnézet ehhez a fájltípushoz."
     },
     "share": {
+      "modalTitle": "Megosztás",
+      "tabs": {
+        "users": "Emberek",
+        "groups": "Csoportok",
+        "link": "Publikus link"
+      },
       "title": "Megosztás csoporttal",
       "selectGroupPlaceholder": "Válassz csoportot",
       "shareButton": "Megosztás",
@@ -525,6 +535,9 @@
       "title": "Mappa átnevezése",
       "label": "Mappa neve"
     },
+    "share": {
+      "modalTitle": "Mappa megosztása"
+    },
     "confirmDelete": {
       "title": "Mappa törlése",
       "message": "A mappa és a benne lévő összes almappa/fájl a Kukába kerül."
@@ -534,7 +547,9 @@
     },
     "toasts": {
       "createSuccess": "Mappa létrehozva.",
-      "deleteSuccess": "A mappa a lomtárba került."
+      "deleteSuccess": "A mappa a lomtárba került.",
+      "shareSuccess": "A mappa megosztva a csoporttal.",
+      "revokeSuccess": "A megosztás visszavonva."
     },
     "restoreSuccess": "A mappa visszaállítva.",
     "permanentDeleteSuccess": "A mappa véglegesen törölve.",

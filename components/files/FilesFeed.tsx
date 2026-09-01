@@ -4,10 +4,11 @@ import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useLocale, useTranslations } from 'next-intl';
 import toast from 'react-hot-toast';
-import { Download, FolderPlus, Info, Pencil, Star, Trash2 } from 'lucide-react';
+import { Download, FolderPlus, Info, Pencil, Share2, Star, Trash2 } from 'lucide-react';
 import { LayoutGrid, List, Search } from 'lucide-react';
-import { requestDownload, buildDownloadUrl, deleteFile, renameFile, starFile, unstarFile } from '@/lib/api/files';
+import { requestDownload, buildDownloadUrl, deleteFile, renameFile, starFile, unstarFile, bulkShareWithGroup } from '@/lib/api/files';
 import { listFolder, createFolder, deleteFolder, renameFolder, starFolder, unstarFolder } from '@/lib/api/folders';
+import { getUserGroups } from '@/lib/api/groups';
 import { translateFileApiError } from '@/lib/i18n/files';
 import { translateFolderApiError } from '@/lib/i18n/folders';
 import { getFileCategory, type FileCategory } from '@/lib/utils/formatFiles';
@@ -16,6 +17,7 @@ import { usePagedDualList } from '@/hooks/usePagedDualList';
 import { useUploadQueue } from '@/hooks/useUploadQueue';
 import Button from '@/components/ui/Button';
 import ConfirmDialog from '@/components/ui/ConfirmDialog';
+import Modal from '@/components/ui/Modal';
 import { Input } from '@/components/ui/Input';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/Tabs';
 import FileTable from '@/components/files/FileTable';
@@ -29,6 +31,7 @@ import PreviewModal from '@/components/files/PreviewModal';
 import FilesBreadcrumb from '@/components/files/FilesBreadcrumb';
 import NameDialog from '@/components/files/NameDialog';
 import EntryActionsMenu, { type ActionMenuItem } from '@/components/files/EntryActionsMenu';
+import ShareModal from '@/components/files/ShareModal';
 import { toFileEntries, toFolderEntries, type FsEntry, type FileEntry } from '@/components/files/entryTypes';
 
 type CategoryFilter = FileCategory | 'all';
@@ -62,6 +65,11 @@ export default function FilesFeed({ mode, groupId, folderId = null, basePath }: 
   const [selectedFileId, setSelectedFileId] = useState<string | null>(null);
   const [selectedFolderDetailId, setSelectedFolderDetailId] = useState<string | null>(null);
   const [previewFileId, setPreviewFileId] = useState<string | null>(null);
+  const [shareTarget, setShareTarget] = useState<FsEntry | null>(null);
+  const [isBulkShareOpen, setIsBulkShareOpen] = useState(false);
+  const [bulkShareGroups, setBulkShareGroups] = useState<Array<{ id: string; name: string }>>([]);
+  const [selectedBulkGroupId, setSelectedBulkGroupId] = useState('');
+  const [isBulkSharing, setIsBulkSharing] = useState(false);
 
   const {
     listA: subfolders,
@@ -111,6 +119,14 @@ export default function FilesFeed({ mode, groupId, folderId = null, basePath }: 
       return true;
     });
   }, [entries, search, category]);
+
+  // Bulk-share's 100-item cap (spec §3.3) applies to files only, so the
+  // BulkActionBar "too many" check needs the files-only subset of the
+  // selection, not the raw selectedIds.size (which also counts folders).
+  const selectedFileCount = useMemo(
+    () => entries.filter((e) => selectedIds.has(e.id) && e.kind === 'file').length,
+    [entries, selectedIds]
+  );
 
   const handleToggleStar = async (entry: FsEntry) => {
     const originalStarred = entry.is_starred;
@@ -217,6 +233,47 @@ export default function FilesFeed({ mode, groupId, folderId = null, basePath }: 
     refetch();
   };
 
+  // Bulk group-share (spec §3.3): files only, capped at 100 by the backend
+  // (BulkActionBar disables the trigger past that count). Opening the modal
+  // fetches the user's groups using the same defensive multi-key response
+  // parsing already established in ShareModal/ShareUserTab for this endpoint.
+  const handleOpenBulkShare = () => {
+    setSelectedBulkGroupId('');
+    setIsBulkShareOpen(true);
+    getUserGroups()
+      .then((response) => {
+        const source = (response as { data?: unknown }).data ?? response;
+        const array = source && typeof source === 'object'
+          ? (['group_users', 'groups', 'items', 'result'].map((k) => (source as Record<string, unknown>)[k]).find(Array.isArray) as unknown[] | undefined)
+          : undefined;
+        setBulkShareGroups((array ?? []).map((item) => {
+          const row = item as Record<string, unknown>;
+          return { id: String(row.group_id ?? row.id ?? ''), name: String(row.group_name ?? row.name ?? '') };
+        }).filter((g) => g.id));
+      })
+      .catch(() => setBulkShareGroups([]));
+  };
+
+  const handleConfirmBulkShare = async () => {
+    if (!selectedBulkGroupId) return;
+    const fileIds = entries.filter((e) => selectedIds.has(e.id) && e.kind === 'file').map((e) => e.id);
+    setIsBulkSharing(true);
+    try {
+      const response = await bulkShareWithGroup(fileIds, selectedBulkGroupId);
+      toast.success(t('bulk.shareSummary', { succeeded: response.data.succeeded.length, total: fileIds.length }));
+      if (response.data.failed.length > 0) {
+        toast.error(t('bulk.shareFailedDetail', { items: response.data.failed.slice(0, 3).map((f) => f.reason).join(', ') }));
+      }
+      setIsBulkShareOpen(false);
+      setSelectedIds(new Set());
+      refetch();
+    } catch (error) {
+      toast.error(translateFileApiError(t, error, 'errors.default'));
+    } finally {
+      setIsBulkSharing(false);
+    }
+  };
+
   const handleCreateFolder = async (name: string) => {
     try {
       await createFolder({ name, scope: mode, group_id: mode === 'group' ? groupId : undefined, parent_folder_id: folderId });
@@ -270,6 +327,12 @@ export default function FilesFeed({ mode, groupId, folderId = null, basePath }: 
         icon: <Pencil size={16} strokeWidth={1.75} />,
         onSelect: () => setRenameTarget(entry),
         hidden: isForbidden(scope, 'edit', entry.id),
+      },
+      {
+        key: 'share',
+        label: t('share.modalTitle'),
+        icon: <Share2 size={16} strokeWidth={1.75} />,
+        onSelect: () => setShareTarget(entry),
       },
       {
         key: 'star',
@@ -396,8 +459,10 @@ export default function FilesFeed({ mode, groupId, folderId = null, basePath }: 
 
       <BulkActionBar
         count={selectedIds.size}
+        shareableCount={selectedFileCount}
         onDownloadAll={() => void handleBulkDownload()}
         onDeleteAll={() => void handleBulkDelete()}
+        onShareAll={handleOpenBulkShare}
         onClear={() => setSelectedIds(new Set())}
         isBusy={isBulkBusy}
       />
@@ -412,6 +477,38 @@ export default function FilesFeed({ mode, groupId, folderId = null, basePath }: 
 
       <FileDetailSheet fileId={selectedFileId} onClose={() => setSelectedFileId(null)} onDeleted={() => { setSelectedFileId(null); refetch(); }} />
       <FolderDetailSheet folderId={selectedFolderDetailId} onClose={() => setSelectedFolderDetailId(null)} onDeleted={() => { setSelectedFolderDetailId(null); refetch(); }} onRenamed={refetch} />
+
+      <ShareModal
+        open={shareTarget !== null}
+        kind={shareTarget?.kind ?? 'file'}
+        entityId={shareTarget?.id ?? ''}
+        isOwner={shareTarget?.is_owner ?? false}
+        onClose={() => setShareTarget(null)}
+      />
+
+      <Modal open={isBulkShareOpen} title={t('bulk.share')} onClose={() => setIsBulkShareOpen(false)}>
+        <div className="flex flex-col gap-4">
+          <select
+            value={selectedBulkGroupId}
+            onChange={(event) => setSelectedBulkGroupId(event.target.value)}
+            className="w-full rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface)] px-3 py-2 text-sm text-[var(--text-primary)] outline-none focus-visible:border-border-focus"
+          >
+            <option value="">{t('share.selectGroupPlaceholder')}</option>
+            {bulkShareGroups.map((group) => (
+              <option key={group.id} value={group.id}>{group.name}</option>
+            ))}
+          </select>
+          <Button
+            type="button"
+            variant="primary"
+            loading={isBulkSharing}
+            disabled={!selectedBulkGroupId}
+            onClick={() => void handleConfirmBulkShare()}
+          >
+            {t('share.shareButton')}
+          </Button>
+        </div>
+      </Modal>
       <PreviewModal
         files={filteredEntries.filter((e): e is FileEntry => e.kind === 'file')}
         currentFileId={previewFileId}

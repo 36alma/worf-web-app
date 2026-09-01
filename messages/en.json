@@ -382,7 +382,11 @@
       "download": "Download",
       "delete": "Delete",
       "clear": "Clear selection",
-      "deleteSummary": "{succeeded}/{total} items deleted."
+      "deleteSummary": "{succeeded}/{total} items deleted.",
+      "share": "Share with group",
+      "tooManyForShare": "At most 100 items can be shared at once.",
+      "shareSummary": "{succeeded}/{total} files shared.",
+      "shareFailedDetail": "Failed items: {items}"
     },
     "trash": {
       "title": "Trash",
@@ -449,6 +453,12 @@
       "noPreview": "No preview available for this file type."
     },
     "share": {
+      "modalTitle": "Share",
+      "tabs": {
+        "users": "People",
+        "groups": "Groups",
+        "link": "Public link"
+      },
       "title": "Share with group",
       "selectGroupPlaceholder": "Select a group",
       "shareButton": "Share",
@@ -525,6 +535,9 @@
       "title": "Rename folder",
       "label": "Folder name"
     },
+    "share": {
+      "modalTitle": "Share folder"
+    },
     "confirmDelete": {
       "title": "Delete folder",
       "message": "The folder and everything inside it (subfolders and files) will be moved to trash."
@@ -534,7 +547,9 @@
     },
     "toasts": {
       "createSuccess": "Folder created.",
-      "deleteSuccess": "The folder was moved to trash."
+      "deleteSuccess": "The folder was moved to trash.",
+      "shareSuccess": "The folder has been shared with the group.",
+      "revokeSuccess": "Sharing revoked."
     },
     "restoreSuccess": "The folder was restored.",
     "permanentDeleteSuccess": "The folder was permanently deleted.",

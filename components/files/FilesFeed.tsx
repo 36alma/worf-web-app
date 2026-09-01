@@ -1,20 +1,30 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import Link from 'next/link';
+import { useMemo, useState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 import toast from 'react-hot-toast';
+import { Download, FolderPlus, Pencil, Star, Trash2 } from 'lucide-react';
 import { LayoutGrid, List, Search } from 'lucide-react';
-import { listFiles, type FileListItem } from '@/lib/api/files';
+import { listFiles, requestDownload, buildDownloadUrl, deleteFile, renameFile, starFile, unstarFile, type FileListItem } from '@/lib/api/files';
+import { listFolder, createFolder, deleteFolder, renameFolder, starFolder, unstarFolder } from '@/lib/api/folders';
 import { translateFileApiError } from '@/lib/i18n/files';
+import { translateFolderApiError } from '@/lib/i18n/folders';
 import { getFileCategory, type FileCategory } from '@/lib/utils/formatFiles';
+import { markForbidden, isForbidden } from '@/lib/permissions/filesGuard';
+import { usePagedDualList } from '@/hooks/usePagedDualList';
 import Button from '@/components/ui/Button';
+import ConfirmDialog from '@/components/ui/ConfirmDialog';
 import { Input } from '@/components/ui/Input';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/Tabs';
 import FileTable from '@/components/files/FileTable';
 import FileGrid from '@/components/files/FileGrid';
 import UploadDialog from '@/components/files/UploadDialog';
 import FileDetailSheet from '@/components/files/FileDetailSheet';
+import FolderDetailSheet from '@/components/files/FolderDetailSheet';
+import FilesBreadcrumb from '@/components/files/FilesBreadcrumb';
+import NameDialog from '@/components/files/NameDialog';
+import EntryActionsMenu, { type ActionMenuItem } from '@/components/files/EntryActionsMenu';
+import { toFileEntries, toFolderEntries, type FsEntry } from '@/components/files/entryTypes';
 
 type CategoryFilter = FileCategory | 'all';
 type ViewMode = 'list' | 'grid';
@@ -22,100 +32,196 @@ type ViewMode = 'list' | 'grid';
 export interface FilesFeedProps {
   mode: 'private' | 'group';
   groupId?: string;
+  folderId?: string | null;
+  /** Base route for breadcrumb/folder links, e.g. "/files" or "/groups/xyz/files". */
+  basePath: string;
 }
 
-const DEFAULT_LIMIT = 20;
+const PAGE_SIZE = 20;
 
-export default function FilesFeed({ mode, groupId }: FilesFeedProps) {
+export default function FilesFeed({ mode, groupId, folderId = null, basePath }: FilesFeedProps) {
   const t = useTranslations('files');
+  const tf = useTranslations('folders');
   const locale = useLocale();
-
-  const [items, setItems] = useState<FileListItem[]>([]);
-  const [total, setTotal] = useState(0);
-  const [offset, setOffset] = useState(0);
-  const [limit] = useState(DEFAULT_LIMIT);
-  const [isLoading, setIsLoading] = useState(true);
-
-  // ── Refresh mechanism ────────────────────────────────────────────
-  // `refreshKey` is bumped by `refetch()` below to force the load effect
-  // to re-run without changing offset/limit. Task 3 (upload) is expected
-  // to call `refetch()` from inside this component (e.g. after edit,
-  // once the upload button/dialog is added here) to pull in the new file.
-  const [refreshKey, setRefreshKey] = useState(0);
-  const refetch = useCallback(() => setRefreshKey((key) => key + 1), []);
-
-  const [isUploadOpen, setIsUploadOpen] = useState(false);
-  const [selectedFileId, setSelectedFileId] = useState<string | null>(null);
 
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState<CategoryFilter>('all');
   const [view, setView] = useState<ViewMode>('list');
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [isUploadOpen, setIsUploadOpen] = useState(false);
+  const [isNewFolderOpen, setIsNewFolderOpen] = useState(false);
+  const [renameTarget, setRenameTarget] = useState<FsEntry | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<FsEntry | null>(null);
+  const [selectedFileId, setSelectedFileId] = useState<string | null>(null);
+  const [selectedFolderDetailId, setSelectedFolderDetailId] = useState<string | null>(null);
 
-  useEffect(() => {
-    let mounted = true;
-
-    const load = async () => {
-      setIsLoading(true);
+  const {
+    listA: subfolders,
+    listB: files,
+    totalA: subfolderTotal,
+    totalB: fileTotal,
+    isLoading,
+    hasMore,
+    loadMore,
+    reset: refetch,
+  } = usePagedDualList(
+    async (offset, limit) => {
       try {
-        const response = await listFiles({
-          scope: mode,
-          group_id: mode === 'group' ? groupId : undefined,
-          offset,
-          limit,
-        });
-        if (!mounted) return;
-        setItems(response.data.items);
-        setTotal(response.data.total);
+        const response = await listFolder({ folder_id: folderId, scope: mode, group_id: mode === 'group' ? groupId : undefined, offset, limit });
+        return {
+          listA: response.data.subfolders,
+          listB: response.data.files,
+          totalA: response.data.subfolder_total,
+          totalB: response.data.file_total,
+        };
       } catch (error) {
-        if (!mounted) return;
-        setItems([]);
-        setTotal(0);
-        toast.error(translateFileApiError(t, error, 'errors.default'));
-      } finally {
-        if (mounted) {
-          setIsLoading(false);
-        }
+        toast.error(translateFolderApiError(tf, error, 'errors.default'));
+        return { listA: [], listB: [], totalA: 0, totalB: 0 };
       }
-    };
+    },
+    PAGE_SIZE,
+    [mode, groupId, folderId]
+  );
 
-    void load();
+  const entries = useMemo<FsEntry[]>(() => [...toFolderEntries(subfolders), ...toFileEntries(files)], [subfolders, files]);
 
-    return () => {
-      mounted = false;
-    };
-  }, [mode, groupId, offset, limit, refreshKey, t]);
-
-  const title = mode === 'group' ? t('groupPage.title') : t('page.title');
-  const hasPrev = offset > 0;
-  const hasNext = offset + limit < total;
-
-  // Search/category filtering runs client-side over the currently loaded page,
-  // since the list API has no query/category params yet.
-  const filteredItems = useMemo(() => {
+  const filteredEntries = useMemo(() => {
     const query = search.trim().toLowerCase();
-    return items.filter((item) => {
-      if (category !== 'all' && getFileCategory(item.mime_type) !== category) {
-        return false;
-      }
-      if (query && !item.original_name.toLowerCase().includes(query)) {
-        return false;
-      }
+    return entries.filter((entry) => {
+      if (entry.kind === 'folder') return !query || entry.name.toLowerCase().includes(query);
+      if (category !== 'all' && getFileCategory(entry.mime_type) !== category) return false;
+      if (query && !entry.original_name.toLowerCase().includes(query)) return false;
       return true;
     });
-  }, [items, search, category]);
+  }, [entries, search, category]);
+
+  const handleToggleStar = async (entry: FsEntry) => {
+    const originalStarred = entry.is_starred;
+    // Optimistic flip (spec §3.5) — refetch() below re-syncs with the server either way.
+    try {
+      if (entry.kind === 'file') {
+        await (originalStarred ? unstarFile(entry.id) : starFile(entry.id));
+      } else {
+        await (originalStarred ? unstarFolder(entry.id) : starFolder(entry.id));
+      }
+      refetch();
+    } catch (error) {
+      toast.error(entry.kind === 'file' ? translateFileApiError(t, error, 'errors.default') : translateFolderApiError(tf, error, 'errors.default'));
+    }
+  };
+
+  const handleDownload = async (entry: FsEntry) => {
+    if (entry.kind !== 'file') return;
+    try {
+      const response = await requestDownload(entry.id);
+      window.location.href = buildDownloadUrl(response.data.download_token);
+    } catch (error) {
+      toast.error(translateFileApiError(t, error, 'errors.default'));
+    }
+  };
+
+  const handleRenameSubmit = async (name: string) => {
+    if (!renameTarget) return;
+    try {
+      if (renameTarget.kind === 'file') {
+        await renameFile(renameTarget.id, name);
+      } else {
+        await renameFolder(renameTarget.id, name);
+      }
+      toast.success(t('toasts.renameSuccess'));
+      refetch();
+    } catch (error) {
+      toast.error(renameTarget.kind === 'file' ? translateFileApiError(t, error, 'errors.default') : translateFolderApiError(tf, error, 'errors.default'));
+      throw error;
+    }
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!deleteTarget) return;
+    try {
+      if (deleteTarget.kind === 'file') {
+        await deleteFile(deleteTarget.id);
+        toast.success(t('toasts.deleteSuccess'));
+      } else {
+        await deleteFolder(deleteTarget.id);
+        toast.success(tf('toasts.deleteSuccess'));
+      }
+      setDeleteTarget(null);
+      refetch();
+    } catch (error) {
+      toast.error(deleteTarget.kind === 'file' ? translateFileApiError(t, error, 'errors.default') : translateFolderApiError(tf, error, 'errors.default'));
+    }
+  };
+
+  const handleCreateFolder = async (name: string) => {
+    try {
+      await createFolder({ name, scope: mode, group_id: mode === 'group' ? groupId : undefined, parent_folder_id: folderId });
+      toast.success(tf('toasts.createSuccess'));
+      refetch();
+    } catch (error) {
+      toast.error(translateFolderApiError(tf, error, 'errors.default'));
+      throw error;
+    }
+  };
+
+  // Extension point: the Move/Copy task and the Share task each add one more
+  // ActionMenuItem to this exact array (after "download", before the
+  // trailing "delete" entry — delete stays last since it's the most
+  // destructive/least-frequently-used action, matching spec §3.2's order).
+  const buildActionItems = (entry: FsEntry): ActionMenuItem[] => {
+    const scope = entry.kind === 'file' ? 'file' : 'folder';
+    return [
+      ...(entry.kind === 'file'
+        ? [{
+            key: 'download',
+            label: t('detail.download'),
+            icon: <Download size={16} strokeWidth={1.75} />,
+            onSelect: () => void handleDownload(entry),
+            hidden: isForbidden(scope, 'download', entry.id),
+          }]
+        : []),
+      {
+        key: 'rename',
+        label: t('table.rename'),
+        icon: <Pencil size={16} strokeWidth={1.75} />,
+        onSelect: () => setRenameTarget(entry),
+        hidden: isForbidden(scope, 'edit', entry.id),
+      },
+      {
+        key: 'star',
+        label: entry.is_starred ? t('table.unstar') : t('table.star'),
+        icon: <Star size={16} strokeWidth={1.75} />,
+        onSelect: () => void handleToggleStar(entry),
+      },
+      {
+        key: 'delete',
+        label: t('detail.delete'),
+        icon: <Trash2 size={16} strokeWidth={1.75} />,
+        variant: 'danger',
+        onSelect: () => setDeleteTarget(entry),
+        hidden: isForbidden(scope, 'delete', entry.id),
+      },
+    ];
+  };
+
+  const renderActions = (entry: FsEntry) => (
+    <EntryActionsMenu items={buildActionItems(entry)} triggerLabel={t('table.actions')} sheetTitle={t(entry.kind === 'file' ? 'table.actions' : 'table.actions')} />
+  );
+
+  const title = mode === 'group' ? t('groupPage.title') : t('page.title');
 
   return (
     <section className="space-y-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-lg font-semibold text-[var(--text-primary)]">{title}</h1>
+        <div className="min-w-0">
+          <h1 className="text-lg font-semibold text-[var(--text-primary)]">{title}</h1>
+          <FilesBreadcrumb folderId={folderId} basePath={basePath} />
+        </div>
         <div className="flex items-center gap-2">
-          {mode === 'private' && (
-            <Link href={`/${locale}/files/trash`}>
-              <Button type="button" variant="secondary">
-                {t('trash.title')}
-              </Button>
-            </Link>
-          )}
+          <Button type="button" variant="secondary" onClick={() => setIsNewFolderOpen(true)}>
+            <FolderPlus size={16} strokeWidth={1.75} className="mr-1.5" />
+            {tf('newFolder.trigger')}
+          </Button>
           <Button type="button" variant="primary" onClick={() => setIsUploadOpen(true)}>
             {t('upload.submit')}
           </Button>
@@ -124,20 +230,9 @@ export default function FilesFeed({ mode, groupId }: FilesFeedProps) {
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="relative w-full max-w-sm">
-          <Search
-            size={15}
-            strokeWidth={1.75}
-            className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-[var(--text-tertiary)]"
-          />
-          <Input
-            type="text"
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-            placeholder={t('toolbar.searchPlaceholder')}
-            className="pl-8"
-          />
+          <Search size={15} strokeWidth={1.75} className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-[var(--text-tertiary)]" />
+          <Input type="text" value={search} onChange={(event) => setSearch(event.target.value)} placeholder={t('toolbar.searchPlaceholder')} className="pl-8" />
         </div>
-
         <div className="flex items-center gap-2">
           <Tabs value={category} onValueChange={(value) => setCategory(value as CategoryFilter)}>
             <TabsList>
@@ -147,96 +242,82 @@ export default function FilesFeed({ mode, groupId }: FilesFeedProps) {
               <TabsTrigger value="spreadsheet">{t('toolbar.filters.spreadsheets')}</TabsTrigger>
             </TabsList>
           </Tabs>
-
           <div className="flex items-center gap-1 rounded-lg border border-[var(--border-subtle)] p-1">
-            <button
-              type="button"
-              aria-label={t('toolbar.view.list')}
-              onClick={() => setView('list')}
-              className={`inline-flex h-7 w-7 items-center justify-center rounded-[var(--radius-sm)] ${
-                view === 'list'
-                  ? 'bg-[var(--bg-active)] text-[var(--text-primary)]'
-                  : 'text-[var(--text-tertiary)] hover:text-[var(--text-primary)]'
-              }`}
-            >
+            <button type="button" aria-label={t('toolbar.view.list')} onClick={() => setView('list')} className={`inline-flex h-7 w-7 items-center justify-center rounded-[var(--radius-sm)] ${view === 'list' ? 'bg-[var(--bg-active)] text-[var(--text-primary)]' : 'text-[var(--text-tertiary)] hover:text-[var(--text-primary)]'}`}>
               <List size={15} strokeWidth={1.75} />
             </button>
-            <button
-              type="button"
-              aria-label={t('toolbar.view.grid')}
-              onClick={() => setView('grid')}
-              className={`inline-flex h-7 w-7 items-center justify-center rounded-[var(--radius-sm)] ${
-                view === 'grid'
-                  ? 'bg-[var(--bg-active)] text-[var(--text-primary)]'
-                  : 'text-[var(--text-tertiary)] hover:text-[var(--text-primary)]'
-              }`}
-            >
+            <button type="button" aria-label={t('toolbar.view.grid')} onClick={() => setView('grid')} className={`inline-flex h-7 w-7 items-center justify-center rounded-[var(--radius-sm)] ${view === 'grid' ? 'bg-[var(--bg-active)] text-[var(--text-primary)]' : 'text-[var(--text-tertiary)] hover:text-[var(--text-primary)]'}`}>
               <LayoutGrid size={15} strokeWidth={1.75} />
             </button>
           </div>
         </div>
       </div>
 
-      <UploadDialog
-        open={isUploadOpen}
-        onClose={() => setIsUploadOpen(false)}
-        mode={mode}
-        groupId={groupId}
-        onUploaded={refetch}
+      <UploadDialog open={isUploadOpen} onClose={() => setIsUploadOpen(false)} mode={mode} groupId={groupId} folderId={folderId} onUploaded={refetch} />
+      <NameDialog open={isNewFolderOpen} title={tf('newFolder.title')} label={tf('newFolder.label')} submitLabel={tf('newFolder.submit')} onSubmit={handleCreateFolder} onClose={() => setIsNewFolderOpen(false)} />
+      <NameDialog
+        open={renameTarget !== null}
+        title={renameTarget?.kind === 'file' ? t('rename.fileTitle') : tf('rename.title')}
+        label={renameTarget?.kind === 'file' ? t('rename.label') : tf('rename.label')}
+        initialValue={renameTarget ? (renameTarget.kind === 'file' ? renameTarget.original_name : renameTarget.name) : ''}
+        submitLabel={t('rename.submit')}
+        onSubmit={handleRenameSubmit}
+        onClose={() => setRenameTarget(null)}
       />
 
-      {isLoading ? (
+      {isLoading && entries.length === 0 ? (
         <div className="space-y-2">
           <div className="h-10 w-full animate-pulse rounded-lg bg-[var(--bg-elevated)]" />
           <div className="h-10 w-full animate-pulse rounded-lg bg-[var(--bg-elevated)]" />
           <div className="h-10 w-full animate-pulse rounded-lg bg-[var(--bg-elevated)]" />
         </div>
       ) : view === 'grid' ? (
-        <FileGrid items={filteredItems} onSelectFile={setSelectedFileId} />
+        <FileGrid
+          entries={filteredEntries}
+          selectedIds={selectedIds}
+          onToggleSelect={(entry) => setSelectedIds((current) => toggleSet(current, entry.id))}
+          onOpenFile={setSelectedFileId}
+          onOpenFolder={setSelectedFolderDetailId}
+          onToggleStar={handleToggleStar}
+          renderActions={renderActions}
+        />
       ) : (
-        <FileTable items={filteredItems} onSelectFile={setSelectedFileId} />
+        <FileTable
+          entries={filteredEntries}
+          selectedIds={selectedIds}
+          onToggleSelect={(entry) => setSelectedIds((current) => toggleSet(current, entry.id))}
+          onOpenFile={setSelectedFileId}
+          onOpenFolder={setSelectedFolderDetailId}
+          onToggleStar={handleToggleStar}
+          renderActions={renderActions}
+        />
       )}
 
-      <FileDetailSheet
-        fileId={selectedFileId}
-        onClose={() => setSelectedFileId(null)}
-        onDeleted={() => {
-          setSelectedFileId(null);
-          refetch();
-        }}
-      />
-
-      {!isLoading && total > limit && (
-        <div className="flex items-center justify-between">
-          <span className="text-xs text-[var(--text-tertiary)]">
-            {t('table.pagination.range', {
-              from: total === 0 ? 0 : offset + 1,
-              to: Math.min(offset + limit, total),
-              total,
-            })}
-          </span>
-          <div className="flex gap-2">
-            <Button
-              type="button"
-              variant="secondary"
-              size="sm"
-              disabled={!hasPrev}
-              onClick={() => setOffset((current) => Math.max(0, current - limit))}
-            >
-              {t('table.pagination.prev')}
-            </Button>
-            <Button
-              type="button"
-              variant="secondary"
-              size="sm"
-              disabled={!hasNext}
-              onClick={() => setOffset((current) => current + limit)}
-            >
-              {t('table.pagination.next')}
-            </Button>
-          </div>
+      {!isLoading && hasMore && (
+        <div className="flex justify-center">
+          <Button type="button" variant="secondary" onClick={loadMore}>
+            {t('table.loadMore')}
+          </Button>
         </div>
       )}
+
+      <FileDetailSheet fileId={selectedFileId} onClose={() => setSelectedFileId(null)} onDeleted={() => { setSelectedFileId(null); refetch(); }} />
+      <FolderDetailSheet folderId={selectedFolderDetailId} onClose={() => setSelectedFolderDetailId(null)} onDeleted={() => { setSelectedFolderDetailId(null); refetch(); }} onRenamed={refetch} />
+
+      <ConfirmDialog
+        open={deleteTarget !== null}
+        title={deleteTarget?.kind === 'folder' ? tf('confirmDelete.title') : t('detail.confirmDelete.title')}
+        message={deleteTarget?.kind === 'folder' ? tf('confirmDelete.message') : t('detail.confirmDelete.message')}
+        onCancel={() => setDeleteTarget(null)}
+        onConfirm={() => void handleDeleteConfirm()}
+      />
     </section>
   );
+}
+
+function toggleSet(current: Set<string>, id: string): Set<string> {
+  const next = new Set(current);
+  if (next.has(id)) next.delete(id);
+  else next.add(id);
+  return next;
 }

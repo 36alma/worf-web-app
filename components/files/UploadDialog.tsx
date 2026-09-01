@@ -21,6 +21,7 @@ export interface UploadDialogProps {
   onClose: () => void;
   mode: 'private' | 'group';
   groupId?: string;
+  folderId?: string | null;
   onUploaded: () => void;
 }
 
@@ -69,7 +70,7 @@ function uploadToPresignedUrl(
   });
 }
 
-export default function UploadDialog({ open, onClose, mode, groupId, onUploaded }: UploadDialogProps) {
+export default function UploadDialog({ open, onClose, mode, groupId, folderId = null, onUploaded }: UploadDialogProps) {
   const t = useTranslations('files');
   const tv = useTranslations('validation');
 
@@ -143,6 +144,7 @@ export default function UploadDialog({ open, onClose, mode, groupId, onUploaded 
         mime_type: selectedFile.type,
         scope: mode,
         group_id: mode === 'group' ? groupId : undefined,
+        folder_id: folderId,
       });
       const { upload_id, presigned_post_url, presigned_post_fields, file_id } = startResponse.data;
 

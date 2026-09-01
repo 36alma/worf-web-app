@@ -319,7 +319,13 @@
       "shareError": "Failed to share the file.",
       "revokeSuccess": "The share was revoked.",
       "revokeError": "Failed to revoke the share.",
-      "loadError": "Failed to load the files."
+      "loadError": "Failed to load the files.",
+      "renameSuccess": "Renamed."
+    },
+    "rename": {
+      "fileTitle": "Rename file",
+      "label": "Filename",
+      "submit": "Rename"
     },
     "page": {
       "title": "Files"
@@ -356,6 +362,8 @@
       "unstar": "Unstar",
       "selectRow": "Select",
       "emptyText": "No files.",
+      "loadMore": "Load more",
+      "rename": "Rename",
       "pagination": {
         "prev": "Previous",
         "next": "Next",
@@ -447,7 +455,38 @@
       "unlimited": "Unlimited"
     }
   },
-  "folders": {},
+  "folders": {
+    "newFolder": {
+      "trigger": "New folder",
+      "title": "New folder",
+      "label": "Folder name",
+      "submit": "Create"
+    },
+    "rename": {
+      "title": "Rename folder",
+      "label": "Folder name"
+    },
+    "confirmDelete": {
+      "title": "Delete folder",
+      "message": "The folder and everything inside it (subfolders and files) will be moved to trash."
+    },
+    "toasts": {
+      "createSuccess": "Folder created.",
+      "deleteSuccess": "The folder was moved to trash."
+    },
+    "errors": {
+      "api": {
+        "401": "Authentication failed. Please log in again.",
+        "403": "You do not have permission to perform this action.",
+        "404": "The folder is no longer available.",
+        "409": "A conflict occurred.",
+        "413": "Not enough storage space.",
+        "422": "Validation failed.",
+        "429": "Too many requests."
+      },
+      "default": "An unknown error occurred during the folder operation."
+    }
+  },
   "calendar": {
     "page": {
       "title": "Calendar",

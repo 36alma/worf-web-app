@@ -455,7 +455,21 @@
       "revokeButton": "Revoke",
       "sharedWith": "Shared with these groups",
       "noShares": "No shares.",
-      "ownerOnly": "Only the owner can manage shares."
+      "ownerOnly": "Only the owner can manage shares.",
+      "canUpload": "Allow uploads",
+      "user": {
+        "selectGroupPlaceholder": "Select a group",
+        "selectUserPlaceholder": "Select a member",
+        "cannotGrant": "You would need this permission yourself to grant it",
+        "flags": {
+          "can_view": "View",
+          "can_download": "Download",
+          "can_upload": "Upload",
+          "can_edit": "Edit",
+          "can_delete": "Delete",
+          "can_share": "Share"
+        }
+      }
     },
     "audit": {
       "title": "Log entries",

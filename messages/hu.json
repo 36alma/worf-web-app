@@ -455,7 +455,21 @@
       "revokeButton": "Visszavonás",
       "sharedWith": "Megosztva ezekkel a csoportokkal",
       "noShares": "Nincs megosztás.",
-      "ownerOnly": "Csak a tulajdonos kezelheti a megosztásokat."
+      "ownerOnly": "Csak a tulajdonos kezelheti a megosztásokat.",
+      "canUpload": "Feltöltés engedélyezése",
+      "user": {
+        "selectGroupPlaceholder": "Válassz csoportot",
+        "selectUserPlaceholder": "Válassz tagot",
+        "cannotGrant": "Ehhez neked is szükséged lenne erre a jogkörre",
+        "flags": {
+          "can_view": "Megtekintés",
+          "can_download": "Letöltés",
+          "can_upload": "Feltöltés",
+          "can_edit": "Szerkesztés",
+          "can_delete": "Törlés",
+          "can_share": "Megosztás"
+        }
+      }
     },
     "audit": {
       "title": "Naplóbejegyzések",

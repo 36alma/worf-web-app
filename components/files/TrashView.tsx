@@ -67,7 +67,7 @@ export default function TrashView() {
         toast.success(t('toasts.restoreSuccess'));
       } else {
         await restoreFolder(entry.id);
-        toast.success(tf('restoreSuccess'));
+        toast.success(tf('toasts.restoreSuccess'));
       }
       refetch();
     } catch (error) {
@@ -86,7 +86,7 @@ export default function TrashView() {
         toast.success(t('toasts.permanentDeleteSuccess'));
       } else {
         await permanentDeleteFolder(deleteTarget.id);
-        toast.success(tf('permanentDeleteSuccess'));
+        toast.success(tf('toasts.permanentDeleteSuccess'));
       }
       setDeleteTarget(null);
       refetch();

@@ -550,9 +550,27 @@
       "title": "Mappa törlése",
       "message": "A mappa és a benne lévő összes almappa/fájl a Kukába kerül."
     },
+    "moveDialog": {
+      "root": "Gy\u00f6k\u00e9r",
+      "currentLabel": "Jelenlegi mappa: {name}",
+      "up": "Fel",
+      "noSubfolders": "Nincsenek almapp\u00e1k",
+      "confirm": "Mozgat\u00e1s ide"
+    },
     "toasts": {
       "createSuccess": "Mappa létrehozva.",
-      "deleteSuccess": "A mappa a lomtárba került."
+      "deleteSuccess": "A mappa a lomtárba került.",
+      "restoreSuccess": "A mappa vissza\u00e1ll\u00edtva.",
+      "permanentDeleteSuccess": "A mappa v\u00e9glegesen t\u00f6r\u00f6lve.",
+      "shareSuccess": "A mappa megosztva.",
+      "revokeSuccess": "A mappa megoszt\u00e1sa visszavonva."
+    },
+    "share": {
+      "modalTitle": "Mappa megoszt\u00e1sa"
+    },
+    "trashHelperText": "A t\u00f6r\u00f6lt mapp\u00e1k \u00e9s f\u00e1jlok vissza\u00e1ll\u00edthat\u00f3k, am\u00edg nem t\u00f6rl\u00f6d \u0151ket v\u00e9glegesen.",
+    "confirmPermanentDelete": {
+      "message": "Biztosan v\u00e9glegesen t\u00f6rl\u00f6d ezt a mapp\u00e1t \u00e9s a teljes tartalm\u00e1t? Ez a m\u0171velet nem vonhat\u00f3 vissza."
     },
     "errors": {
       "api": {

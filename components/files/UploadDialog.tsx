@@ -12,10 +12,6 @@ import { sanitizeFilename } from '@/lib/utils/formatFiles';
 export interface UploadDialogProps {
   open: boolean;
   onClose: () => void;
-  mode: 'private' | 'group';
-  groupId?: string;
-  folderId?: string | null;
-  onUploaded: () => void;
   /**
    * The one piece of the lifted `useUploadQueue()` instance (owned by
    * FilesFeed) this dialog actually needs — to hand off files selected via
@@ -64,7 +60,7 @@ export function validateAndEnqueueFiles(
   enqueue(files);
 }
 
-export default function UploadDialog({ open, onClose, mode, groupId, folderId = null, onUploaded }: UploadDialogProps) {
+export default function UploadDialog({ open, onClose, enqueue }: UploadDialogProps) {
   const t = useTranslations('files');
   const tv = useTranslations('validation');
   const multiInputRef = useRef<HTMLInputElement>(null);
@@ -83,59 +79,6 @@ export default function UploadDialog({ open, onClose, mode, groupId, folderId = 
     // Reset so selecting the same file(s) again still fires a change event.
     event.target.value = '';
   };
-
-  const onSubmit = handleSubmit(async (values) => {
-    if (!selectedFile) {
-      setFileError(tv('required'));
-      return;
-    }
-
-    const parsed = uploadFileSchema.safeParse({ filename: values.filename, file: selectedFile });
-    if (!parsed.success) {
-      let hasFieldError = false;
-      for (const issue of parsed.error.issues) {
-        const path = issue.path[0];
-        if (path === 'file') {
-          setFileError(tv(issue.message as never));
-          hasFieldError = true;
-        } else if (path === 'filename') {
-          setError('filename', { message: tv(issue.message as never) });
-          hasFieldError = true;
-        }
-      }
-      if (hasFieldError) return;
-    }
-    setFileError(null);
-
-    setIsUploading(true);
-    setProgress(0);
-    try {
-      const startResponse = await startUpload({
-        filename: values.filename,
-        mime_type: selectedFile.type,
-        scope: mode,
-        group_id: mode === 'group' ? groupId : undefined,
-        folder_id: folderId,
-      });
-      const { upload_id, presigned_post_url, presigned_post_fields, file_id } = startResponse.data;
-
-      await uploadToPresignedUrl(presigned_post_url, presigned_post_fields, selectedFile, setProgress);
-
-      await completeUpload({
-        upload_id,
-        file_id,
-        original_name: values.filename,
-      });
-
-      toast.success(t('toasts.uploadSuccess'));
-      onUploaded();
-      onClose();
-    } catch (error) {
-      toast.error(translateFileApiError(t, error, 'errors.default'));
-    } finally {
-      setIsUploading(false);
-    }
-  });
 
   return (
     <Modal open={open} title={t('upload.title')} onClose={onClose}>

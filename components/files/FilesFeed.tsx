@@ -12,6 +12,7 @@ import { translateFolderApiError } from '@/lib/i18n/folders';
 import { getFileCategory, type FileCategory } from '@/lib/utils/formatFiles';
 import { markForbidden, isForbidden } from '@/lib/permissions/filesGuard';
 import { usePagedDualList } from '@/hooks/usePagedDualList';
+import { useUploadQueue } from '@/hooks/useUploadQueue';
 import Button from '@/components/ui/Button';
 import ConfirmDialog from '@/components/ui/ConfirmDialog';
 import { Input } from '@/components/ui/Input';
@@ -19,13 +20,14 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/Tabs';
 import FileTable from '@/components/files/FileTable';
 import FileGrid from '@/components/files/FileGrid';
 import BulkActionBar from '@/components/files/BulkActionBar';
-import UploadDialog, { validateAndEnqueueFiles } from '@/components/files/UploadDialog';
+import UploadDialog from '@/components/files/UploadDialog';
 import UploadProgressPanel from '@/components/files/UploadProgressPanel';
 import FileDetailSheet from '@/components/files/FileDetailSheet';
 import FolderDetailSheet from '@/components/files/FolderDetailSheet';
 import FilesBreadcrumb from '@/components/files/FilesBreadcrumb';
 import NameDialog from '@/components/files/NameDialog';
 import EntryActionsMenu, { type ActionMenuItem } from '@/components/files/EntryActionsMenu';
+import StorageUsageBar from '@/components/files/StorageUsageBar';
 import { toFileEntries, toFolderEntries, type FsEntry } from '@/components/files/entryTypes';
 
 type CategoryFilter = FileCategory | 'all';
@@ -69,6 +71,7 @@ export default function FilesFeed({ mode, groupId, folderId = null, basePath }: 
   const [deleteTarget, setDeleteTarget] = useState<FsEntry | null>(null);
   const [selectedFileId, setSelectedFileId] = useState<string | null>(null);
   const [selectedFolderDetailId, setSelectedFolderDetailId] = useState<string | null>(null);
+  const [storageRefreshKey, setStorageRefreshKey] = useState(0);
 
   const {
     listA: subfolders,
@@ -99,6 +102,18 @@ export default function FilesFeed({ mode, groupId, folderId = null, basePath }: 
   );
 
   const entries = useMemo<FsEntry[]>(() => [...toFolderEntries(subfolders), ...toFileEntries(files)], [subfolders, files]);
+
+  const refreshFilesAndStorage = () => {
+    setStorageRefreshKey((current) => current + 1);
+    refetch();
+  };
+
+  const uploadQueue = useUploadQueue({
+    mode,
+    groupId,
+    folderId,
+    onAllSettled: refreshFilesAndStorage,
+  });
 
   const filteredEntries = useMemo(() => {
     const query = search.trim().toLowerCase();
@@ -162,7 +177,7 @@ export default function FilesFeed({ mode, groupId, folderId = null, basePath }: 
         toast.success(tf('toasts.deleteSuccess'));
       }
       setDeleteTarget(null);
-      refetch();
+      refreshFilesAndStorage();
     } catch (error) {
       toast.error(deleteTarget.kind === 'file' ? translateFileApiError(t, error, 'errors.default') : translateFolderApiError(tf, error, 'errors.default'));
     }
@@ -272,7 +287,7 @@ export default function FilesFeed({ mode, groupId, folderId = null, basePath }: 
         </div>
       </div>
 
-      <UploadDialog open={isUploadOpen} onClose={() => setIsUploadOpen(false)} mode={mode} groupId={groupId} folderId={folderId} onUploaded={refetch} />
+      <UploadDialog open={isUploadOpen} onClose={() => setIsUploadOpen(false)} enqueue={uploadQueue.enqueue} />
       <NameDialog open={isNewFolderOpen} title={tf('newFolder.title')} label={tf('newFolder.label')} submitLabel={tf('newFolder.submit')} onSubmit={handleCreateFolder} onClose={() => setIsNewFolderOpen(false)} />
       <NameDialog
         open={renameTarget !== null}
@@ -320,8 +335,8 @@ export default function FilesFeed({ mode, groupId, folderId = null, basePath }: 
         </div>
       )}
 
-      <FileDetailSheet fileId={selectedFileId} onClose={() => setSelectedFileId(null)} onDeleted={() => { setSelectedFileId(null); refetch(); }} />
-      <FolderDetailSheet folderId={selectedFolderDetailId} onClose={() => setSelectedFolderDetailId(null)} onDeleted={() => { setSelectedFolderDetailId(null); refetch(); }} onRenamed={refetch} />
+      <FileDetailSheet fileId={selectedFileId} onClose={() => setSelectedFileId(null)} onDeleted={() => { setSelectedFileId(null); refreshFilesAndStorage(); }} />
+      <FolderDetailSheet folderId={selectedFolderDetailId} onClose={() => setSelectedFolderDetailId(null)} onDeleted={() => { setSelectedFolderDetailId(null); refreshFilesAndStorage(); }} onRenamed={refetch} />
 
       <ConfirmDialog
         open={deleteTarget !== null}
@@ -330,6 +345,7 @@ export default function FilesFeed({ mode, groupId, folderId = null, basePath }: 
         onCancel={() => setDeleteTarget(null)}
         onConfirm={() => void handleDeleteConfirm()}
       />
+      <UploadProgressPanel items={uploadQueue.items} onRetry={uploadQueue.retry} onRemove={uploadQueue.removeSettled} />
     </section>
   );
 }

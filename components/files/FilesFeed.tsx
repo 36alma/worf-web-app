@@ -13,6 +13,7 @@ import { getFileCategory, type FileCategory } from '@/lib/utils/formatFiles';
 import { markForbidden, isForbidden } from '@/lib/permissions/filesGuard';
 import { usePagedDualList } from '@/hooks/usePagedDualList';
 import { useUploadQueue } from '@/hooks/useUploadQueue';
+import { useMediaQuery } from '@/hooks/useMediaQuery';
 import Button from '@/components/ui/Button';
 import ConfirmDialog from '@/components/ui/ConfirmDialog';
 import { Input } from '@/components/ui/Input';
@@ -64,6 +65,8 @@ export default function FilesFeed({ mode, groupId, folderId = null, basePath }: 
   // producing a hydration mismatch. The real value is applied client-only,
   // post-mount, below.
   const [view, setView] = useState<ViewMode>('list');
+  const isMobile = useMediaQuery('(max-width: 767px)');
+  const effectiveView: ViewMode = isMobile ? 'grid' : view;
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [isNewFolderOpen, setIsNewFolderOpen] = useState(false);
@@ -277,10 +280,12 @@ export default function FilesFeed({ mode, groupId, folderId = null, basePath }: 
             </TabsList>
           </Tabs>
           <div className="flex items-center gap-1 rounded-lg border border-[var(--border-subtle)] p-1">
-            <button type="button" aria-label={t('toolbar.view.list')} onClick={() => setView('list')} className={`inline-flex h-7 w-7 items-center justify-center rounded-[var(--radius-sm)] ${view === 'list' ? 'bg-[var(--bg-active)] text-[var(--text-primary)]' : 'text-[var(--text-tertiary)] hover:text-[var(--text-primary)]'}`}>
-              <List size={15} strokeWidth={1.75} />
-            </button>
-            <button type="button" aria-label={t('toolbar.view.grid')} onClick={() => setView('grid')} className={`inline-flex h-7 w-7 items-center justify-center rounded-[var(--radius-sm)] ${view === 'grid' ? 'bg-[var(--bg-active)] text-[var(--text-primary)]' : 'text-[var(--text-tertiary)] hover:text-[var(--text-primary)]'}`}>
+            {!isMobile && (
+              <button type="button" aria-label={t('toolbar.view.list')} onClick={() => setView('list')} className={`inline-flex h-7 w-7 items-center justify-center rounded-[var(--radius-sm)] ${effectiveView === 'list' ? 'bg-[var(--bg-active)] text-[var(--text-primary)]' : 'text-[var(--text-tertiary)] hover:text-[var(--text-primary)]'}`}>
+                <List size={15} strokeWidth={1.75} />
+              </button>
+            )}
+            <button type="button" aria-label={t('toolbar.view.grid')} onClick={() => setView('grid')} className={`inline-flex h-7 w-7 items-center justify-center rounded-[var(--radius-sm)] ${effectiveView === 'grid' ? 'bg-[var(--bg-active)] text-[var(--text-primary)]' : 'text-[var(--text-tertiary)] hover:text-[var(--text-primary)]'}`}>
               <LayoutGrid size={15} strokeWidth={1.75} />
             </button>
           </div>
@@ -305,7 +310,7 @@ export default function FilesFeed({ mode, groupId, folderId = null, basePath }: 
           <div className="h-10 w-full animate-pulse rounded-lg bg-[var(--bg-elevated)]" />
           <div className="h-10 w-full animate-pulse rounded-lg bg-[var(--bg-elevated)]" />
         </div>
-      ) : view === 'grid' ? (
+      ) : effectiveView === 'grid' ? (
         <FileGrid
           entries={filteredEntries}
           selectedIds={selectedIds}

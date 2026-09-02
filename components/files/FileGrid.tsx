@@ -90,22 +90,25 @@ export default function FileGrid({
               </button>
             )}
 
-            <div className="flex h-16 w-full items-center justify-center overflow-hidden rounded-[var(--radius-sm)] bg-[var(--bg-elevated)]">
-              {entry.kind === 'folder' ? (
-                <Folder size={28} strokeWidth={1.5} className="text-[var(--text-tertiary)]" />
-              ) : entry.mime_type?.startsWith('image/') ? (
-                <ThumbnailImage fileId={entry.id} mimeType={entry.mime_type} alt={entry.original_name} />
-              ) : (
-                <FileTypeIcon mimeType={entry.mime_type} size={28} />
-              )}
+            <div className="flex w-full items-center gap-3">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-[var(--radius-sm)] bg-[var(--bg-elevated)]">
+                {entry.kind === 'folder' ? (
+                  <Folder size={20} strokeWidth={1.5} className="text-[var(--text-tertiary)]" />
+                ) : entry.mime_type?.startsWith('image/') ? (
+                  <ThumbnailImage fileId={entry.id} mimeType={entry.mime_type} alt={entry.original_name} />
+                ) : (
+                  <FileTypeIcon mimeType={entry.mime_type} size={20} />
+                )}
+              </div>
+              <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+                <span className="w-full truncate text-sm font-medium text-[var(--text-primary)]" title={getEntryName(entry)}>
+                  {getEntryName(entry)}
+                </span>
+                <span className="truncate text-xs text-[var(--text-tertiary)]">
+                  {entry.kind === 'folder' ? t('table.folderType') : `${formatMimeType(entry.mime_type)} · ${formatFileSize(entry.size_bytes)}`}
+                </span>
+              </div>
             </div>
-
-            <span className="w-full truncate text-sm font-medium text-[var(--text-primary)]" title={getEntryName(entry)}>
-              {getEntryName(entry)}
-            </span>
-            <span className="text-xs text-[var(--text-tertiary)]">
-              {entry.kind === 'folder' ? t('table.folderType') : `${formatMimeType(entry.mime_type)} · ${formatFileSize(entry.size_bytes)}`}
-            </span>
             {dateIso && <span className="text-xs text-[var(--text-tertiary)]">{formatUploadedAt(dateIso)}</span>}
 
             <div

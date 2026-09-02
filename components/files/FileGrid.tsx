@@ -58,8 +58,8 @@ export default function FileGrid({
               <label
                 onClick={(event) => event.stopPropagation()}
                 onKeyDown={(event) => event.stopPropagation()}
-                className={`absolute left-2 top-2 z-10 flex min-h-11 min-w-11 items-start justify-start ${
-                  isSelected ? '' : 'opacity-0 group-hover:opacity-100'
+                className={`pointer-events-none absolute left-2 top-2 z-10 flex min-h-11 min-w-11 items-start justify-start ${
+                  isSelected ? '' : 'opacity-100 sm:opacity-0 sm:group-hover:opacity-100'
                 }`}
               >
                 <input
@@ -67,7 +67,7 @@ export default function FileGrid({
                   checked={isSelected}
                   onChange={() => onToggleSelect(entry)}
                   aria-label={t('table.selectRow')}
-                  className="h-4 w-4 accent-[var(--accent)]"
+                  className="pointer-events-auto h-4 w-4 accent-[var(--accent)]"
                 />
               </label>
             )}
@@ -85,12 +85,12 @@ export default function FileGrid({
                 <Star
                   size={14}
                   strokeWidth={1.75}
-                  className={entry.is_starred ? 'fill-[var(--accent)] text-[var(--accent)]' : 'text-[var(--text-tertiary)] opacity-0 group-hover:opacity-100'}
+                  className={entry.is_starred ? 'fill-[var(--accent)] text-[var(--accent)]' : 'text-[var(--text-tertiary)] opacity-100 sm:opacity-0 sm:group-hover:opacity-100'}
                 />
               </button>
             )}
 
-            <div className="flex w-full items-center gap-3">
+            <div className="flex w-full items-center gap-3 pr-11">
               <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-[var(--radius-sm)] bg-[var(--bg-elevated)]">
                 {entry.kind === 'folder' ? (
                   <Folder size={20} strokeWidth={1.5} className="text-[var(--text-tertiary)]" />
@@ -112,7 +112,7 @@ export default function FileGrid({
             {dateIso && <span className="text-xs text-[var(--text-tertiary)]">{formatUploadedAt(dateIso)}</span>}
 
             <div
-              className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100"
+              className="absolute bottom-2 right-2 opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
               onClick={(event) => event.stopPropagation()}
               onKeyDown={(event) => event.stopPropagation()}
             >

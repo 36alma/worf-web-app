@@ -279,16 +279,16 @@ export default function FilesFeed({ mode, groupId, folderId = null, basePath }: 
               <TabsTrigger value="spreadsheet">{t('toolbar.filters.spreadsheets')}</TabsTrigger>
             </TabsList>
           </Tabs>
-          <div className="flex items-center gap-1 rounded-lg border border-[var(--border-subtle)] p-1">
-            {!isMobile && (
+          {!isMobile && (
+            <div className="flex items-center gap-1 rounded-lg border border-[var(--border-subtle)] p-1">
               <button type="button" aria-label={t('toolbar.view.list')} onClick={() => setView('list')} className={`inline-flex h-7 w-7 items-center justify-center rounded-[var(--radius-sm)] ${effectiveView === 'list' ? 'bg-[var(--bg-active)] text-[var(--text-primary)]' : 'text-[var(--text-tertiary)] hover:text-[var(--text-primary)]'}`}>
                 <List size={15} strokeWidth={1.75} />
               </button>
-            )}
-            <button type="button" aria-label={t('toolbar.view.grid')} onClick={() => setView('grid')} className={`inline-flex h-7 w-7 items-center justify-center rounded-[var(--radius-sm)] ${effectiveView === 'grid' ? 'bg-[var(--bg-active)] text-[var(--text-primary)]' : 'text-[var(--text-tertiary)] hover:text-[var(--text-primary)]'}`}>
-              <LayoutGrid size={15} strokeWidth={1.75} />
-            </button>
-          </div>
+              <button type="button" aria-label={t('toolbar.view.grid')} onClick={() => setView('grid')} className={`inline-flex h-7 w-7 items-center justify-center rounded-[var(--radius-sm)] ${effectiveView === 'grid' ? 'bg-[var(--bg-active)] text-[var(--text-primary)]' : 'text-[var(--text-tertiary)] hover:text-[var(--text-primary)]'}`}>
+                <LayoutGrid size={15} strokeWidth={1.75} />
+              </button>
+            </div>
+          )}
         </div>
       </div>
 

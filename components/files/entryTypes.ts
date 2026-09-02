@@ -26,4 +26,19 @@ export interface EntryListProps {
   onOpenFolder: (folderId: string) => void;
   onToggleStar: (entry: FsEntry) => void;
   renderActions: (entry: FsEntry) => React.ReactNode;
+  /**
+   * Whether to render the selection checkbox at all. Defaults to `true`
+   * (preserves existing behavior for FilesFeed, the primary browsing
+   * surface). Callers with no selection state of their own (StarredView,
+   * SharedWithMeView) pass `false` so the row doesn't show a checkbox that
+   * silently does nothing when clicked.
+   */
+  selectable?: boolean;
+  /**
+   * Whether to render the star toggle button at all. Defaults to `true`.
+   * Callers whose `onToggleStar` is a genuine no-op (SharedWithMeView) pass
+   * `false`; callers with a real, working star handler (StarredView) leave
+   * this at the default.
+   */
+  starrable?: boolean;
 }

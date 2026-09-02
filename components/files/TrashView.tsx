@@ -1,70 +1,77 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import toast from 'react-hot-toast';
+import { Folder } from 'lucide-react';
 import DataTable, { type Column } from '@/components/ui/DataTable';
 import Button from '@/components/ui/Button';
 import ConfirmDialog from '@/components/ui/ConfirmDialog';
+import EmptyState from '@/components/ui/EmptyState';
 import { getTrash, restoreFile, permanentDeleteFile, type FileInTrashOut } from '@/lib/api/files';
+import { getFolderTrash, restoreFolder, permanentDeleteFolder, type FolderInTrashOut } from '@/lib/api/folders';
 import { translateFileApiError } from '@/lib/i18n/files';
+import { translateFolderApiError } from '@/lib/i18n/folders';
+import { usePagedDualList } from '@/hooks/usePagedDualList';
 import { formatFileSize, formatMimeType, formatUploadedAt } from '@/lib/utils/formatFiles';
 
-const DEFAULT_LIMIT = 20;
+type TrashEntry = ({ kind: 'file' } & FileInTrashOut) | ({ kind: 'folder' } & FolderInTrashOut);
+
+const PAGE_SIZE = 20;
 
 export default function TrashView() {
   const t = useTranslations('files');
-
-  const [items, setItems] = useState<FileInTrashOut[]>([]);
-  const [total, setTotal] = useState(0);
-  const [offset, setOffset] = useState(0);
-  const [limit] = useState(DEFAULT_LIMIT);
-  const [isLoading, setIsLoading] = useState(true);
-  const [refreshKey, setRefreshKey] = useState(0);
-  const refetch = useCallback(() => setRefreshKey((key) => key + 1), []);
+  const tf = useTranslations('folders');
 
   const [restoringId, setRestoringId] = useState<string | null>(null);
-  const [deleteTarget, setDeleteTarget] = useState<FileInTrashOut | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<TrashEntry | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  useEffect(() => {
-    let mounted = true;
-
-    const load = async () => {
-      setIsLoading(true);
+  const {
+    listA: fileItems,
+    listB: folderItems,
+    isLoading,
+    hasMore,
+    loadMore,
+    reset: refetch,
+  } = usePagedDualList(
+    async (offset, limit) => {
       try {
-        const response = await getTrash(offset, limit);
-        if (!mounted) return;
-        setItems(response.data.items);
-        setTotal(response.data.total);
+        const [filesResponse, foldersResponse] = await Promise.all([getTrash(offset, limit), getFolderTrash(offset, limit)]);
+        return {
+          listA: filesResponse.data.items,
+          listB: foldersResponse.data.items,
+          totalA: filesResponse.data.total,
+          totalB: foldersResponse.data.total,
+        };
       } catch (error) {
-        if (!mounted) return;
-        setItems([]);
-        setTotal(0);
         toast.error(translateFileApiError(t, error, 'errors.default'));
-      } finally {
-        if (mounted) {
-          setIsLoading(false);
-        }
+        throw error;
       }
-    };
+    },
+    PAGE_SIZE,
+    []
+  );
 
-    void load();
+  const entries: TrashEntry[] = [
+    ...folderItems.map((item) => ({ kind: 'folder' as const, ...item })),
+    ...fileItems.map((item) => ({ kind: 'file' as const, ...item })),
+  ];
 
-    return () => {
-      mounted = false;
-    };
-  }, [offset, limit, refreshKey, t]);
-
-  const handleRestore = async (fileId: string) => {
+  const handleRestore = async (entry: TrashEntry) => {
     if (restoringId) return;
-    setRestoringId(fileId);
+    setRestoringId(entry.id);
     try {
-      await restoreFile(fileId);
-      toast.success(t('toasts.restoreSuccess'));
+      if (entry.kind === 'file') {
+        await restoreFile(entry.id);
+        toast.success(t('toasts.restoreSuccess'));
+      } else {
+        await restoreFolder(entry.id);
+        toast.success(tf('toasts.restoreSuccess'));
+      }
       refetch();
     } catch (error) {
-      toast.error(translateFileApiError(t, error, 'errors.default'));
+      toast.error(entry.kind === 'file' ? translateFileApiError(t, error, 'errors.default') : translateFolderApiError(tf, error, 'errors.default'));
     } finally {
       setRestoringId(null);
     }
@@ -74,113 +81,77 @@ export default function TrashView() {
     if (!deleteTarget) return;
     setIsDeleting(true);
     try {
-      await permanentDeleteFile(deleteTarget.id);
-      toast.success(t('toasts.permanentDeleteSuccess'));
+      if (deleteTarget.kind === 'file') {
+        await permanentDeleteFile(deleteTarget.id);
+        toast.success(t('toasts.permanentDeleteSuccess'));
+      } else {
+        await permanentDeleteFolder(deleteTarget.id);
+        toast.success(tf('toasts.permanentDeleteSuccess'));
+      }
       setDeleteTarget(null);
       refetch();
     } catch (error) {
-      toast.error(translateFileApiError(t, error, 'errors.default'));
+      toast.error(deleteTarget.kind === 'file' ? translateFileApiError(t, error, 'errors.default') : translateFolderApiError(tf, error, 'errors.default'));
     } finally {
       setIsDeleting(false);
     }
   };
 
-  const columns: Column<FileInTrashOut>[] = [
-    { key: 'original_name', label: t('table.name') },
-    { key: 'mime_type', label: t('table.type'), render: (value) => formatMimeType(value as string | null) },
-    { key: 'size_bytes', label: t('table.size'), render: (value) => formatFileSize(value as number | null) },
+  const columns: Column<TrashEntry>[] = [
     {
-      key: 'deleted_at',
-      label: t('trash.table.deletedAt'),
-      render: (value) => (value ? formatUploadedAt(String(value)) : '-'),
+      key: 'name',
+      label: t('table.name'),
+      render: (_value, row) => (
+        <span className="flex items-center gap-2">
+          {row.kind === 'folder' && <Folder size={16} strokeWidth={1.5} className="text-[var(--text-tertiary)]" />}
+          {row.kind === 'file' ? row.original_name : row.name}
+        </span>
+      ),
     },
+    { key: 'type', label: t('table.type'), render: (_value, row) => (row.kind === 'folder' ? t('table.folderType') : formatMimeType(row.mime_type)) },
+    { key: 'size', label: t('table.size'), render: (_value, row) => (row.kind === 'folder' ? '-' : formatFileSize(row.size_bytes)) },
+    { key: 'deletedAt', label: t('trash.table.deletedAt'), render: (_value, row) => (row.deleted_at ? formatUploadedAt(row.deleted_at) : '-') },
     {
-      key: 'id',
+      key: 'actions',
       label: t('table.actions'),
-      render: (value, row) => (
+      render: (_value, row) => (
         <div className="flex items-center gap-1">
-          <Button
-            variant="ghost"
-            size="sm"
-            loading={restoringId === row.id}
-            onClick={() => handleRestore(row.id)}
-          >
-            {t('trash.restore')}
-          </Button>
-          <Button
-            variant="danger"
-            size="sm"
-            onClick={() => setDeleteTarget(row)}
-          >
-            {t('trash.permanentDelete')}
-          </Button>
+          <Button variant="ghost" size="sm" loading={restoringId === row.id} onClick={() => handleRestore(row)}>{t('trash.restore')}</Button>
+          <Button variant="danger" size="sm" onClick={() => setDeleteTarget(row)}>{t('trash.permanentDelete')}</Button>
         </div>
       ),
     },
   ];
 
-  const hasPrev = offset > 0;
-  const hasNext = offset + limit < total;
-
   return (
     <section className="space-y-4">
       <h1 className="text-lg font-semibold text-[var(--text-primary)]">{t('trash.title')}</h1>
+      <p className="text-xs text-[var(--text-tertiary)]">{tf('trashHelperText')}</p>
 
-      {isLoading ? (
+      {isLoading && entries.length === 0 ? (
         <div className="space-y-2">
           <div className="h-10 w-full animate-pulse rounded-lg bg-[var(--bg-elevated)]" />
           <div className="h-10 w-full animate-pulse rounded-lg bg-[var(--bg-elevated)]" />
-          <div className="h-10 w-full animate-pulse rounded-lg bg-[var(--bg-elevated)]" />
         </div>
+      ) : entries.length === 0 ? (
+        <EmptyState>{t('trash.emptyText')}</EmptyState>
       ) : (
-        <DataTable
-          columns={columns}
-          rows={items}
-          emptyState={<span className="text-sm text-[var(--text-tertiary)]">{t('trash.emptyText')}</span>}
-        />
+        <DataTable columns={columns} rows={entries} emptyState={<span className="text-sm text-[var(--text-tertiary)]">{t('trash.emptyText')}</span>} />
       )}
 
-      {!isLoading && total > limit && (
-        <div className="flex items-center justify-between">
-          <span className="text-xs text-[var(--text-tertiary)]">
-            {t('table.pagination.range', {
-              from: total === 0 ? 0 : offset + 1,
-              to: Math.min(offset + limit, total),
-              total,
-            })}
-          </span>
-          <div className="flex gap-2">
-            <Button
-              type="button"
-              variant="secondary"
-              size="sm"
-              disabled={!hasPrev}
-              onClick={() => setOffset((current) => Math.max(0, current - limit))}
-            >
-              {t('table.pagination.prev')}
-            </Button>
-            <Button
-              type="button"
-              variant="secondary"
-              size="sm"
-              disabled={!hasNext}
-              onClick={() => setOffset((current) => current + limit)}
-            >
-              {t('table.pagination.next')}
-            </Button>
-          </div>
+      {!isLoading && hasMore && (
+        <div className="flex justify-center">
+          <Button type="button" variant="secondary" onClick={loadMore}>{t('table.loadMore')}</Button>
         </div>
       )}
 
       <ConfirmDialog
         open={deleteTarget !== null}
         title={t('trash.confirmPermanentTitle')}
-        message={t('trash.confirmPermanentMessage')}
+        message={deleteTarget?.kind === 'folder' ? tf('confirmPermanentDelete.message') : t('trash.confirmPermanentMessage')}
         onCancel={() => setDeleteTarget(null)}
         onConfirm={() => {
-          if (!isDeleting) {
-            void handlePermanentDeleteConfirm();
-          }
+          if (!isDeleting) void handlePermanentDeleteConfirm();
         }}
       />
     </section>

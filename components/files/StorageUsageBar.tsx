@@ -9,6 +9,12 @@ import { formatFileSize } from '@/lib/utils/formatFiles';
 export interface StorageUsageBarProps {
   scope: FileScope;
   groupId?: string;
+  /**
+   * Bump this (e.g. a counter incremented after every successful upload/
+   * delete/move/rename) to force a re-fetch. Storage usage otherwise only
+   * loads once per `[scope, groupId]` pair and goes stale after a mutation.
+   */
+  refreshKey?: number | string;
 }
 
 function barColor(percent: number): string {
@@ -17,7 +23,7 @@ function barColor(percent: number): string {
   return 'bg-[var(--accent)]';
 }
 
-export default function StorageUsageBar({ scope, groupId }: StorageUsageBarProps) {
+export default function StorageUsageBar({ scope, groupId, refreshKey }: StorageUsageBarProps) {
   const t = useTranslations('files');
   const [usedBytes, setUsedBytes] = useState<number | null>(null);
   const [limitBytes, setLimitBytes] = useState<number | null>(null);
@@ -44,7 +50,7 @@ export default function StorageUsageBar({ scope, groupId }: StorageUsageBarProps
     return () => {
       mounted = false;
     };
-  }, [scope, groupId]);
+  }, [scope, groupId, refreshKey]);
 
   if (isLoading || usedBytes === null) {
     return <div className="h-8 w-full animate-pulse rounded-lg bg-[var(--bg-elevated)]" />;

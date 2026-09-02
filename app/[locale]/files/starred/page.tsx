@@ -1,12 +1,12 @@
 'use client';
 
-import TrashView from '@/components/files/TrashView';
 import FilesShell from '@/components/files/FilesShell';
+import StarredView from '@/components/files/StarredView';
 
-export default function FilesTrashPage() {
+export default function FilesStarredPage() {
   return (
     <FilesShell>
-      <TrashView />
+      <StarredView />
     </FilesShell>
   );
 }

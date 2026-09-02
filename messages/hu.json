@@ -333,6 +333,12 @@
     "groupPage": {
       "title": "Fájlok"
     },
+    "subnav": {
+      "root": "Saját fájlok",
+      "starred": "Csillagozott",
+      "sharedWithMe": "Megosztva velem",
+      "trash": "Kuka"
+    },
     "breadcrumb": {
       "label": "Mappa útvonal",
       "collapsedLabel": "Elrejtett mappák megjelenítése",
@@ -370,6 +376,19 @@
         "range": "{from}–{to} / {total}"
       }
     },
+    "bulk": {
+      "selectedCount": "{count} kijelölve",
+      "download": "Letöltés",
+      "delete": "Törlés",
+      "clear": "Kijelölés törlése",
+      "deleteSummary": "{succeeded}/{total} elem törölve.",
+      "move": "Áthelyezés",
+      "moveSummary": "{succeeded}/{total} elem áthelyezve.",
+      "share": "Megosztás csoporttal",
+      "tooManyForShare": "Egyszerre legfeljebb 100 elem osztható meg.",
+      "shareSummary": "{succeeded}/{total} fájl megosztva.",
+      "shareFailedDetail": "Sikertelen elemek: {items}"
+    },
     "trash": {
       "title": "Lomtár",
       "table": {
@@ -381,6 +400,12 @@
       "confirmPermanentMessage": "Biztosan véglegesen törlöd ezt a fájlt? Ez a művelet nem vonható vissza.",
       "emptyText": "A lomtár üres."
     },
+    "starred": {
+      "emptyText": "Nincs csillagozott elemed."
+    },
+    "sharedWithMe": {
+      "emptyText": "Senki nem osztott meg veled fájlt vagy mappát."
+    },
     "upload": {
       "title": "Fájl feltöltése",
       "dropzoneLabel": "Húzd ide a fájlt, vagy kattints a tallózáshoz",
@@ -388,7 +413,10 @@
       "filenameLabel": "Fájlnév",
       "uploading": "Feltöltés...",
       "cancel": "Mégse",
-      "submit": "Feltöltés"
+      "submit": "Feltöltés",
+      "itemFailed": "Sikertelen.",
+      "retry": "Újra",
+      "dismiss": "Bezárás"
     },
     "nameDialog": {
       "sanitizeSuggestion": "Ezt javasoljuk helyette: \"{suggestion}\""
@@ -418,14 +446,56 @@
         "message": "Biztosan a lomtárba helyezed ezt a fájlt? Onnan később visszaállítható."
       }
     },
+    "preview": {
+      "details": "Részletek",
+      "close": "Bezárás",
+      "prev": "Előző",
+      "next": "Következő",
+      "noPreview": "Nincs előnézet ehhez a fájltípushoz."
+    },
     "share": {
+      "modalTitle": "Megosztás",
+      "tabs": {
+        "users": "Emberek",
+        "groups": "Csoportok",
+        "link": "Publikus link"
+      },
       "title": "Megosztás csoporttal",
       "selectGroupPlaceholder": "Válassz csoportot",
       "shareButton": "Megosztás",
       "revokeButton": "Visszavonás",
       "sharedWith": "Megosztva ezekkel a csoportokkal",
       "noShares": "Nincs megosztás.",
-      "ownerOnly": "Csak a tulajdonos kezelheti a megosztásokat."
+      "ownerOnly": "Csak a tulajdonos kezelheti a megosztásokat.",
+      "canUpload": "Feltöltés engedélyezése",
+      "user": {
+        "selectGroupPlaceholder": "Válassz csoportot",
+        "selectUserPlaceholder": "Válassz tagot",
+        "cannotGrant": "Ehhez neked is szükséged lenne erre a jogkörre",
+        "flags": {
+          "can_view": "Megtekintés",
+          "can_download": "Letöltés",
+          "can_upload": "Feltöltés",
+          "can_edit": "Szerkesztés",
+          "can_delete": "Törlés",
+          "can_share": "Megosztás"
+        }
+      },
+      "link": {
+        "oneTimeWarning": "Ez a link csak most jelenik meg — mentsd el, mert később nem kérhető vissza.",
+        "copied": "Vágólapra másolva.",
+        "copyFailed": "Nem sikerült másolni.",
+        "permissionView": "Megtekintés",
+        "permissionDownload": "Letöltés",
+        "expiresAt": "Lejárat (opcionális)",
+        "passwordOptional": "Jelszó (opcionális)",
+        "create": "Link létrehozása",
+        "existing": "Meglévő linkek",
+        "none": "Nincs publikus link.",
+        "passwordProtected": "jelszóval védett",
+        "accessCount": "{count}x megnyitva",
+        "revokeSuccess": "A link visszavonva."
+      }
     },
     "audit": {
       "title": "Naplóbejegyzések",
@@ -437,7 +507,17 @@
         "delete": "Törlés",
         "restore": "Visszaállítás",
         "share_group": "Megosztás csoporttal",
-        "revoke_share_group": "Csoportmegosztás visszavonása"
+        "revoke_share_group": "Csoportmegosztás visszavonása",
+        "rename": "Átnevezés",
+        "move": "Áthelyezés",
+        "copy": "Másolás",
+        "share_user": "Megosztás felhasználóval",
+        "revoke_share_user": "Felhasználó-megosztás visszavonása",
+        "share_link_create": "Publikus link létrehozva",
+        "share_link_revoke": "Publikus link visszavonva",
+        "share_link_access": "Megnyitva publikus linken",
+        "star": "Csillagozva",
+        "unstar": "Csillag eltávolítva"
       }
     },
     "admin": {
@@ -470,9 +550,27 @@
       "title": "Mappa törlése",
       "message": "A mappa és a benne lévő összes almappa/fájl a Kukába kerül."
     },
+    "moveDialog": {
+      "root": "Gy\u00f6k\u00e9r",
+      "currentLabel": "Jelenlegi mappa: {name}",
+      "up": "Fel",
+      "noSubfolders": "Nincsenek almapp\u00e1k",
+      "confirm": "Mozgat\u00e1s ide"
+    },
     "toasts": {
       "createSuccess": "Mappa létrehozva.",
-      "deleteSuccess": "A mappa a lomtárba került."
+      "deleteSuccess": "A mappa a lomtárba került.",
+      "restoreSuccess": "A mappa vissza\u00e1ll\u00edtva.",
+      "permanentDeleteSuccess": "A mappa v\u00e9glegesen t\u00f6r\u00f6lve.",
+      "shareSuccess": "A mappa megosztva.",
+      "revokeSuccess": "A mappa megoszt\u00e1sa visszavonva."
+    },
+    "share": {
+      "modalTitle": "Mappa megoszt\u00e1sa"
+    },
+    "trashHelperText": "A t\u00f6r\u00f6lt mapp\u00e1k \u00e9s f\u00e1jlok vissza\u00e1ll\u00edthat\u00f3k, am\u00edg nem t\u00f6rl\u00f6d \u0151ket v\u00e9glegesen.",
+    "confirmPermanentDelete": {
+      "message": "Biztosan v\u00e9glegesen t\u00f6rl\u00f6d ezt a mapp\u00e1t \u00e9s a teljes tartalm\u00e1t? Ez a m\u0171velet nem vonhat\u00f3 vissza."
     },
     "errors": {
       "api": {
@@ -1260,6 +1358,13 @@
       "members": "Tagok",
       "roles": "Szerepkörök"
     }
+  },
+  "sharedLink": {
+    "title": "Megosztott f\u00e1jl megnyit\u00e1sa",
+    "description": "Add meg a jelsz\u00f3t, ha ez a link v\u00e9dett.",
+    "passwordPlaceholder": "Jelsz\u00f3",
+    "invalidOrExpired": "A megosztott link \u00e9rv\u00e9nytelen, lej\u00e1rt, vagy hib\u00e1s a jelsz\u00f3.",
+    "open": "Megnyit\u00e1s"
   },
   "validation": {
     "email_invalid": "Kérjük, adjon meg egy érvényes e-mail címet.",

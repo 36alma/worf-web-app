@@ -333,6 +333,12 @@
     "groupPage": {
       "title": "Files"
     },
+    "subnav": {
+      "root": "My files",
+      "starred": "Starred",
+      "sharedWithMe": "Shared with me",
+      "trash": "Trash"
+    },
     "breadcrumb": {
       "label": "Folder path",
       "collapsedLabel": "Show hidden folders",
@@ -370,6 +376,19 @@
         "range": "{from}–{to} of {total}"
       }
     },
+    "bulk": {
+      "selectedCount": "{count} selected",
+      "download": "Download",
+      "delete": "Delete",
+      "clear": "Clear selection",
+      "deleteSummary": "{succeeded}/{total} items deleted.",
+      "move": "Move",
+      "moveSummary": "{succeeded}/{total} items moved.",
+      "share": "Share with group",
+      "tooManyForShare": "At most 100 items can be shared at once.",
+      "shareSummary": "{succeeded}/{total} files shared.",
+      "shareFailedDetail": "Failed items: {items}"
+    },
     "trash": {
       "title": "Trash",
       "table": {
@@ -381,6 +400,12 @@
       "confirmPermanentMessage": "Are you sure you want to permanently delete this file? This action cannot be undone.",
       "emptyText": "Trash is empty."
     },
+    "starred": {
+      "emptyText": "You have no starred items."
+    },
+    "sharedWithMe": {
+      "emptyText": "No one has shared any files or folders with you yet."
+    },
     "upload": {
       "title": "Upload file",
       "dropzoneLabel": "Drag a file here, or click to browse",
@@ -388,7 +413,10 @@
       "filenameLabel": "Filename",
       "uploading": "Uploading...",
       "cancel": "Cancel",
-      "submit": "Upload"
+      "submit": "Upload",
+      "itemFailed": "Failed.",
+      "retry": "Retry",
+      "dismiss": "Dismiss"
     },
     "nameDialog": {
       "sanitizeSuggestion": "Suggested instead: \"{suggestion}\""
@@ -418,14 +446,56 @@
         "message": "Are you sure you want to move this file to trash? It can be restored later."
       }
     },
+    "preview": {
+      "details": "Details",
+      "close": "Close",
+      "prev": "Previous",
+      "next": "Next",
+      "noPreview": "No preview available for this file type."
+    },
     "share": {
+      "modalTitle": "Share",
+      "tabs": {
+        "users": "People",
+        "groups": "Groups",
+        "link": "Public link"
+      },
       "title": "Share with group",
       "selectGroupPlaceholder": "Select a group",
       "shareButton": "Share",
       "revokeButton": "Revoke",
       "sharedWith": "Shared with these groups",
       "noShares": "No shares.",
-      "ownerOnly": "Only the owner can manage shares."
+      "ownerOnly": "Only the owner can manage shares.",
+      "canUpload": "Allow uploads",
+      "user": {
+        "selectGroupPlaceholder": "Select a group",
+        "selectUserPlaceholder": "Select a member",
+        "cannotGrant": "You would need this permission yourself to grant it",
+        "flags": {
+          "can_view": "View",
+          "can_download": "Download",
+          "can_upload": "Upload",
+          "can_edit": "Edit",
+          "can_delete": "Delete",
+          "can_share": "Share"
+        }
+      },
+      "link": {
+        "oneTimeWarning": "This link is shown only once — save it now, it can't be retrieved later.",
+        "copied": "Copied to clipboard.",
+        "copyFailed": "Failed to copy.",
+        "permissionView": "View",
+        "permissionDownload": "Download",
+        "expiresAt": "Expires (optional)",
+        "passwordOptional": "Password (optional)",
+        "create": "Create link",
+        "existing": "Existing links",
+        "none": "No public links.",
+        "passwordProtected": "password protected",
+        "accessCount": "Opened {count}x",
+        "revokeSuccess": "Link revoked."
+      }
     },
     "audit": {
       "title": "Log entries",
@@ -437,7 +507,17 @@
         "delete": "Delete",
         "restore": "Restore",
         "share_group": "Share with group",
-        "revoke_share_group": "Revoke group share"
+        "revoke_share_group": "Revoke group share",
+        "rename": "Rename",
+        "move": "Move",
+        "copy": "Copy",
+        "share_user": "Share with user",
+        "revoke_share_user": "Revoke user share",
+        "share_link_create": "Public link created",
+        "share_link_revoke": "Public link revoked",
+        "share_link_access": "Opened via public link",
+        "star": "Starred",
+        "unstar": "Unstarred"
       }
     },
     "admin": {
@@ -470,9 +550,27 @@
       "title": "Delete folder",
       "message": "The folder and everything inside it (subfolders and files) will be moved to trash."
     },
+    "moveDialog": {
+      "root": "Root",
+      "currentLabel": "Current folder: {name}",
+      "up": "Up",
+      "noSubfolders": "No subfolders",
+      "confirm": "Move here"
+    },
     "toasts": {
       "createSuccess": "Folder created.",
-      "deleteSuccess": "The folder was moved to trash."
+      "deleteSuccess": "The folder was moved to trash.",
+      "restoreSuccess": "The folder was restored.",
+      "permanentDeleteSuccess": "The folder was permanently deleted.",
+      "shareSuccess": "The folder was shared.",
+      "revokeSuccess": "The folder share was revoked."
+    },
+    "share": {
+      "modalTitle": "Share folder"
+    },
+    "trashHelperText": "Deleted folders and files can be restored until they are permanently deleted.",
+    "confirmPermanentDelete": {
+      "message": "Are you sure you want to permanently delete this folder and everything inside it? This action cannot be undone."
     },
     "errors": {
       "api": {
@@ -1260,6 +1358,13 @@
       "members": "Members",
       "roles": "Roles"
     }
+  },
+  "sharedLink": {
+    "title": "Open shared file",
+    "description": "Enter the password if this link is protected.",
+    "passwordPlaceholder": "Password",
+    "invalidOrExpired": "The shared link is invalid, expired, or the password is incorrect.",
+    "open": "Open"
   },
   "validation": {
     "email_invalid": "Please enter a valid email address.",

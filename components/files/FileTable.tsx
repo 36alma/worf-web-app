@@ -15,24 +15,29 @@ export default function FileTable({
   onOpenFolder,
   onToggleStar,
   renderActions,
+  selectable = true,
+  starrable = true,
 }: EntryListProps) {
   const t = useTranslations('files');
 
   const columns: Column<FsEntry>[] = [
-    {
+    ...(selectable ? [{
       key: 'select',
       label: '',
-      render: (_value, row) => (
-        <input
-          type="checkbox"
-          checked={selectedIds.has(row.id)}
-          onChange={() => onToggleSelect(row)}
-          onClick={(event) => event.stopPropagation()}
-          aria-label={t('table.selectRow')}
-          className="h-4 w-4 accent-[var(--accent)]"
-        />
+      render: (_value: unknown, row: FsEntry) => (
+        // Wrap (not resize) the checkbox to a 44px min hit area (spec §1.1) —
+        // <label> makes the whole padded area toggle the input natively.
+        <label onClick={(event) => event.stopPropagation()} className="flex min-h-11 min-w-11 items-center justify-center sm:min-h-0 sm:min-w-0">
+          <input
+            type="checkbox"
+            checked={selectedIds.has(row.id)}
+            onChange={() => onToggleSelect(row)}
+            aria-label={t('table.selectRow')}
+            className="h-4 w-4 accent-[var(--accent)]"
+          />
+        </label>
       ),
-    },
+    }] : []),
     {
       key: 'name',
       label: t('table.name'),
@@ -69,10 +74,10 @@ export default function FileTable({
         return iso ? formatUploadedAt(iso) : '-';
       },
     },
-    {
+    ...(starrable ? [{
       key: 'star',
       label: '',
-      render: (_value, row) => (
+      render: (_value: unknown, row: FsEntry) => (
         <button
           type="button"
           onClick={(event) => {
@@ -80,7 +85,7 @@ export default function FileTable({
             onToggleStar(row);
           }}
           aria-label={row.is_starred ? t('table.unstar') : t('table.star')}
-          className="rounded p-1 hover:bg-[var(--bg-hover)]"
+          className="inline-flex min-h-11 min-w-11 items-center justify-center rounded p-1 hover:bg-[var(--bg-hover)] sm:min-h-0 sm:min-w-0"
         >
           <Star
             size={16}
@@ -89,7 +94,7 @@ export default function FileTable({
           />
         </button>
       ),
-    },
+    }] : []),
     {
       key: 'actions',
       label: t('table.actions'),

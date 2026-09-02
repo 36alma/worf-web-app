@@ -7,6 +7,7 @@ export interface FolderDetailSheetProps {
   onClose: () => void;
   onDeleted?: () => void;
   onRenamed?: () => void;
+  readOnly?: boolean;
 }
 
 // Placeholder — Task 32 replaces this body with metadata/share/audit tabs.

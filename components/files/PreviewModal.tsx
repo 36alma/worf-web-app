@@ -119,7 +119,7 @@ export default function PreviewModal({ files, currentFileId, onNavigate, onClose
 
           <div className="relative flex min-h-0 flex-1 items-center justify-center px-4 pb-4">
             {currentIndex > 0 && (
-              <button type="button" onClick={goPrev} aria-label={t('preview.prev')} className="absolute left-2 top-1/2 -translate-y-1/2 rounded-full bg-black/40 p-2 text-white hover:bg-black/60 sm:left-4">
+              <button type="button" onClick={goPrev} aria-label={t('preview.prev')} className="absolute left-2 top-1/2 -translate-y-1/2 rounded-full bg-black/40 p-3 text-white hover:bg-black/60 sm:left-4">
                 <ChevronLeft size={22} strokeWidth={2} />
               </button>
             )}
@@ -141,7 +141,7 @@ export default function PreviewModal({ files, currentFileId, onNavigate, onClose
               </div>
             )}
             {currentIndex >= 0 && currentIndex < files.length - 1 && (
-              <button type="button" onClick={goNext} aria-label={t('preview.next')} className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full bg-black/40 p-2 text-white hover:bg-black/60 sm:right-4">
+              <button type="button" onClick={goNext} aria-label={t('preview.next')} className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full bg-black/40 p-3 text-white hover:bg-black/60 sm:right-4">
                 <ChevronRight size={22} strokeWidth={2} />
               </button>
             )}

@@ -45,17 +45,27 @@ export default function FileGrid({
             }}
             className="group relative flex cursor-pointer flex-col items-start gap-2 rounded-[var(--radius-lg)] border-[0.5px] border-[var(--border-subtle)] bg-[var(--bg-surface)] p-3 text-left transition-colors hover:bg-[var(--bg-hover)]"
           >
-            <input
-              type="checkbox"
-              checked={isSelected}
-              onChange={() => onToggleSelect(entry)}
+            {/* Wrap (not resize) the checkbox to a 44px min hit area (spec §1.1).
+                Positioning/visibility classes move to the <label> wrapper; the
+                card below has its own onClick (open file/folder), so the
+                wrapper — not just the input — must stop propagation, since a
+                tap on the label's padding (not the input itself) still fires
+                a native click on the label that would otherwise bubble up. */}
+            <label
               onClick={(event) => event.stopPropagation()}
               onKeyDown={(event) => event.stopPropagation()}
-              aria-label={t('table.selectRow')}
-              className={`absolute left-2 top-2 z-10 h-4 w-4 accent-[var(--accent)] ${
+              className={`absolute left-2 top-2 z-10 flex min-h-11 min-w-11 items-start justify-start ${
                 isSelected ? '' : 'opacity-0 group-hover:opacity-100'
               }`}
-            />
+            >
+              <input
+                type="checkbox"
+                checked={isSelected}
+                onChange={() => onToggleSelect(entry)}
+                aria-label={t('table.selectRow')}
+                className="h-4 w-4 accent-[var(--accent)]"
+              />
+            </label>
             <button
               type="button"
               onClick={(event) => {
@@ -64,7 +74,7 @@ export default function FileGrid({
               }}
               onKeyDown={(event) => event.stopPropagation()}
               aria-label={entry.is_starred ? t('table.unstar') : t('table.star')}
-              className="absolute right-2 top-2 z-10 rounded p-1 hover:bg-[var(--bg-active)]"
+              className="absolute right-2 top-2 z-10 flex min-h-11 min-w-11 items-start justify-end rounded p-1 hover:bg-[var(--bg-active)]"
             >
               <Star
                 size={14}

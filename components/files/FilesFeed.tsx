@@ -424,15 +424,25 @@ export default function FilesFeed({ mode, groupId, folderId = null, basePath }: 
           <Input type="text" value={search} onChange={(event) => setSearch(event.target.value)} placeholder={t('toolbar.searchPlaceholder')} className="pl-8" />
         </div>
         <div className="flex items-center gap-2">
-          <Tabs value={category} onValueChange={(value) => setCategory(value as CategoryFilter)}>
-            <TabsList>
-              <TabsTrigger value="all">{t('toolbar.filters.all')}</TabsTrigger>
-              <TabsTrigger value="document">{t('toolbar.filters.documents')}</TabsTrigger>
-              <TabsTrigger value="image">{t('toolbar.filters.images')}</TabsTrigger>
-              <TabsTrigger value="spreadsheet">{t('toolbar.filters.spreadsheets')}</TabsTrigger>
-            </TabsList>
-          </Tabs>
-          <div className="flex items-center gap-1 rounded-lg border border-[var(--border-subtle)] p-1">
+          {/* Below `sm:` this row is no longer forced into a column (that only
+              applies to the outer search/tabs wrapper), so the 4 filter tabs
+              plus the view toggle can genuinely overflow a 375px viewport
+              (Hungarian labels like "Dokumentumok"/"Táblázatok" alone push
+              TabsList past ~420px). Wrap just the Tabs in a scrollable,
+              shrinkable region so it scrolls horizontally instead of
+              clipping, while the view toggle (kept `shrink-0`) stays fully
+              visible. */}
+          <div className="min-w-0 overflow-x-auto">
+            <Tabs value={category} onValueChange={(value) => setCategory(value as CategoryFilter)}>
+              <TabsList>
+                <TabsTrigger value="all">{t('toolbar.filters.all')}</TabsTrigger>
+                <TabsTrigger value="document">{t('toolbar.filters.documents')}</TabsTrigger>
+                <TabsTrigger value="image">{t('toolbar.filters.images')}</TabsTrigger>
+                <TabsTrigger value="spreadsheet">{t('toolbar.filters.spreadsheets')}</TabsTrigger>
+              </TabsList>
+            </Tabs>
+          </div>
+          <div className="flex shrink-0 items-center gap-1 rounded-lg border border-[var(--border-subtle)] p-1">
             <button type="button" aria-label={t('toolbar.view.list')} onClick={() => setView('list')} className={`inline-flex h-7 w-7 items-center justify-center rounded-[var(--radius-sm)] ${view === 'list' ? 'bg-[var(--bg-active)] text-[var(--text-primary)]' : 'text-[var(--text-tertiary)] hover:text-[var(--text-primary)]'}`}>
               <List size={15} strokeWidth={1.75} />
             </button>

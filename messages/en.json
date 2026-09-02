@@ -320,8 +320,7 @@
       "revokeSuccess": "The share was revoked.",
       "revokeError": "Failed to revoke the share.",
       "loadError": "Failed to load the files.",
-      "renameSuccess": "Renamed.",
-      "moveSuccess": "Moved."
+      "renameSuccess": "Renamed."
     },
     "rename": {
       "fileTitle": "Rename file",
@@ -371,9 +370,6 @@
       "emptyText": "No files.",
       "loadMore": "Load more",
       "rename": "Rename",
-      "details": "Details",
-      "move": "Move",
-      "copy": "Copy",
       "pagination": {
         "prev": "Previous",
         "next": "Next",
@@ -539,13 +535,6 @@
       "unlimited": "Unlimited"
     }
   },
-  "sharedLink": {
-    "title": "Shared file",
-    "description": "If this link is password-protected, enter it below. Otherwise just click Open.",
-    "passwordPlaceholder": "Password (if required)",
-    "invalidOrExpired": "This link is invalid or has expired.",
-    "open": "Open"
-  },
   "folders": {
     "newFolder": {
       "trigger": "New folder",
@@ -557,61 +546,14 @@
       "title": "Rename folder",
       "label": "Folder name"
     },
-    "share": {
-      "modalTitle": "Share folder"
-    },
-    "detail": {
-      "title": "Folder details",
-      "tabs": {
-        "metadata": "Details",
-        "audit": "Audit log"
-      },
-      "fields": {
-        "name": "Name",
-        "createdAt": "Created",
-        "scope": "Scope"
-      }
-    },
-    "audit": {
-      "action": {
-        "folder_create": "Created",
-        "folder_rename": "Renamed",
-        "folder_move": "Moved",
-        "folder_delete": "Deleted",
-        "folder_restore": "Restored",
-        "folder_permanent_delete": "Permanently deleted",
-        "folder_share_user": "Shared with user",
-        "folder_revoke_share_user": "User share revoked",
-        "folder_share_group": "Shared with group",
-        "folder_revoke_share_group": "Group share revoked",
-        "folder_star": "Starred",
-        "folder_unstar": "Unstarred"
-      }
-    },
     "confirmDelete": {
       "title": "Delete folder",
       "message": "The folder and everything inside it (subfolders and files) will be moved to trash."
     },
-    "confirmPermanentDelete": {
-      "message": "This action cannot be undone. The folder and all of its contents will be permanently deleted."
-    },
-    "moveDialog": {
-      "currentLabel": "Current folder: {name}",
-      "root": "Root",
-      "up": "Up",
-      "noSubfolders": "No subfolders here.",
-      "confirm": "Move here"
-    },
     "toasts": {
       "createSuccess": "Folder created.",
-      "deleteSuccess": "The folder was moved to trash.",
-      "shareSuccess": "The folder has been shared with the group.",
-      "revokeSuccess": "Sharing revoked.",
-      "renameSuccess": "Renamed."
+      "deleteSuccess": "The folder was moved to trash."
     },
-    "restoreSuccess": "The folder was restored.",
-    "permanentDeleteSuccess": "The folder was permanently deleted.",
-    "trashHelperText": "Restoring a folder does not automatically restore the files/subfolders inside it — those must be restored individually.",
     "errors": {
       "api": {
         "401": "Authentication failed. Please log in again.",

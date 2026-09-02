@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 export interface DualListPage<A, B> {
   listA: A[];
@@ -41,40 +41,18 @@ export function usePagedDualList<A, B>(
   const [isLoading, setIsLoading] = useState(true);
   const [reloadKey, setReloadKey] = useState(0);
 
-  // Guards against out-of-order responses: if the user navigates
-  // folder-to-folder quickly (e.g. double-clicking), two load(0) calls can
-  // be in flight at once, and without this guard whichever resolves LAST
-  // wins — potentially rendering the wrong folder's contents under the
-  // current (different) folder's breadcrumb. Each load() call captures its
-  // own id; only the call whose id still matches the ref once its fetch
-  // resolves is allowed to apply state.
-  const requestIdRef = useRef(0);
-
   const load = useCallback(
     async (nextOffset: number) => {
-      const thisRequestId = ++requestIdRef.current;
       setIsLoading(true);
       try {
         const page = await fetchPage(nextOffset, limit);
-        if (thisRequestId !== requestIdRef.current) return; // superseded by a newer load()
         setListA((current) => (nextOffset === 0 ? page.listA : [...current, ...page.listA]));
         setListB((current) => (nextOffset === 0 ? page.listB : [...current, ...page.listB]));
         setTotalA(page.totalA);
         setTotalB(page.totalB);
         setOffset(nextOffset);
-      } catch {
-        // A failed fetch (e.g. a transient network error during loadMore())
-        // must not corrupt already-loaded state: leave listA/listB/totalA/
-        // totalB/offset exactly as they were so hasMore stays based on the
-        // last known-good page and a retry (loadMore/reset) re-requests the
-        // same offset. The caller is responsible for surfacing the error to
-        // the user (e.g. a toast) before it reaches here; swallowed here (not
-        // re-thrown) so `void load(...)` call sites below never produce an
-        // unhandled promise rejection.
       } finally {
-        if (thisRequestId === requestIdRef.current) setIsLoading(false);
-        // else: a newer load() is still in flight and owns isLoading now —
-        // clearing it here would incorrectly hide its own loading indicator.
+        setIsLoading(false);
       }
     },
     [fetchPage, limit]

@@ -320,8 +320,7 @@
       "revokeSuccess": "A megosztás visszavonva.",
       "revokeError": "Nem sikerült visszavonni a megosztást.",
       "loadError": "Nem sikerült betölteni a fájlokat.",
-      "renameSuccess": "Átnevezve.",
-      "moveSuccess": "Áthelyezve."
+      "renameSuccess": "Átnevezve."
     },
     "rename": {
       "fileTitle": "Fájl átnevezése",
@@ -371,9 +370,6 @@
       "emptyText": "Nincs fájl.",
       "loadMore": "Több betöltése",
       "rename": "Átnevezés",
-      "details": "Részletek",
-      "move": "Áthelyezés",
-      "copy": "Másolás",
       "pagination": {
         "prev": "Előző",
         "next": "Következő",
@@ -539,13 +535,6 @@
       "unlimited": "Korlátlan"
     }
   },
-  "sharedLink": {
-    "title": "Megosztott fájl",
-    "description": "Ha a link jelszóval védett, add meg lent. Ha nem, csak kattints a Megnyitásra.",
-    "passwordPlaceholder": "Jelszó (ha szükséges)",
-    "invalidOrExpired": "A link érvénytelen vagy lejárt.",
-    "open": "Megnyitás"
-  },
   "folders": {
     "newFolder": {
       "trigger": "Új mappa",
@@ -557,61 +546,14 @@
       "title": "Mappa átnevezése",
       "label": "Mappa neve"
     },
-    "share": {
-      "modalTitle": "Mappa megosztása"
-    },
-    "detail": {
-      "title": "Mappa részletei",
-      "tabs": {
-        "metadata": "Adatok",
-        "audit": "Napló"
-      },
-      "fields": {
-        "name": "Név",
-        "createdAt": "Létrehozva",
-        "scope": "Hatókör"
-      }
-    },
-    "audit": {
-      "action": {
-        "folder_create": "Létrehozva",
-        "folder_rename": "Átnevezés",
-        "folder_move": "Áthelyezés",
-        "folder_delete": "Törlés",
-        "folder_restore": "Visszaállítás",
-        "folder_permanent_delete": "Végleges törlés",
-        "folder_share_user": "Megosztás felhasználóval",
-        "folder_revoke_share_user": "Felhasználó-megosztás visszavonása",
-        "folder_share_group": "Megosztás csoporttal",
-        "folder_revoke_share_group": "Csoportmegosztás visszavonása",
-        "folder_star": "Csillagozva",
-        "folder_unstar": "Csillag eltávolítva"
-      }
-    },
     "confirmDelete": {
       "title": "Mappa törlése",
       "message": "A mappa és a benne lévő összes almappa/fájl a Kukába kerül."
     },
-    "confirmPermanentDelete": {
-      "message": "Ez a művelet nem vonható vissza. A mappa és teljes tartalma véglegesen törlődik."
-    },
-    "moveDialog": {
-      "currentLabel": "Aktuális mappa: {name}",
-      "root": "Gyökér",
-      "up": "Fel",
-      "noSubfolders": "Nincs almappa itt.",
-      "confirm": "Ide helyezés"
-    },
     "toasts": {
       "createSuccess": "Mappa létrehozva.",
-      "deleteSuccess": "A mappa a lomtárba került.",
-      "shareSuccess": "A mappa megosztva a csoporttal.",
-      "revokeSuccess": "A megosztás visszavonva.",
-      "renameSuccess": "Átnevezve."
+      "deleteSuccess": "A mappa a lomtárba került."
     },
-    "restoreSuccess": "A mappa visszaállítva.",
-    "permanentDeleteSuccess": "A mappa véglegesen törölve.",
-    "trashHelperText": "A mappa visszaállítása nem állítja vissza automatikusan a benne lévő fájlokat/almappákat — azokat egyenként kell visszaállítani.",
     "errors": {
       "api": {
         "401": "A hitelesítés sikertelen. Jelentkezz be újra.",

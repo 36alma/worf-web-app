@@ -1,23 +1,19 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useMemo, useState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 import toast from 'react-hot-toast';
-import { Copy, Download, FolderInput, FolderPlus, Info, Pencil, Share2, Star, Trash2 } from 'lucide-react';
+import { Download, FolderPlus, Pencil, Star, Trash2 } from 'lucide-react';
 import { LayoutGrid, List, Search } from 'lucide-react';
-import { requestDownload, buildDownloadUrl, deleteFile, renameFile, starFile, unstarFile, bulkShareWithGroup, moveFile, copyFile } from '@/lib/api/files';
-import { listFolder, createFolder, deleteFolder, renameFolder, starFolder, unstarFolder, moveFolder } from '@/lib/api/folders';
-import { getUserGroups } from '@/lib/api/groups';
+import { listFiles, requestDownload, buildDownloadUrl, deleteFile, renameFile, starFile, unstarFile, type FileListItem } from '@/lib/api/files';
+import { listFolder, createFolder, deleteFolder, renameFolder, starFolder, unstarFolder } from '@/lib/api/folders';
 import { translateFileApiError } from '@/lib/i18n/files';
 import { translateFolderApiError } from '@/lib/i18n/folders';
 import { getFileCategory, type FileCategory } from '@/lib/utils/formatFiles';
 import { markForbidden, isForbidden } from '@/lib/permissions/filesGuard';
 import { usePagedDualList } from '@/hooks/usePagedDualList';
-import { useUploadQueue } from '@/hooks/useUploadQueue';
 import Button from '@/components/ui/Button';
 import ConfirmDialog from '@/components/ui/ConfirmDialog';
-import Modal from '@/components/ui/Modal';
 import { Input } from '@/components/ui/Input';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/Tabs';
 import FileTable from '@/components/files/FileTable';
@@ -27,14 +23,10 @@ import UploadDialog, { validateAndEnqueueFiles } from '@/components/files/Upload
 import UploadProgressPanel from '@/components/files/UploadProgressPanel';
 import FileDetailSheet from '@/components/files/FileDetailSheet';
 import FolderDetailSheet from '@/components/files/FolderDetailSheet';
-import PreviewModal from '@/components/files/PreviewModal';
 import FilesBreadcrumb from '@/components/files/FilesBreadcrumb';
 import NameDialog from '@/components/files/NameDialog';
 import EntryActionsMenu, { type ActionMenuItem } from '@/components/files/EntryActionsMenu';
-import ShareModal from '@/components/files/ShareModal';
-import MoveToFolderDialog from '@/components/files/MoveToFolderDialog';
-import StorageUsageBar from '@/components/files/StorageUsageBar';
-import { toFileEntries, toFolderEntries, type FsEntry, type FileEntry } from '@/components/files/entryTypes';
+import { toFileEntries, toFolderEntries, type FsEntry } from '@/components/files/entryTypes';
 
 type CategoryFilter = FileCategory | 'all';
 type ViewMode = 'list' | 'grid';
@@ -59,8 +51,6 @@ const PAGE_SIZE = 20;
 export default function FilesFeed({ mode, groupId, folderId = null, basePath }: FilesFeedProps) {
   const t = useTranslations('files');
   const tf = useTranslations('folders');
-  const tv = useTranslations('validation');
-  const router = useRouter();
   const locale = useLocale();
 
   const [search, setSearch] = useState('');
@@ -72,42 +62,23 @@ export default function FilesFeed({ mode, groupId, folderId = null, basePath }: 
   // producing a hydration mismatch. The real value is applied client-only,
   // post-mount, below.
   const [view, setView] = useState<ViewMode>('list');
-  useEffect(() => {
-    const stored = toViewMode(localStorage.getItem(VIEW_MODE_STORAGE_KEY));
-    if (stored !== view) setView(stored);
-    // Runs once on mount only — intentionally not re-run on `view` changes
-    // (that's the persist-on-change effect right below).
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-  useEffect(() => {
-    localStorage.setItem(VIEW_MODE_STORAGE_KEY, view);
-  }, [view]);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-  const [isBulkBusy, setIsBulkBusy] = useState(false);
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [isNewFolderOpen, setIsNewFolderOpen] = useState(false);
   const [renameTarget, setRenameTarget] = useState<FsEntry | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<FsEntry | null>(null);
   const [selectedFileId, setSelectedFileId] = useState<string | null>(null);
   const [selectedFolderDetailId, setSelectedFolderDetailId] = useState<string | null>(null);
-  const [previewFileId, setPreviewFileId] = useState<string | null>(null);
-  const [shareTarget, setShareTarget] = useState<FsEntry | null>(null);
-  const [isBulkShareOpen, setIsBulkShareOpen] = useState(false);
-  const [bulkShareGroups, setBulkShareGroups] = useState<Array<{ id: string; name: string }>>([]);
-  const [selectedBulkGroupId, setSelectedBulkGroupId] = useState('');
-  const [isBulkSharing, setIsBulkSharing] = useState(false);
-  const [moveTarget, setMoveTarget] = useState<{ entry: FsEntry; mode: 'move' | 'copy' } | null>(null);
-  const [isBulkMoveOpen, setIsBulkMoveOpen] = useState(false);
-
-  const [storageRefreshKey, setStorageRefreshKey] = useState(0);
 
   const {
     listA: subfolders,
     listB: files,
+    totalA: subfolderTotal,
+    totalB: fileTotal,
     isLoading,
     hasMore,
     loadMore,
-    reset: resetEntries,
+    reset: refetch,
   } = usePagedDualList(
     async (offset, limit) => {
       try {
@@ -119,42 +90,13 @@ export default function FilesFeed({ mode, groupId, folderId = null, basePath }: 
           totalB: response.data.file_total,
         };
       } catch (error) {
-        // Report the failure to the user here, then re-throw so
-        // usePagedDualList's own catch (not this fetcher) is the one that
-        // decides how to handle hook state — it preserves the last known-good
-        // lists/totals on a failed loadMore() instead of collapsing them to 0.
         toast.error(translateFolderApiError(tf, error, 'errors.default'));
-        throw error;
+        return { listA: [], listB: [], totalA: 0, totalB: 0 };
       }
     },
     PAGE_SIZE,
     [mode, groupId, folderId]
   );
-
-  // Wraps the hook's reset() so every refetch also nudges StorageUsageBar to
-  // re-fetch — uploads/deletes/moves/renames all go through this one refetch
-  // call site (see the many `refetch()` calls below), so this is the single
-  // place that needs to know about storage usage going stale.
-  const refetch = () => {
-    resetEntries();
-    setStorageRefreshKey((key) => key + 1);
-  };
-
-  // FilesFeed is reused (not remounted) across folder-to-folder navigation,
-  // so selection state would otherwise survive a folderId change and
-  // BulkActionBar could show "N selected" for entries no longer displayed —
-  // a bulk action against that stale selection would then misleadingly
-  // report success against entries from a different folder.
-  useEffect(() => {
-    setSelectedIds(new Set());
-  }, [folderId]);
-
-  const {
-    items: uploadItems,
-    enqueue: enqueueUploads,
-    retry: retryUpload,
-    removeSettled: removeSettledUpload,
-  } = useUploadQueue({ mode, groupId, folderId, onAllSettled: refetch });
 
   const entries = useMemo<FsEntry[]>(() => [...toFolderEntries(subfolders), ...toFileEntries(files)], [subfolders, files]);
 
@@ -167,14 +109,6 @@ export default function FilesFeed({ mode, groupId, folderId = null, basePath }: 
       return true;
     });
   }, [entries, search, category]);
-
-  // Bulk-share's 100-item cap (spec §3.3) applies to files only, so the
-  // BulkActionBar "too many" check needs the files-only subset of the
-  // selection, not the raw selectedIds.size (which also counts folders).
-  const selectedFileCount = useMemo(
-    () => entries.filter((e) => selectedIds.has(e.id) && e.kind === 'file').length,
-    [entries, selectedIds]
-  );
 
   const handleToggleStar = async (entry: FsEntry) => {
     const originalStarred = entry.is_starred;
@@ -197,10 +131,6 @@ export default function FilesFeed({ mode, groupId, folderId = null, basePath }: 
       const response = await requestDownload(entry.id);
       window.location.href = buildDownloadUrl(response.data.download_token);
     } catch (error) {
-      const status = (error as {response?: {status?: number}} | undefined)?.response?.status;
-      if (status === 403) {
-        markForbidden('file', 'download', entry.id);
-      }
       toast.error(translateFileApiError(t, error, 'errors.default'));
     }
   };
@@ -216,10 +146,6 @@ export default function FilesFeed({ mode, groupId, folderId = null, basePath }: 
       toast.success(t('toasts.renameSuccess'));
       refetch();
     } catch (error) {
-      const status = (error as {response?: {status?: number}} | undefined)?.response?.status;
-      if (status === 403) {
-        markForbidden(renameTarget.kind, 'edit', renameTarget.id);
-      }
       toast.error(renameTarget.kind === 'file' ? translateFileApiError(t, error, 'errors.default') : translateFolderApiError(tf, error, 'errors.default'));
       throw error;
     }
@@ -238,114 +164,7 @@ export default function FilesFeed({ mode, groupId, folderId = null, basePath }: 
       setDeleteTarget(null);
       refetch();
     } catch (error) {
-      const status = (error as {response?: {status?: number}} | undefined)?.response?.status;
-      if (status === 403) {
-        markForbidden(deleteTarget.kind, 'delete', deleteTarget.id);
-      }
       toast.error(deleteTarget.kind === 'file' ? translateFileApiError(t, error, 'errors.default') : translateFolderApiError(tf, error, 'errors.default'));
-    }
-  };
-
-  const handleBulkDownload = async () => {
-    setIsBulkBusy(true);
-    const fileIds = entries.filter((e) => e.kind === 'file' && selectedIds.has(e.id)).map((e) => e.id);
-    for (const fileId of fileIds) {
-      try {
-        const response = await requestDownload(fileId);
-        window.location.href = buildDownloadUrl(response.data.download_token);
-      } catch (error) {
-        const status = (error as {response?: {status?: number}} | undefined)?.response?.status;
-        if (status === 403) markForbidden('file', 'download', fileId);
-        toast.error(translateFileApiError(t, error, 'errors.default'));
-      }
-    }
-    setIsBulkBusy(false);
-  };
-
-  const handleBulkDelete = async () => {
-    setIsBulkBusy(true);
-    const targets = entries.filter((e) => selectedIds.has(e.id));
-    let succeeded = 0;
-    for (const entry of targets) {
-      try {
-        if (entry.kind === 'file') await deleteFile(entry.id);
-        else await deleteFolder(entry.id);
-        succeeded += 1;
-      } catch (error) {
-        const status = (error as {response?: {status?: number}} | undefined)?.response?.status;
-        if (status === 403) markForbidden(entry.kind, 'delete', entry.id);
-        // individual failure — counted in the summary toast below
-      }
-    }
-    toast.success(t('bulk.deleteSummary', { succeeded, total: targets.length }));
-    setSelectedIds(new Set());
-    setIsBulkBusy(false);
-    refetch();
-  };
-
-  // Bulk move (Task 30): unlike bulk share/download, this applies to BOTH
-  // files and folders in the selection (mirrors handleBulkDelete's pattern,
-  // not handleBulkDownload's files-only one). excludeFolderId is left null
-  // for the bulk case — it can't exclude every selected folder's subtree at
-  // once, so this is best-effort UX only; the backend's own cycle-detection
-  // 409 remains the real safety net for any folder moved into its own child.
-  const handleBulkMoveSelect = async (targetFolderId: string | null) => {
-    const targets = entries.filter((e) => selectedIds.has(e.id));
-    let succeeded = 0;
-    for (const entry of targets) {
-      try {
-        if (entry.kind === 'file') await moveFile(entry.id, targetFolderId);
-        else await moveFolder(entry.id, targetFolderId);
-        succeeded += 1;
-      } catch (error) {
-        const status = (error as {response?: {status?: number}} | undefined)?.response?.status;
-        if (status === 403) markForbidden(entry.kind, 'edit', entry.id);
-        // individual failure — counted in the summary toast below
-      }
-    }
-    toast.success(t('bulk.moveSummary', { succeeded, total: targets.length }));
-    setSelectedIds(new Set());
-    refetch();
-  };
-
-  // Bulk group-share (spec §3.3): files only, capped at 100 by the backend
-  // (BulkActionBar disables the trigger past that count). Opening the modal
-  // fetches the user's groups using the same defensive multi-key response
-  // parsing already established in ShareModal/ShareUserTab for this endpoint.
-  const handleOpenBulkShare = () => {
-    setSelectedBulkGroupId('');
-    setIsBulkShareOpen(true);
-    getUserGroups()
-      .then((response) => {
-        const source = (response as { data?: unknown }).data ?? response;
-        const array = source && typeof source === 'object'
-          ? (['group_users', 'groups', 'items', 'result'].map((k) => (source as Record<string, unknown>)[k]).find(Array.isArray) as unknown[] | undefined)
-          : undefined;
-        setBulkShareGroups((array ?? []).map((item) => {
-          const row = item as Record<string, unknown>;
-          return { id: String(row.group_id ?? row.id ?? ''), name: String(row.group_name ?? row.name ?? '') };
-        }).filter((g) => g.id));
-      })
-      .catch(() => setBulkShareGroups([]));
-  };
-
-  const handleConfirmBulkShare = async () => {
-    if (!selectedBulkGroupId) return;
-    const fileIds = entries.filter((e) => selectedIds.has(e.id) && e.kind === 'file').map((e) => e.id);
-    setIsBulkSharing(true);
-    try {
-      const response = await bulkShareWithGroup(fileIds, selectedBulkGroupId);
-      toast.success(t('bulk.shareSummary', { succeeded: response.data.succeeded.length, total: fileIds.length }));
-      if (response.data.failed.length > 0) {
-        toast.error(t('bulk.shareFailedDetail', { items: response.data.failed.slice(0, 3).map((f) => f.reason).join(', ') }));
-      }
-      setIsBulkShareOpen(false);
-      setSelectedIds(new Set());
-      refetch();
-    } catch (error) {
-      toast.error(translateFileApiError(t, error, 'errors.default'));
-    } finally {
-      setIsBulkSharing(false);
     }
   };
 
@@ -358,13 +177,6 @@ export default function FilesFeed({ mode, groupId, folderId = null, basePath }: 
       toast.error(translateFolderApiError(tf, error, 'errors.default'));
       throw error;
     }
-  };
-
-  // Clicking a folder's name/card navigates into it (basePath + /folder/{id})
-  // rather than opening the metadata sheet — see the 'details' menu item
-  // below for how the sheet stays reachable.
-  const handleOpenFolder = (id: string) => {
-    router.push(`/${locale}${basePath}/folder/${encodeURIComponent(id)}`);
   };
 
   // Extension point: the Move/Copy task and the Share task each add one more
@@ -381,21 +193,8 @@ export default function FilesFeed({ mode, groupId, folderId = null, basePath }: 
             icon: <Download size={16} strokeWidth={1.75} />,
             onSelect: () => void handleDownload(entry),
             hidden: isForbidden(scope, 'download', entry.id),
-          },
-          {
-            key: 'details',
-            label: t('preview.details'),
-            icon: <Info size={16} strokeWidth={1.75} />,
-            onSelect: () => setSelectedFileId(entry.id),
           }]
-        : [{
-            // Primary click now navigates into the folder instead of opening
-            // this metadata sheet, so it stays reachable from the kebab menu.
-            key: 'details',
-            label: t('table.details'),
-            icon: <Info size={16} strokeWidth={1.75} />,
-            onSelect: () => setSelectedFolderDetailId(entry.id),
-          }]),
+        : []),
       {
         key: 'rename',
         label: t('table.rename'),
@@ -403,27 +202,6 @@ export default function FilesFeed({ mode, groupId, folderId = null, basePath }: 
         onSelect: () => setRenameTarget(entry),
         hidden: isForbidden(scope, 'edit', entry.id),
       },
-      {
-        key: 'share',
-        label: t('share.modalTitle'),
-        icon: <Share2 size={16} strokeWidth={1.75} />,
-        onSelect: () => setShareTarget(entry),
-      },
-      {
-        key: 'move',
-        label: t('table.move'),
-        icon: <FolderInput size={16} strokeWidth={1.75} />,
-        onSelect: () => setMoveTarget({ entry, mode: 'move' }),
-        hidden: isForbidden(scope, 'edit', entry.id),
-      },
-      ...(entry.kind === 'file'
-        ? [{
-            key: 'copy',
-            label: t('table.copy'),
-            icon: <Copy size={16} strokeWidth={1.75} />,
-            onSelect: () => setMoveTarget({ entry, mode: 'copy' }),
-          }]
-        : []),
       {
         key: 'star',
         label: entry.is_starred ? t('table.unstar') : t('table.star'),
@@ -475,25 +253,15 @@ export default function FilesFeed({ mode, groupId, folderId = null, basePath }: 
           <Input type="text" value={search} onChange={(event) => setSearch(event.target.value)} placeholder={t('toolbar.searchPlaceholder')} className="pl-8" />
         </div>
         <div className="flex items-center gap-2">
-          {/* Below `sm:` this row is no longer forced into a column (that only
-              applies to the outer search/tabs wrapper), so the 4 filter tabs
-              plus the view toggle can genuinely overflow a 375px viewport
-              (Hungarian labels like "Dokumentumok"/"Táblázatok" alone push
-              TabsList past ~420px). Wrap just the Tabs in a scrollable,
-              shrinkable region so it scrolls horizontally instead of
-              clipping, while the view toggle (kept `shrink-0`) stays fully
-              visible. */}
-          <div className="min-w-0 overflow-x-auto">
-            <Tabs value={category} onValueChange={(value) => setCategory(value as CategoryFilter)}>
-              <TabsList>
-                <TabsTrigger value="all">{t('toolbar.filters.all')}</TabsTrigger>
-                <TabsTrigger value="document">{t('toolbar.filters.documents')}</TabsTrigger>
-                <TabsTrigger value="image">{t('toolbar.filters.images')}</TabsTrigger>
-                <TabsTrigger value="spreadsheet">{t('toolbar.filters.spreadsheets')}</TabsTrigger>
-              </TabsList>
-            </Tabs>
-          </div>
-          <div className="flex shrink-0 items-center gap-1 rounded-lg border border-[var(--border-subtle)] p-1">
+          <Tabs value={category} onValueChange={(value) => setCategory(value as CategoryFilter)}>
+            <TabsList>
+              <TabsTrigger value="all">{t('toolbar.filters.all')}</TabsTrigger>
+              <TabsTrigger value="document">{t('toolbar.filters.documents')}</TabsTrigger>
+              <TabsTrigger value="image">{t('toolbar.filters.images')}</TabsTrigger>
+              <TabsTrigger value="spreadsheet">{t('toolbar.filters.spreadsheets')}</TabsTrigger>
+            </TabsList>
+          </Tabs>
+          <div className="flex items-center gap-1 rounded-lg border border-[var(--border-subtle)] p-1">
             <button type="button" aria-label={t('toolbar.view.list')} onClick={() => setView('list')} className={`inline-flex h-7 w-7 items-center justify-center rounded-[var(--radius-sm)] ${view === 'list' ? 'bg-[var(--bg-active)] text-[var(--text-primary)]' : 'text-[var(--text-tertiary)] hover:text-[var(--text-primary)]'}`}>
               <List size={15} strokeWidth={1.75} />
             </button>
@@ -504,15 +272,7 @@ export default function FilesFeed({ mode, groupId, folderId = null, basePath }: 
         </div>
       </div>
 
-      <UploadDialog
-        open={isUploadOpen}
-        onClose={() => setIsUploadOpen(false)}
-        mode={mode}
-        groupId={groupId}
-        folderId={folderId}
-        onUploaded={refetch}
-        enqueue={enqueueUploads}
-      />
+      <UploadDialog open={isUploadOpen} onClose={() => setIsUploadOpen(false)} mode={mode} groupId={groupId} folderId={folderId} onUploaded={refetch} />
       <NameDialog open={isNewFolderOpen} title={tf('newFolder.title')} label={tf('newFolder.label')} submitLabel={tf('newFolder.submit')} onSubmit={handleCreateFolder} onClose={() => setIsNewFolderOpen(false)} />
       <NameDialog
         open={renameTarget !== null}
@@ -524,64 +284,33 @@ export default function FilesFeed({ mode, groupId, folderId = null, basePath }: 
         onClose={() => setRenameTarget(null)}
       />
 
-      <div
-        onDragOver={(event) => event.preventDefault()}
-        onDrop={(event) => {
-          event.preventDefault();
-          const files = Array.from(event.dataTransfer.files);
-          if (files.length > 0) {
-            // Drag&drop bypasses UploadDialog's own handler, so it needs the
-            // same non-blocking validation feedback (spec §12) that the
-            // Browse/dialog path already gives — otherwise dropping an
-            // invalid file silently enqueues with zero client-side feedback.
-            validateAndEnqueueFiles(
-              files,
-              enqueueUploads,
-              (suggestion) => toast(t('nameDialog.sanitizeSuggestion', { suggestion })),
-              (issueMessage) => toast.error(tv(issueMessage as never))
-            );
-          }
-        }}
-      >
-        {isLoading && entries.length === 0 ? (
-          <div className="space-y-2">
-            <div className="h-10 w-full animate-pulse rounded-lg bg-[var(--bg-elevated)]" />
-            <div className="h-10 w-full animate-pulse rounded-lg bg-[var(--bg-elevated)]" />
-            <div className="h-10 w-full animate-pulse rounded-lg bg-[var(--bg-elevated)]" />
-          </div>
-        ) : view === 'grid' ? (
-          <FileGrid
-            entries={filteredEntries}
-            selectedIds={selectedIds}
-            onToggleSelect={(entry) => setSelectedIds((current) => toggleSet(current, entry.id))}
-            onOpenFile={setPreviewFileId}
-            onOpenFolder={handleOpenFolder}
-            onToggleStar={handleToggleStar}
-            renderActions={renderActions}
-          />
-        ) : (
-          <FileTable
-            entries={filteredEntries}
-            selectedIds={selectedIds}
-            onToggleSelect={(entry) => setSelectedIds((current) => toggleSet(current, entry.id))}
-            onOpenFile={setPreviewFileId}
-            onOpenFolder={handleOpenFolder}
-            onToggleStar={handleToggleStar}
-            renderActions={renderActions}
-          />
-        )}
-      </div>
-
-      <BulkActionBar
-        count={selectedIds.size}
-        shareableCount={selectedFileCount}
-        onDownloadAll={() => void handleBulkDownload()}
-        onDeleteAll={() => void handleBulkDelete()}
-        onShareAll={handleOpenBulkShare}
-        onMoveAll={() => setIsBulkMoveOpen(true)}
-        onClear={() => setSelectedIds(new Set())}
-        isBusy={isBulkBusy}
-      />
+      {isLoading && entries.length === 0 ? (
+        <div className="space-y-2">
+          <div className="h-10 w-full animate-pulse rounded-lg bg-[var(--bg-elevated)]" />
+          <div className="h-10 w-full animate-pulse rounded-lg bg-[var(--bg-elevated)]" />
+          <div className="h-10 w-full animate-pulse rounded-lg bg-[var(--bg-elevated)]" />
+        </div>
+      ) : view === 'grid' ? (
+        <FileGrid
+          entries={filteredEntries}
+          selectedIds={selectedIds}
+          onToggleSelect={(entry) => setSelectedIds((current) => toggleSet(current, entry.id))}
+          onOpenFile={setSelectedFileId}
+          onOpenFolder={setSelectedFolderDetailId}
+          onToggleStar={handleToggleStar}
+          renderActions={renderActions}
+        />
+      ) : (
+        <FileTable
+          entries={filteredEntries}
+          selectedIds={selectedIds}
+          onToggleSelect={(entry) => setSelectedIds((current) => toggleSet(current, entry.id))}
+          onOpenFile={setSelectedFileId}
+          onOpenFolder={setSelectedFolderDetailId}
+          onToggleStar={handleToggleStar}
+          renderActions={renderActions}
+        />
+      )}
 
       {!isLoading && hasMore && (
         <div className="flex justify-center">
@@ -591,90 +320,8 @@ export default function FilesFeed({ mode, groupId, folderId = null, basePath }: 
         </div>
       )}
 
-      <FileDetailSheet
-        fileId={selectedFileId}
-        onClose={() => setSelectedFileId(null)}
-        onDeleted={() => { setSelectedFileId(null); refetch(); }}
-        onChanged={refetch}
-        onPreview={(id) => { setSelectedFileId(null); setPreviewFileId(id); }}
-      />
+      <FileDetailSheet fileId={selectedFileId} onClose={() => setSelectedFileId(null)} onDeleted={() => { setSelectedFileId(null); refetch(); }} />
       <FolderDetailSheet folderId={selectedFolderDetailId} onClose={() => setSelectedFolderDetailId(null)} onDeleted={() => { setSelectedFolderDetailId(null); refetch(); }} onRenamed={refetch} />
-
-      <ShareModal
-        open={shareTarget !== null}
-        kind={shareTarget?.kind ?? 'file'}
-        entityId={shareTarget?.id ?? ''}
-        isOwner={shareTarget?.is_owner ?? false}
-        onClose={() => setShareTarget(null)}
-      />
-
-      <MoveToFolderDialog
-        open={moveTarget !== null}
-        title={moveTarget?.mode === 'copy' ? t('table.copy') : t('table.move')}
-        scope={mode}
-        groupId={groupId}
-        excludeFolderId={moveTarget?.entry.kind === 'folder' ? moveTarget.entry.id : null}
-        onSelect={async (targetFolderId) => {
-          if (!moveTarget) return;
-          try {
-            if (moveTarget.entry.kind === 'file') {
-              if (moveTarget.mode === 'copy') await copyFile(moveTarget.entry.id, targetFolderId);
-              else await moveFile(moveTarget.entry.id, targetFolderId);
-            } else {
-              await moveFolder(moveTarget.entry.id, targetFolderId);
-            }
-            toast.success(t('toasts.moveSuccess'));
-            refetch();
-          } catch (error) {
-            const status = (error as {response?: {status?: number}} | undefined)?.response?.status;
-            if (status === 403) markForbidden(moveTarget.entry.kind, 'edit', moveTarget.entry.id);
-            toast.error(moveTarget.entry.kind === 'file' ? translateFileApiError(t, error, 'errors.default') : translateFolderApiError(tf, error, 'errors.default'));
-            throw error;
-          }
-        }}
-        onClose={() => setMoveTarget(null)}
-      />
-
-      <MoveToFolderDialog
-        open={isBulkMoveOpen}
-        title={t('table.move')}
-        scope={mode}
-        groupId={groupId}
-        excludeFolderId={null}
-        onSelect={handleBulkMoveSelect}
-        onClose={() => setIsBulkMoveOpen(false)}
-      />
-
-      <Modal open={isBulkShareOpen} title={t('bulk.share')} onClose={() => setIsBulkShareOpen(false)}>
-        <div className="flex flex-col gap-4">
-          <select
-            value={selectedBulkGroupId}
-            onChange={(event) => setSelectedBulkGroupId(event.target.value)}
-            className="w-full rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface)] px-3 py-2 text-sm text-[var(--text-primary)] outline-none focus-visible:border-border-focus"
-          >
-            <option value="">{t('share.selectGroupPlaceholder')}</option>
-            {bulkShareGroups.map((group) => (
-              <option key={group.id} value={group.id}>{group.name}</option>
-            ))}
-          </select>
-          <Button
-            type="button"
-            variant="primary"
-            loading={isBulkSharing}
-            disabled={!selectedBulkGroupId}
-            onClick={() => void handleConfirmBulkShare()}
-          >
-            {t('share.shareButton')}
-          </Button>
-        </div>
-      </Modal>
-      <PreviewModal
-        files={filteredEntries.filter((e): e is FileEntry => e.kind === 'file')}
-        currentFileId={previewFileId}
-        onNavigate={setPreviewFileId}
-        onClose={() => setPreviewFileId(null)}
-        onOpenDetails={(fileId) => { setPreviewFileId(null); setSelectedFileId(fileId); }}
-      />
 
       <ConfirmDialog
         open={deleteTarget !== null}
@@ -683,11 +330,6 @@ export default function FilesFeed({ mode, groupId, folderId = null, basePath }: 
         onCancel={() => setDeleteTarget(null)}
         onConfirm={() => void handleDeleteConfirm()}
       />
-
-      {/* Rendered once here (not inside UploadDialog) so it persists across the
-          dialog opening/closing and across drag&drop uploads that never open
-          the dialog at all. */}
-      <UploadProgressPanel items={uploadItems} onRetry={retryUpload} onRemove={removeSettledUpload} />
     </section>
   );
 }

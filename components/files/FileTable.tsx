@@ -4,6 +4,7 @@ import { useTranslations } from 'next-intl';
 import { Folder, Star } from 'lucide-react';
 import DataTable, { type Column } from '@/components/ui/DataTable';
 import FileTypeIcon from './FileTypeIcon';
+import ThumbnailImage from './ThumbnailImage';
 import { type EntryListProps, type FsEntry, getEntryDateIso, getEntryName } from './entryTypes';
 import { formatFileSize, formatMimeType, formatUploadedAt } from '@/lib/utils/formatFiles';
 
@@ -49,6 +50,10 @@ export default function FileTable({
         >
           {row.kind === 'folder' ? (
             <Folder size={18} strokeWidth={1.5} className="shrink-0 text-[var(--text-tertiary)]" />
+          ) : row.mime_type?.startsWith('image/') ? (
+            <span className="h-7 w-7 shrink-0 overflow-hidden rounded-[var(--radius-sm)] bg-[var(--bg-elevated)]">
+              <ThumbnailImage fileId={row.id} mimeType={row.mime_type} alt={row.original_name} className="h-full w-full object-cover" />
+            </span>
           ) : (
             <FileTypeIcon mimeType={row.mime_type} size={18} className="shrink-0 text-[var(--text-tertiary)]" />
           )}

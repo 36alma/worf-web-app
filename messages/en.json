@@ -401,7 +401,9 @@
       "emptyText": "Trash is empty."
     },
     "starred": {
-      "emptyText": "You have no starred items."
+      "emptyText": "You have no starred items.",
+      "groupTitle": "Starred in this group",
+      "groupEmptyText": "No starred items in this group."
     },
     "sharedWithMe": {
       "emptyText": "No one has shared any files or folders with you yet."

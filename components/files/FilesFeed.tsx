@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useLocale, useTranslations } from 'next-intl';
 import toast from 'react-hot-toast';
 import { Download, FolderPlus, Pencil, Star, Trash2 } from 'lucide-react';
@@ -23,7 +24,7 @@ import BulkActionBar from '@/components/files/BulkActionBar';
 import UploadDialog from '@/components/files/UploadDialog';
 import UploadProgressPanel from '@/components/files/UploadProgressPanel';
 import FileDetailSheet from '@/components/files/FileDetailSheet';
-import FolderDetailSheet from '@/components/files/FolderDetailSheet';
+import PreviewModal from '@/components/files/PreviewModal';
 import FilesBreadcrumb from '@/components/files/FilesBreadcrumb';
 import NameDialog from '@/components/files/NameDialog';
 import EntryActionsMenu, { type ActionMenuItem } from '@/components/files/EntryActionsMenu';
@@ -54,6 +55,7 @@ export default function FilesFeed({ mode, groupId, folderId = null, basePath }: 
   const t = useTranslations('files');
   const tf = useTranslations('folders');
   const locale = useLocale();
+  const router = useRouter();
 
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState<CategoryFilter>('all');
@@ -70,7 +72,7 @@ export default function FilesFeed({ mode, groupId, folderId = null, basePath }: 
   const [renameTarget, setRenameTarget] = useState<FsEntry | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<FsEntry | null>(null);
   const [selectedFileId, setSelectedFileId] = useState<string | null>(null);
-  const [selectedFolderDetailId, setSelectedFolderDetailId] = useState<string | null>(null);
+  const [previewFileId, setPreviewFileId] = useState<string | null>(null);
   const [storageRefreshKey, setStorageRefreshKey] = useState(0);
 
   const {
@@ -102,6 +104,11 @@ export default function FilesFeed({ mode, groupId, folderId = null, basePath }: 
   );
 
   const entries = useMemo<FsEntry[]>(() => [...toFolderEntries(subfolders), ...toFileEntries(files)], [subfolders, files]);
+  const fileEntries = useMemo(() => toFileEntries(files), [files]);
+
+  const handleOpenFolder = (id: string) => {
+    router.push(`/${locale}${basePath}/folder/${encodeURIComponent(id)}`);
+  };
 
   const refreshFilesAndStorage = () => {
     setStorageRefreshKey((current) => current + 1);
@@ -248,6 +255,12 @@ export default function FilesFeed({ mode, groupId, folderId = null, basePath }: 
           <FilesBreadcrumb folderId={folderId} basePath={basePath} />
         </div>
         <div className="flex items-center gap-2">
+          {mode === 'group' && (
+            <Button type="button" variant="secondary" onClick={() => router.push(`/${locale}${basePath}/starred`)}>
+              <Star size={16} strokeWidth={1.75} className="mr-1.5" />
+              {t('subnav.starred')}
+            </Button>
+          )}
           <Button type="button" variant="secondary" onClick={() => setIsNewFolderOpen(true)}>
             <FolderPlus size={16} strokeWidth={1.75} className="mr-1.5" />
             {tf('newFolder.trigger')}
@@ -311,7 +324,7 @@ export default function FilesFeed({ mode, groupId, folderId = null, basePath }: 
           selectedIds={selectedIds}
           onToggleSelect={(entry) => setSelectedIds((current) => toggleSet(current, entry.id))}
           onOpenFile={setSelectedFileId}
-          onOpenFolder={setSelectedFolderDetailId}
+          onOpenFolder={handleOpenFolder}
           onToggleStar={handleToggleStar}
           renderActions={renderActions}
         />
@@ -321,7 +334,7 @@ export default function FilesFeed({ mode, groupId, folderId = null, basePath }: 
           selectedIds={selectedIds}
           onToggleSelect={(entry) => setSelectedIds((current) => toggleSet(current, entry.id))}
           onOpenFile={setSelectedFileId}
-          onOpenFolder={setSelectedFolderDetailId}
+          onOpenFolder={handleOpenFolder}
           onToggleStar={handleToggleStar}
           renderActions={renderActions}
         />
@@ -335,8 +348,20 @@ export default function FilesFeed({ mode, groupId, folderId = null, basePath }: 
         </div>
       )}
 
-      <FileDetailSheet fileId={selectedFileId} onClose={() => setSelectedFileId(null)} onDeleted={() => { setSelectedFileId(null); refreshFilesAndStorage(); }} />
-      <FolderDetailSheet folderId={selectedFolderDetailId} onClose={() => setSelectedFolderDetailId(null)} onDeleted={() => { setSelectedFolderDetailId(null); refreshFilesAndStorage(); }} onRenamed={refetch} />
+      <FileDetailSheet
+        fileId={selectedFileId}
+        onClose={() => setSelectedFileId(null)}
+        onDeleted={() => { setSelectedFileId(null); refreshFilesAndStorage(); }}
+        onChanged={refetch}
+        onPreview={setPreviewFileId}
+      />
+      <PreviewModal
+        files={fileEntries}
+        currentFileId={previewFileId}
+        onNavigate={setPreviewFileId}
+        onClose={() => setPreviewFileId(null)}
+        onOpenDetails={(fileId) => { setPreviewFileId(null); setSelectedFileId(fileId); }}
+      />
 
       <ConfirmDialog
         open={deleteTarget !== null}

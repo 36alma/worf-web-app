@@ -1,7 +1,8 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { useTranslations } from 'next-intl';
+import { useRouter } from 'next/navigation';
+import { useLocale, useTranslations } from 'next-intl';
 import toast from 'react-hot-toast';
 import { getStarred, starFile, unstarFile, requestDownload, buildDownloadUrl } from '@/lib/api/files';
 import { starFolder, unstarFolder } from '@/lib/api/folders';
@@ -12,7 +13,7 @@ import EmptyState from '@/components/ui/EmptyState';
 import { Star } from 'lucide-react';
 import FileTable from '@/components/files/FileTable';
 import FileDetailSheet from '@/components/files/FileDetailSheet';
-import FolderDetailSheet from '@/components/files/FolderDetailSheet';
+import PreviewModal from '@/components/files/PreviewModal';
 import EntryActionsMenu, { type ActionMenuItem } from '@/components/files/EntryActionsMenu';
 import { toFileEntries, toFolderEntries, type FsEntry } from '@/components/files/entryTypes';
 
@@ -20,8 +21,10 @@ const PAGE_SIZE = 20;
 
 export default function StarredView() {
   const t = useTranslations('files');
+  const locale = useLocale();
+  const router = useRouter();
   const [selectedFileId, setSelectedFileId] = useState<string | null>(null);
-  const [selectedFolderId, setSelectedFolderId] = useState<string | null>(null);
+  const [previewFileId, setPreviewFileId] = useState<string | null>(null);
 
   const {
     listA: folders,
@@ -50,6 +53,16 @@ export default function StarredView() {
   );
 
   const entries = useMemo<FsEntry[]>(() => [...toFolderEntries(folders), ...toFileEntries(files)], [folders, files]);
+  const fileEntries = useMemo(() => toFileEntries(files), [files]);
+
+  const handleOpenFolder = (id: string, scope: 'private' | 'group') => {
+    // Starred entries carry no group_id (backend limitation — the starred/list
+    // endpoint doesn't return which group a group-scoped item belongs to), so
+    // a group folder can't be routed to reliably from here. Only private
+    // folders can be navigated into directly; browse group folders from the
+    // group's own Files section instead.
+    if (scope === 'private') router.push(`/${locale}/files/folder/${encodeURIComponent(id)}`);
+  };
 
   const handleToggleStar = async (entry: FsEntry) => {
     try {
@@ -104,7 +117,10 @@ export default function StarredView() {
           selectedIds={new Set()}
           onToggleSelect={() => undefined}
           onOpenFile={setSelectedFileId}
-          onOpenFolder={setSelectedFolderId}
+          onOpenFolder={(id) => {
+            const folder = folders.find((f) => f.id === id);
+            if (folder) handleOpenFolder(id, folder.scope);
+          }}
           onToggleStar={handleToggleStar}
           renderActions={(entry) => <EntryActionsMenu items={buildActionItems(entry)} triggerLabel={t('table.actions')} sheetTitle={t('table.actions')} />}
           selectable={false}
@@ -115,8 +131,20 @@ export default function StarredView() {
           <Button type="button" variant="secondary" onClick={loadMore}>{t('table.loadMore')}</Button>
         </div>
       )}
-      <FileDetailSheet fileId={selectedFileId} onClose={() => setSelectedFileId(null)} onDeleted={() => { setSelectedFileId(null); refetch(); }} />
-      <FolderDetailSheet folderId={selectedFolderId} onClose={() => setSelectedFolderId(null)} onDeleted={() => { setSelectedFolderId(null); refetch(); }} onRenamed={refetch} />
+      <FileDetailSheet
+        fileId={selectedFileId}
+        onClose={() => setSelectedFileId(null)}
+        onDeleted={() => { setSelectedFileId(null); refetch(); }}
+        onChanged={refetch}
+        onPreview={setPreviewFileId}
+      />
+      <PreviewModal
+        files={fileEntries}
+        currentFileId={previewFileId}
+        onNavigate={setPreviewFileId}
+        onClose={() => setPreviewFileId(null)}
+        onOpenDetails={(fileId) => { setPreviewFileId(null); setSelectedFileId(fileId); }}
+      />
     </section>
   );
 }

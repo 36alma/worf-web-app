@@ -32,9 +32,11 @@ felhasználói tesztelés közben a következő hiányosságok/hibák derültek 
    jeleníti meg a név/metaadat szöveg felett — ez széles kártyáknál nagy,
    üresnek ható sávot hagy.
 6. **Mobilon a lista nézet is választható, pedig használhatatlan.** A
-   nézetváltás (`view` state, `FilesFeed.tsx`) teljesen manuális és
-   `localStorage`-ban perzisztált, nincs breakpoint-alapú kényszerítés grid
-   nézetre kis képernyőn.
+   nézetváltás (`view` state, `FilesFeed.tsx`) teljesen manuális, és csak a
+   munkamenet idejére emlékszik rá (a `VIEW_MODE_STORAGE_KEY`/`toViewMode`
+   `localStorage`-kód elő van készítve, de nincs ténylegesen bekötve —
+   holt kód); nincs breakpoint-alapú kényszerítés grid nézetre kis
+   képernyőn.
 7. **Nincs long-press support mobilon.** A `PreviewModal` swipe-navigációján
    kívül semmilyen touch-alapú long-press logika nincs a Files kódban.
 
@@ -174,8 +176,8 @@ is átvált Details-re, változatlanul.
 - `FileGrid.tsx` ikon-elrendezés javítása (nincs többé önálló `h-16`
   teljes szélességű sáv).
 - `FilesFeed.tsx`: `<768px` alatt a lista nézet gomb eltűnik, `view`
-  kényszerítve `'grid'`-re (a `localStorage`-ban tárolt `'list'` választás
-  mobilon figyelmen kívül marad, de asztalon visszaáll).
+  kényszerítve `'grid'`-re (a munkamenet idejére emlékezett `'list'`
+  választás mobilon figyelmen kívül marad, de asztalon visszaáll).
 - Érintett fájlok: `components/files/FileGrid.tsx`,
   `components/files/FilesFeed.tsx`.
 

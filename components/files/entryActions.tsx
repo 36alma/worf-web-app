@@ -8,6 +8,7 @@ export function isPreviewable(entry: FsEntry): boolean {
 }
 
 export interface EntryActionsContext {
+  /** Translation function scoped to the 'files' namespace (useTranslations('files') return value is a valid supertype). */
   t: (key: string) => string;
   onOpenFolder: (entry: FsEntry) => void;
   onPreview: (entry: FsEntry) => void;

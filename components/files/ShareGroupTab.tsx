@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import Button from '@/components/ui/Button';
 import { Switch } from '@/components/ui/Switch';
+import { canGrantShareFlags, type ShareFlagSet } from '@/lib/permissions/filesGuard';
 
 export interface ShareGroupEntry {
   group_id: string;
@@ -20,16 +21,19 @@ export interface ShareGroupTabProps {
   userGroups: SelectableGroup[];
   isLoading: boolean;
   showCanUpload?: boolean;
+  /** Sharer's own effective flags, used to disable the "allow upload" toggle when they don't hold `can_upload` themselves (no escalation, mirrors `ShareUserTab`). */
+  myFlags: ShareFlagSet;
   isSharing: boolean;
   revokingGroupId: string | null;
   onShare: (groupId: string, canUpload: boolean) => Promise<void>;
   onRevoke: (groupId: string) => Promise<void>;
 }
 
-export default function ShareGroupTab({ shares, userGroups, isLoading, showCanUpload, isSharing, revokingGroupId, onShare, onRevoke }: ShareGroupTabProps) {
+export default function ShareGroupTab({ shares, userGroups, isLoading, showCanUpload, myFlags, isSharing, revokingGroupId, onShare, onRevoke }: ShareGroupTabProps) {
   const t = useTranslations('files');
   const [selectedGroupId, setSelectedGroupId] = useState('');
   const [canUpload, setCanUpload] = useState(false);
+  const canGrantUpload = canGrantShareFlags(myFlags, { can_upload: true });
 
   return (
     <div className="flex flex-col gap-4">
@@ -56,8 +60,8 @@ export default function ShareGroupTab({ shares, userGroups, isLoading, showCanUp
       </div>
 
       {showCanUpload && (
-        <label className="flex items-center gap-2 text-sm text-[var(--text-secondary)]">
-          <Switch checked={canUpload} onCheckedChange={setCanUpload} />
+        <label className={`flex items-center gap-2 text-sm ${canGrantUpload ? 'text-[var(--text-secondary)]' : 'opacity-40'}`} title={canGrantUpload ? undefined : t('share.user.cannotGrant')}>
+          <Switch checked={canUpload} onCheckedChange={setCanUpload} disabled={!canGrantUpload} />
           {t('share.canUpload')}
         </label>
       )}

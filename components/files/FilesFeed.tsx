@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useLocale, useTranslations } from 'next-intl';
 import toast from 'react-hot-toast';
@@ -33,10 +33,18 @@ import NameDialog from '@/components/files/NameDialog';
 import EntryActionsMenu, { type ActionMenuItem } from '@/components/files/EntryActionsMenu';
 import ShareModal from '@/components/files/ShareModal';
 import MoveToFolderDialog from '@/components/files/MoveToFolderDialog';
+import StorageUsageBar from '@/components/files/StorageUsageBar';
 import { toFileEntries, toFolderEntries, type FsEntry, type FileEntry } from '@/components/files/entryTypes';
 
 type CategoryFilter = FileCategory | 'all';
 type ViewMode = 'list' | 'grid';
+
+const VIEW_MODE_STORAGE_KEY = 'worf-files-view';
+
+/** Narrows an arbitrary localStorage value to a valid ViewMode, defaulting to 'list'. */
+function toViewMode(value: string | null): ViewMode {
+  return value === 'grid' ? 'grid' : 'list';
+}
 
 export interface FilesFeedProps {
   mode: 'private' | 'group';
@@ -56,7 +64,12 @@ export default function FilesFeed({ mode, groupId, folderId = null, basePath }: 
 
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState<CategoryFilter>('all');
-  const [view, setView] = useState<ViewMode>('list');
+  const [view, setView] = useState<ViewMode>(() =>
+    typeof window !== 'undefined' ? toViewMode(localStorage.getItem(VIEW_MODE_STORAGE_KEY)) : 'list'
+  );
+  useEffect(() => {
+    localStorage.setItem(VIEW_MODE_STORAGE_KEY, view);
+  }, [view]);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [isBulkBusy, setIsBulkBusy] = useState(false);
   const [isUploadOpen, setIsUploadOpen] = useState(false);
@@ -416,6 +429,10 @@ export default function FilesFeed({ mode, groupId, folderId = null, basePath }: 
             {t('upload.submit')}
           </Button>
         </div>
+      </div>
+
+      <div className="max-w-xs">
+        <StorageUsageBar scope={mode} groupId={groupId} />
       </div>
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">

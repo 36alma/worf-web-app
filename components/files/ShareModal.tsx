@@ -175,6 +175,7 @@ export default function ShareModal({ open, kind, entityId, isOwner, onClose }: S
             userGroups={userGroups}
             isLoading={isLoadingShares}
             showCanUpload={kind === 'folder'}
+            myFlags={myFlags}
             isSharing={isSharing}
             revokingGroupId={revokingGroupId}
             onShare={handleShareGroup}

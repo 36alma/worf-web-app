@@ -370,6 +370,8 @@
       "emptyText": "Nincs fájl.",
       "loadMore": "Több betöltése",
       "rename": "Átnevezés",
+      "preview": "Előnézet",
+      "open": "Megnyitás",
       "pagination": {
         "prev": "Előző",
         "next": "Következő",

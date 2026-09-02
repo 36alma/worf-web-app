@@ -4,7 +4,7 @@ import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useLocale, useTranslations } from 'next-intl';
 import toast from 'react-hot-toast';
-import { Download, FolderPlus, Pencil, Star, Trash2 } from 'lucide-react';
+import { FolderPlus, Star } from 'lucide-react';
 import { LayoutGrid, List, Search } from 'lucide-react';
 import { listFiles, requestDownload, buildDownloadUrl, deleteFile, renameFile, starFile, unstarFile, type FileListItem } from '@/lib/api/files';
 import { listFolder, createFolder, deleteFolder, renameFolder, starFolder, unstarFolder } from '@/lib/api/folders';
@@ -28,8 +28,10 @@ import FileDetailSheet from '@/components/files/FileDetailSheet';
 import PreviewModal from '@/components/files/PreviewModal';
 import FilesBreadcrumb from '@/components/files/FilesBreadcrumb';
 import NameDialog from '@/components/files/NameDialog';
-import EntryActionsMenu, { type ActionMenuItem } from '@/components/files/EntryActionsMenu';
+import EntryActionsMenu from '@/components/files/EntryActionsMenu';
 import StorageUsageBar from '@/components/files/StorageUsageBar';
+import ShareModal from '@/components/files/ShareModal';
+import { buildEntryActions, isPreviewable } from '@/components/files/entryActions';
 import { toFileEntries, toFolderEntries, type FsEntry } from '@/components/files/entryTypes';
 
 type CategoryFilter = FileCategory | 'all';
@@ -76,6 +78,7 @@ export default function FilesFeed({ mode, groupId, folderId = null, basePath }: 
   const [deleteTarget, setDeleteTarget] = useState<FsEntry | null>(null);
   const [selectedFileId, setSelectedFileId] = useState<string | null>(null);
   const [previewFileId, setPreviewFileId] = useState<string | null>(null);
+  const [shareTarget, setShareTarget] = useState<FsEntry | null>(null);
   const [storageRefreshKey, setStorageRefreshKey] = useState(0);
 
   const {
@@ -111,6 +114,15 @@ export default function FilesFeed({ mode, groupId, folderId = null, basePath }: 
 
   const handleOpenFolder = (id: string) => {
     router.push(`/${locale}${basePath}/folder/${encodeURIComponent(id)}`);
+  };
+
+  const handleOpenFile = (fileId: string) => {
+    const entry = fileEntries.find((file) => file.id === fileId);
+    if (entry && isPreviewable(entry)) {
+      setPreviewFileId(fileId);
+    } else {
+      setSelectedFileId(fileId);
+    }
   };
 
   const refreshFilesAndStorage = () => {
@@ -204,48 +216,26 @@ export default function FilesFeed({ mode, groupId, folderId = null, basePath }: 
     }
   };
 
-  // Extension point: the Move/Copy task and the Share task each add one more
-  // ActionMenuItem to this exact array (after "download", before the
-  // trailing "delete" entry — delete stays last since it's the most
-  // destructive/least-frequently-used action, matching spec §3.2's order).
-  const buildActionItems = (entry: FsEntry): ActionMenuItem[] => {
-    const scope = entry.kind === 'file' ? 'file' : 'folder';
-    return [
-      ...(entry.kind === 'file'
-        ? [{
-            key: 'download',
-            label: t('detail.download'),
-            icon: <Download size={16} strokeWidth={1.75} />,
-            onSelect: () => void handleDownload(entry),
-            hidden: isForbidden(scope, 'download', entry.id),
-          }]
-        : []),
-      {
-        key: 'rename',
-        label: t('table.rename'),
-        icon: <Pencil size={16} strokeWidth={1.75} />,
-        onSelect: () => setRenameTarget(entry),
-        hidden: isForbidden(scope, 'edit', entry.id),
-      },
-      {
-        key: 'star',
-        label: entry.is_starred ? t('table.unstar') : t('table.star'),
-        icon: <Star size={16} strokeWidth={1.75} />,
-        onSelect: () => void handleToggleStar(entry),
-      },
-      {
-        key: 'delete',
-        label: t('detail.delete'),
-        icon: <Trash2 size={16} strokeWidth={1.75} />,
-        variant: 'danger',
-        onSelect: () => setDeleteTarget(entry),
-        hidden: isForbidden(scope, 'delete', entry.id),
-      },
-    ];
-  };
-
   const renderActions = (entry: FsEntry) => (
-    <EntryActionsMenu items={buildActionItems(entry)} triggerLabel={t('table.actions')} sheetTitle={t(entry.kind === 'file' ? 'table.actions' : 'table.actions')} />
+    <EntryActionsMenu
+      items={buildEntryActions(entry, {
+        // next-intl's Translator type restricts `key` to known message paths,
+        // which is narrower than EntryActionsContext's `(key: string) => string`;
+        // this wrapper widens the parameter type back to plain string without
+        // touching entryActions.tsx's contract.
+        t: (key: string) => t(key as Parameters<typeof t>[0]),
+        onOpenFolder: (target) => handleOpenFolder(target.id),
+        onPreview: (target) => setPreviewFileId(target.id),
+        onDetails: (target) => setSelectedFileId(target.id),
+        onShare: (target) => setShareTarget(target),
+        onDownload: (target) => void handleDownload(target),
+        onRename: (target) => setRenameTarget(target),
+        onToggleStar: (target) => void handleToggleStar(target),
+        onDelete: (target) => setDeleteTarget(target),
+      })}
+      triggerLabel={t('table.actions')}
+      sheetTitle={t('table.actions')}
+    />
   );
 
   const title = mode === 'group' ? t('groupPage.title') : t('page.title');
@@ -328,7 +318,7 @@ export default function FilesFeed({ mode, groupId, folderId = null, basePath }: 
           entries={filteredEntries}
           selectedIds={selectedIds}
           onToggleSelect={(entry) => setSelectedIds((current) => toggleSet(current, entry.id))}
-          onOpenFile={setSelectedFileId}
+          onOpenFile={handleOpenFile}
           onOpenFolder={handleOpenFolder}
           onToggleStar={handleToggleStar}
           renderActions={renderActions}
@@ -338,7 +328,7 @@ export default function FilesFeed({ mode, groupId, folderId = null, basePath }: 
           entries={filteredEntries}
           selectedIds={selectedIds}
           onToggleSelect={(entry) => setSelectedIds((current) => toggleSet(current, entry.id))}
-          onOpenFile={setSelectedFileId}
+          onOpenFile={handleOpenFile}
           onOpenFolder={handleOpenFolder}
           onToggleStar={handleToggleStar}
           renderActions={renderActions}
@@ -367,6 +357,16 @@ export default function FilesFeed({ mode, groupId, folderId = null, basePath }: 
         onClose={() => setPreviewFileId(null)}
         onOpenDetails={(fileId) => { setPreviewFileId(null); setSelectedFileId(fileId); }}
       />
+
+      {shareTarget && (
+        <ShareModal
+          open={shareTarget !== null}
+          kind={shareTarget.kind}
+          entityId={shareTarget.id}
+          isOwner={shareTarget.is_owner}
+          onClose={() => setShareTarget(null)}
+        />
+      )}
 
       <ConfirmDialog
         open={deleteTarget !== null}

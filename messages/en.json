@@ -1341,6 +1341,13 @@
       "roles": "Roles"
     }
   },
+  "sharedLink": {
+    "title": "Open shared file",
+    "description": "Enter the password if this link is protected.",
+    "passwordPlaceholder": "Password",
+    "invalidOrExpired": "The shared link is invalid, expired, or the password is incorrect.",
+    "open": "Open"
+  },
   "validation": {
     "email_invalid": "Please enter a valid email address.",
     "fullname_invalid": "Enter your full name — at least a first and last name, each starting with a capital letter.",

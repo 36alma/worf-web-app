@@ -1341,6 +1341,13 @@
       "roles": "Szerepkörök"
     }
   },
+  "sharedLink": {
+    "title": "Megosztott f\u00e1jl megnyit\u00e1sa",
+    "description": "Add meg a jelsz\u00f3t, ha ez a link v\u00e9dett.",
+    "passwordPlaceholder": "Jelsz\u00f3",
+    "invalidOrExpired": "A megosztott link \u00e9rv\u00e9nytelen, lej\u00e1rt, vagy hib\u00e1s a jelsz\u00f3.",
+    "open": "Megnyit\u00e1s"
+  },
   "validation": {
     "email_invalid": "Kérjük, adjon meg egy érvényes e-mail címet.",
     "fullname_invalid": "Adja meg a teljes nevét — legalább vezeték- és keresztnevet, minden szó nagybetűvel kezdődjön.",

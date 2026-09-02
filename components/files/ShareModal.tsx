@@ -185,7 +185,7 @@ export default function ShareModal({ open, kind, entityId, isOwner, onClose }: S
 
         {kind === 'file' && (
           <Tabs.Content value="link">
-            <SharePublicLinkTab fileId={entityId} />
+            <SharePublicLinkTab fileId={entityId} isOwner={isOwner} />
           </Tabs.Content>
         )}
       </Tabs.Root>

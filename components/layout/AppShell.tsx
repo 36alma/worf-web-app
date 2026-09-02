@@ -22,12 +22,16 @@ export default function AppShell({children}: AppShellProps) {
   const params = useParams<{groupId?: string}>();
   const locale = useLocale();
   const router = useRouter();
-  // Public routes: /auth/* (login/register flows) and /shared/* (the
-  // unauthenticated share-link landing page, Task 33) skip Header/Sidebar
-  // chrome and the permission-guard effects below, which assume a logged-in
-  // user's data. '/shared/' (with trailing slash) does not match
-  // '/files/shared-with-me' (Task 23), which has a hyphen after "shared".
-  const isPublicRoute = pathname.includes('/auth/') || pathname.includes('/shared/');
+  // Public routes: /auth/* (login/register flows) and /{locale}/shared/*
+  // (the unauthenticated share-link landing page, Task 33) skip Header/
+  // Sidebar chrome and the permission-guard effects below, which assume a
+  // logged-in user's data. Anchored (not a bare substring check) so a
+  // hypothetical future route that merely *contains* "/shared/" somewhere
+  // in its path can't silently and unintentionally lose both the chrome AND
+  // the system-permission redirect guard below. '/{locale}/shared/' does
+  // not match '/files/shared-with-me' (Task 23), which has a hyphen after
+  // "shared", not a slash.
+  const isPublicRoute = pathname.includes('/auth/') || /^\/[^/]+\/shared\//.test(pathname);
   const {
     systemPermissions,
     isSystemPermissionsLoaded,

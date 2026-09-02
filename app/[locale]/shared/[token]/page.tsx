@@ -29,7 +29,20 @@ export default function SharedLinkPage() {
       }
       const data = (await response.json()) as {redirectUrl?: string};
       if (data.redirectUrl) {
-        window.location.href = data.redirectUrl;
+        // Scheme-validate before navigating: a compromised/misbehaving
+        // backend returning e.g. a `javascript:` URL in its redirect target
+        // must never be handed straight to window.location.href, since that
+        // would execute it in this document (an XSS primitive in some
+        // browsers). Only ever follow a genuine http(s) redirect.
+        try {
+          const parsed = new URL(data.redirectUrl);
+          if (parsed.protocol !== 'https:' && parsed.protocol !== 'http:') {
+            throw new Error('unsafe redirect scheme');
+          }
+          window.location.href = data.redirectUrl;
+        } catch {
+          setError(true);
+        }
       } else {
         setError(true);
       }

@@ -28,7 +28,34 @@ describe('useUploadQueue', () => {
     expect(result.current.items).toHaveLength(2);
 
     await waitFor(() => expect(result.current.items.every((item) => item.status === 'done')).toBe(true));
-    expect(onAllSettled).toHaveBeenCalled();
+    // Exactly once, not merely "at least once": onAllSettled/refetch() must
+    // not double-fire. The settled-check that decides this now lives in a
+    // plain ref counter decremented in runUpload's finally block, not inside
+    // a setState updater — the earlier implementation's setItems((current)
+    // => { ...; onAllSettled?.(); return current; }) pattern was vulnerable
+    // to React 18 Strict Mode's intentional double-invocation of functional
+    // updaters, which would have fired this twice per settle in dev.
+    expect(onAllSettled).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not fire onAllSettled again for a stale settle after retry() re-extends the batch', async () => {
+    const onAllSettled = vi.fn();
+    const { result } = renderHook(() => useUploadQueue({ mode: 'private', onAllSettled }));
+
+    act(() => {
+      result.current.enqueue([makeFile('a.txt')]);
+    });
+
+    await waitFor(() => expect(result.current.items.every((item) => item.status === 'done')).toBe(true));
+    expect(onAllSettled).toHaveBeenCalledTimes(1);
+
+    const id = result.current.items[0].id;
+    act(() => {
+      result.current.retry(id);
+    });
+
+    await waitFor(() => expect(result.current.items.every((item) => item.status === 'done')).toBe(true));
+    expect(onAllSettled).toHaveBeenCalledTimes(2);
   });
 
   it('caps concurrent in-flight uploads at 3', async () => {

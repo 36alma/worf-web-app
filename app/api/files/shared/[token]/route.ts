@@ -35,13 +35,25 @@ export async function POST(request: NextRequest, context: {params: Promise<{toke
   // GET that reads the optional password from a header, matching spec §7.
   // We only add the X-Share-Password header when present, keeping the
   // password out of any URL/query string on both legs of this request.
-  const response = await fetchUpstreamBinaryWithRedirectCapture(targetUrl, {
-    'x-forwarded-for': forwardedFor,
-    ...(body.password ? {'X-Share-Password': body.password} : {}),
-  });
+  // typeof-guarded so a non-string JSON value (a number/object/array) can
+  // never reach node:http's header-setting call, which throws on anything
+  // but a string/number/string[] header value.
+  const hasPassword = typeof body.password === 'string' && body.password.length > 0;
 
-  if (response.status >= 300 && response.status < 400 && response.location) {
-    return NextResponse.json({ redirectUrl: response.location });
+  try {
+    const response = await fetchUpstreamBinaryWithRedirectCapture(targetUrl, {
+      'x-forwarded-for': forwardedFor,
+      ...(hasPassword ? {'X-Share-Password': body.password as string} : {}),
+    });
+
+    if (response.status >= 300 && response.status < 400 && response.location) {
+      return NextResponse.json({ redirectUrl: response.location });
+    }
+  } catch {
+    // Network/DNS/TLS failure reaching the upstream — fall through to the
+    // same generic 404 contract as every other failure mode below, so the
+    // response never leaks "this was a network error" vs. "this link is
+    // invalid" (keeps the uniform-ambiguity contract intact).
   }
 
   return NextResponse.json({detail: 'Link is no longer valid.'}, {status: 404});

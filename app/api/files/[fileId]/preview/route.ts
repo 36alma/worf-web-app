@@ -36,9 +36,17 @@ export async function GET(request: NextRequest, context: {params: Promise<{fileI
   }
 
   if (response.status !== 200) {
+    // fileId is attacker-supplied path input, and this response is served
+    // from the app's own first-party origin — echoing the upstream
+    // Content-Type verbatim here (unlike the 200 branch below, which already
+    // allowlists it) would let a backend that ever reflects fileId into an
+    // HTML error page produce reflected XSS on this origin. Every non-200/
+    // non-202 response from this route is a JSON `{detail}` error per its
+    // contract, so coerce accordingly and add the same nosniff hardening the
+    // 200 branch already has.
     return new NextResponse(response.body.toString('utf8'), {
       status: response.status,
-      headers: {'Content-Type': response.contentType},
+      headers: {'Content-Type': 'application/json', 'X-Content-Type-Options': 'nosniff'},
     });
   }
 

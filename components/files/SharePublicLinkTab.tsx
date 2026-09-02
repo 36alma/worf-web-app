@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import toast from 'react-hot-toast';
 import { Copy } from 'lucide-react';
 import {
@@ -17,10 +17,12 @@ import Button from '@/components/ui/Button';
 
 export interface SharePublicLinkTabProps {
   fileId: string;
+  isOwner: boolean;
 }
 
-export default function SharePublicLinkTab({ fileId }: SharePublicLinkTabProps) {
+export default function SharePublicLinkTab({ fileId, isOwner }: SharePublicLinkTabProps) {
   const t = useTranslations('files');
+  const locale = useLocale();
   const [links, setLinks] = useState<ShareLinkEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [permission, setPermission] = useState<ShareLinkPermission>('download');
@@ -51,7 +53,7 @@ export default function SharePublicLinkTab({ fileId }: SharePublicLinkTabProps) 
         expiresAt ? new Date(expiresAt).toISOString() : null,
         password || null
       );
-      const url = `${window.location.origin}/shared/${response.data.token}`;
+      const url = `${window.location.origin}/${locale}/shared/${response.data.token}`;
       setJustCreated({ url });
       setPassword('');
       setExpiresAt('');
@@ -99,21 +101,23 @@ export default function SharePublicLinkTab({ fileId }: SharePublicLinkTabProps) 
         </div>
       )}
 
-      <div className="space-y-2 rounded-lg border border-[var(--border-subtle)] p-3">
-        <div className="flex items-center gap-3 text-sm">
-          <label className="flex items-center gap-1.5">
-            <input type="radio" name="link-permission" checked={permission === 'view'} onChange={() => setPermission('view')} />
-            {t('share.link.permissionView')}
-          </label>
-          <label className="flex items-center gap-1.5">
-            <input type="radio" name="link-permission" checked={permission === 'download'} onChange={() => setPermission('download')} />
-            {t('share.link.permissionDownload')}
-          </label>
+      {isOwner && (
+        <div className="space-y-2 rounded-lg border border-[var(--border-subtle)] p-3">
+          <div className="flex items-center gap-3 text-sm">
+            <label className="flex items-center gap-1.5">
+              <input type="radio" name="link-permission" checked={permission === 'view'} onChange={() => setPermission('view')} />
+              {t('share.link.permissionView')}
+            </label>
+            <label className="flex items-center gap-1.5">
+              <input type="radio" name="link-permission" checked={permission === 'download'} onChange={() => setPermission('download')} />
+              {t('share.link.permissionDownload')}
+            </label>
+          </div>
+          <input type="date" value={expiresAt} onChange={(e) => setExpiresAt(e.target.value)} className="w-full rounded border border-[var(--border-subtle)] bg-[var(--bg-surface)] px-2 py-1.5 text-sm" placeholder={t('share.link.expiresAt')} />
+          <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder={t('share.link.passwordOptional')} className="w-full rounded border border-[var(--border-subtle)] bg-[var(--bg-surface)] px-2 py-1.5 text-sm" />
+          <Button type="button" variant="primary" loading={isCreating} onClick={() => void handleCreate()}>{t('share.link.create')}</Button>
         </div>
-        <input type="date" value={expiresAt} onChange={(e) => setExpiresAt(e.target.value)} className="w-full rounded border border-[var(--border-subtle)] bg-[var(--bg-surface)] px-2 py-1.5 text-sm" placeholder={t('share.link.expiresAt')} />
-        <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder={t('share.link.passwordOptional')} className="w-full rounded border border-[var(--border-subtle)] bg-[var(--bg-surface)] px-2 py-1.5 text-sm" />
-        <Button type="button" variant="primary" loading={isCreating} onClick={() => void handleCreate()}>{t('share.link.create')}</Button>
-      </div>
+      )}
 
       <div>
         <p className="mb-2 text-xs font-medium uppercase tracking-wider text-[var(--text-tertiary)]">{t('share.link.existing')}</p>

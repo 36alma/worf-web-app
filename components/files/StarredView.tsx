@@ -107,6 +107,7 @@ export default function StarredView() {
           onOpenFolder={setSelectedFolderId}
           onToggleStar={handleToggleStar}
           renderActions={(entry) => <EntryActionsMenu items={buildActionItems(entry)} triggerLabel={t('table.actions')} sheetTitle={t('table.actions')} />}
+          selectable={false}
         />
       )}
       {!isLoading && hasMore && (

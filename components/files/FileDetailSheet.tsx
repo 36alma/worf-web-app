@@ -167,6 +167,14 @@ export default function FileDetailSheet({ fileId, onClose, onDeleted, onChanged,
     }
   };
 
+  // Rename/Share/Delete are destructive/ownership-scoped actions and must be
+  // gated on genuine ownership, not just the caller-supplied `readOnly`
+  // prop — StarredView passes no `readOnly` (starring is orthogonal to
+  // ownership) but a starred file the user doesn't own must still hide
+  // these. Star itself intentionally stays gated on `!readOnly` only:
+  // starring a non-owned file you have view access to is allowed by design.
+  const canManage = !readOnly && (metadata?.is_owner ?? false);
+
   return (
     <>
       <SideSheet open={fileId !== null} title={t('detail.title')} onClose={onClose}>
@@ -193,7 +201,7 @@ export default function FileDetailSheet({ fileId, onClose, onDeleted, onChanged,
                   <dt className="text-[var(--text-tertiary)]">{t('detail.fields.name')}</dt>
                   <dd className="flex items-center gap-2 text-right font-medium text-[var(--text-primary)]">
                     {metadata.original_name}
-                    {!readOnly && (
+                    {canManage && (
                       <button type="button" onClick={() => setIsRenameOpen(true)} aria-label={t('table.rename')} className="rounded p-1 hover:bg-[var(--bg-hover)]">
                         <Pencil size={14} strokeWidth={1.75} className="text-[var(--text-tertiary)]" />
                       </button>
@@ -226,17 +234,19 @@ export default function FileDetailSheet({ fileId, onClose, onDeleted, onChanged,
                   <Eye size={16} strokeWidth={1.75} className="mr-1.5" /> {t('preview.details')}
                 </Button>
               )}
+              {canManage && (
+                <Button type="button" variant="secondary" onClick={() => setIsShareOpen(true)}>
+                  <Share2 size={16} strokeWidth={1.75} className="mr-1.5" /> {t('share.modalTitle')}
+                </Button>
+              )}
               {!readOnly && (
-                <>
-                  <Button type="button" variant="secondary" onClick={() => setIsShareOpen(true)}>
-                    <Share2 size={16} strokeWidth={1.75} className="mr-1.5" /> {t('share.modalTitle')}
-                  </Button>
-                  <Button type="button" variant="secondary" onClick={() => void handleToggleStar()} disabled={!metadata}>
-                    <Star size={16} strokeWidth={1.75} className={clsx('mr-1.5', metadata?.is_starred && 'fill-[var(--accent)] text-[var(--accent)]')} />
-                    {metadata?.is_starred ? t('table.unstar') : t('table.star')}
-                  </Button>
-                  <Button type="button" variant="danger" onClick={() => setIsConfirmOpen(true)} disabled={fileId === null || isLoading}>{t('detail.delete')}</Button>
-                </>
+                <Button type="button" variant="secondary" onClick={() => void handleToggleStar()} disabled={!metadata}>
+                  <Star size={16} strokeWidth={1.75} className={clsx('mr-1.5', metadata?.is_starred && 'fill-[var(--accent)] text-[var(--accent)]')} />
+                  {metadata?.is_starred ? t('table.unstar') : t('table.star')}
+                </Button>
+              )}
+              {canManage && (
+                <Button type="button" variant="danger" onClick={() => setIsConfirmOpen(true)} disabled={fileId === null || isLoading}>{t('detail.delete')}</Button>
               )}
             </div>
           </Tabs.Content>
@@ -270,7 +280,7 @@ export default function FileDetailSheet({ fileId, onClose, onDeleted, onChanged,
         </Tabs.Root>
       </SideSheet>
 
-      {!readOnly && (
+      {canManage && (
         <>
           <ConfirmDialog
             open={isConfirmOpen}

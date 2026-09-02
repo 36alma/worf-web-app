@@ -14,15 +14,18 @@ export default function AppProviders({children}: {children: ReactNode}) {
   const {setSystemPermissions, clearPermissions} = usePermissionStore();
 
   useEffect(() => {
-    // Public routes: /auth/* (login/register flows) and /shared/* (the
-    // unauthenticated share-link landing page, Task 33) must never trigger
-    // the authenticated-user bootstrap below — for a logged-out visitor,
-    // getCurrentUserProfile() 401s and the apiClient interceptor hard-redirects
-    // to /auth/login, which would bounce a share-link recipient away from the
-    // page before they ever see it. Note: '/shared/' (with trailing slash)
-    // does not match '/files/shared-with-me' (Task 23), which has a hyphen
-    // after "shared", not a slash.
-    const isPublicRoute = pathname.includes('/auth/') || pathname.includes('/shared/');
+    // Public routes: /auth/* (login/register flows) and /{locale}/shared/*
+    // (the unauthenticated share-link landing page, Task 33) must never
+    // trigger the authenticated-user bootstrap below — for a logged-out
+    // visitor, getCurrentUserProfile() 401s and the apiClient interceptor
+    // hard-redirects to /auth/login, which would bounce a share-link
+    // recipient away from the page before they ever see it. Anchored (not a
+    // bare substring check) so a hypothetical future route that merely
+    // *contains* "/shared/" somewhere in its path (e.g. "/files/shared/by-
+    // me") can't silently and unintentionally lose the auth bootstrap too.
+    // '/{locale}/shared/' does not match '/files/shared-with-me' (Task 23),
+    // which has a hyphen after "shared", not a slash.
+    const isPublicRoute = pathname.includes('/auth/') || /^\/[^/]+\/shared\//.test(pathname);
     if (isPublicRoute) {
       setLoading(false);
       return;

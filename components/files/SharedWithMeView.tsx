@@ -88,6 +88,8 @@ export default function SharedWithMeView() {
           onOpenFolder={setSelectedFolderId}
           onToggleStar={() => undefined}
           renderActions={(entry) => <EntryActionsMenu items={buildActionItems(entry)} triggerLabel={t('table.actions')} sheetTitle={t('table.actions')} />}
+          selectable={false}
+          starrable={false}
         />
       )}
       {!isLoading && hasMore && (

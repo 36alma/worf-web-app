@@ -46,6 +46,45 @@ describe('usePagedDualList', () => {
     expect(result.current.listA).toEqual(['a1']);
   });
 
+  it('discards a stale response when a newer load() supersedes it (request race guard)', async () => {
+    // Simulates fast folder-to-folder navigation: a first load(0) starts,
+    // then — before it resolves — a second load(0) is triggered (reset()).
+    // The second (later-issued) call resolves FIRST here; the first
+    // (earlier-issued) call resolves SECOND, after. The later-issued call's
+    // data must win, and the stale earlier response must be discarded
+    // rather than clobbering it.
+    let resolveFirst!: (value: unknown) => void;
+    let resolveSecond!: (value: unknown) => void;
+    const firstPromise = new Promise((resolve) => { resolveFirst = resolve; });
+    const secondPromise = new Promise((resolve) => { resolveSecond = resolve; });
+
+    const fetchPage = vi
+      .fn()
+      .mockImplementationOnce(() => firstPromise)
+      .mockImplementationOnce(() => secondPromise);
+
+    const { result } = renderHook(() => usePagedDualList(fetchPage, 2, []));
+
+    await waitFor(() => expect(fetchPage).toHaveBeenCalledTimes(1));
+
+    result.current.reset();
+    await waitFor(() => expect(fetchPage).toHaveBeenCalledTimes(2));
+
+    // Later-issued call resolves first.
+    resolveSecond({ listA: ['second-a'], listB: ['second-b'], totalA: 1, totalB: 1 });
+    await waitFor(() => expect(result.current.listA).toEqual(['second-a']));
+    expect(result.current.listB).toEqual(['second-b']);
+    expect(result.current.isLoading).toBe(false);
+
+    // Earlier-issued (now-stale) call resolves after — must be discarded.
+    resolveFirst({ listA: ['first-a'], listB: ['first-b'], totalA: 1, totalB: 1 });
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(result.current.listA).toEqual(['second-a']);
+    expect(result.current.listB).toEqual(['second-b']);
+    expect(result.current.isLoading).toBe(false);
+  });
+
   it('preserves previous lists/totals and clears isLoading when loadMore fails', async () => {
     const fetchPage = vi
       .fn()

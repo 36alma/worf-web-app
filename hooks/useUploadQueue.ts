@@ -64,6 +64,19 @@ export function useUploadQueue(options: UseUploadQueueOptions) {
   // Mode's simulated double-invoke because it reuses the same component
   // instance/hook state, not a fresh one, so the guard persists across it.
   const startedRef = useRef<Set<string>>(new Set());
+  // Counts items added to the queue (via enqueue/retry) that haven't yet
+  // settled (done or error). Decremented directly — as a plain ref mutation,
+  // never via a setState updater — each time an item settles in runUpload's
+  // finally block; onAllSettled fires exactly when it reaches 0. This
+  // mirrors the same principle pump()/the mount effect above already
+  // established for triggering uploads: side effects live in plain
+  // callbacks/effects, never nested inside a functional setState updater
+  // (which React 18 Strict Mode intentionally double-invokes in dev to
+  // catch exactly this class of bug — the old `setItems((current) => {
+  // ...; optionsRef.current.onAllSettled?.(); return current; })` pattern
+  // this replaces was firing onAllSettled/refetch() twice per batch-settle
+  // in local development for that reason).
+  const pendingCountRef = useRef(0);
 
   const updateItem = (id: string, patch: Partial<UploadItem>) =>
     setItems((current) => current.map((item) => (item.id === id ? { ...item, ...patch } : item)));
@@ -97,12 +110,12 @@ export function useUploadQueue(options: UseUploadQueueOptions) {
       // runUpload call instead of being permanently blocked by the guard.
       startedRef.current.delete(id);
       pump();
-      setItems((current) => {
-        if (current.every((item) => item.status === 'done' || item.status === 'error')) {
-          optionsRef.current.onAllSettled?.();
-        }
-        return current;
-      });
+      // Plain ref decrement + direct call — not a setState updater — so
+      // Strict Mode's double-invocation of updaters can't fire this twice.
+      pendingCountRef.current -= 1;
+      if (pendingCountRef.current <= 0) {
+        optionsRef.current.onAllSettled?.();
+      }
     }
   };
 
@@ -127,6 +140,7 @@ export function useUploadQueue(options: UseUploadQueueOptions) {
   const enqueue = useCallback(
     (files: File[]) => {
       const newItems: UploadItem[] = files.map((file) => ({ id: nextId(), file, status: 'queued', progress: 0 }));
+      pendingCountRef.current += newItems.length;
       setItems((current) => [...current, ...newItems]);
       setTimeout(pump, 0);
     },
@@ -135,6 +149,7 @@ export function useUploadQueue(options: UseUploadQueueOptions) {
 
   const retry = useCallback(
     (id: string) => {
+      pendingCountRef.current += 1;
       setItems((current) => current.map((item) => (item.id === id ? { ...item, status: 'queued', progress: 0, errorMessage: undefined } : item)));
       setTimeout(pump, 0);
     },

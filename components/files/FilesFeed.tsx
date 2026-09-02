@@ -23,7 +23,7 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/Tabs';
 import FileTable from '@/components/files/FileTable';
 import FileGrid from '@/components/files/FileGrid';
 import BulkActionBar from '@/components/files/BulkActionBar';
-import UploadDialog from '@/components/files/UploadDialog';
+import UploadDialog, { validateAndEnqueueFiles } from '@/components/files/UploadDialog';
 import UploadProgressPanel from '@/components/files/UploadProgressPanel';
 import FileDetailSheet from '@/components/files/FileDetailSheet';
 import FolderDetailSheet from '@/components/files/FolderDetailSheet';
@@ -59,14 +59,26 @@ const PAGE_SIZE = 20;
 export default function FilesFeed({ mode, groupId, folderId = null, basePath }: FilesFeedProps) {
   const t = useTranslations('files');
   const tf = useTranslations('folders');
+  const tv = useTranslations('validation');
   const router = useRouter();
   const locale = useLocale();
 
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState<CategoryFilter>('all');
-  const [view, setView] = useState<ViewMode>(() =>
-    typeof window !== 'undefined' ? toViewMode(localStorage.getItem(VIEW_MODE_STORAGE_KEY)) : 'list'
-  );
+  // Initialized to the server-safe fallback ('list') unconditionally — reading
+  // localStorage inside the useState initializer would run on both server and
+  // client, and for any user whose stored preference differs from 'list' the
+  // client's first render would diverge from the server-rendered HTML,
+  // producing a hydration mismatch. The real value is applied client-only,
+  // post-mount, below.
+  const [view, setView] = useState<ViewMode>('list');
+  useEffect(() => {
+    const stored = toViewMode(localStorage.getItem(VIEW_MODE_STORAGE_KEY));
+    if (stored !== view) setView(stored);
+    // Runs once on mount only — intentionally not re-run on `view` changes
+    // (that's the persist-on-change effect right below).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   useEffect(() => {
     localStorage.setItem(VIEW_MODE_STORAGE_KEY, view);
   }, [view]);
@@ -87,13 +99,15 @@ export default function FilesFeed({ mode, groupId, folderId = null, basePath }: 
   const [moveTarget, setMoveTarget] = useState<{ entry: FsEntry; mode: 'move' | 'copy' } | null>(null);
   const [isBulkMoveOpen, setIsBulkMoveOpen] = useState(false);
 
+  const [storageRefreshKey, setStorageRefreshKey] = useState(0);
+
   const {
     listA: subfolders,
     listB: files,
     isLoading,
     hasMore,
     loadMore,
-    reset: refetch,
+    reset: resetEntries,
   } = usePagedDualList(
     async (offset, limit) => {
       try {
@@ -116,6 +130,24 @@ export default function FilesFeed({ mode, groupId, folderId = null, basePath }: 
     PAGE_SIZE,
     [mode, groupId, folderId]
   );
+
+  // Wraps the hook's reset() so every refetch also nudges StorageUsageBar to
+  // re-fetch — uploads/deletes/moves/renames all go through this one refetch
+  // call site (see the many `refetch()` calls below), so this is the single
+  // place that needs to know about storage usage going stale.
+  const refetch = () => {
+    resetEntries();
+    setStorageRefreshKey((key) => key + 1);
+  };
+
+  // FilesFeed is reused (not remounted) across folder-to-folder navigation,
+  // so selection state would otherwise survive a folderId change and
+  // BulkActionBar could show "N selected" for entries no longer displayed —
+  // a bulk action against that stale selection would then misleadingly
+  // report success against entries from a different folder.
+  useEffect(() => {
+    setSelectedIds(new Set());
+  }, [folderId]);
 
   const {
     items: uploadItems,
@@ -222,6 +254,8 @@ export default function FilesFeed({ mode, groupId, folderId = null, basePath }: 
         const response = await requestDownload(fileId);
         window.location.href = buildDownloadUrl(response.data.download_token);
       } catch (error) {
+        const status = (error as {response?: {status?: number}} | undefined)?.response?.status;
+        if (status === 403) markForbidden('file', 'download', fileId);
         toast.error(translateFileApiError(t, error, 'errors.default'));
       }
     }
@@ -432,7 +466,7 @@ export default function FilesFeed({ mode, groupId, folderId = null, basePath }: 
       </div>
 
       <div className="max-w-xs">
-        <StorageUsageBar scope={mode} groupId={groupId} />
+        <StorageUsageBar scope={mode} groupId={groupId} refreshKey={storageRefreshKey} />
       </div>
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -495,7 +529,18 @@ export default function FilesFeed({ mode, groupId, folderId = null, basePath }: 
         onDrop={(event) => {
           event.preventDefault();
           const files = Array.from(event.dataTransfer.files);
-          if (files.length > 0) enqueueUploads(files);
+          if (files.length > 0) {
+            // Drag&drop bypasses UploadDialog's own handler, so it needs the
+            // same non-blocking validation feedback (spec §12) that the
+            // Browse/dialog path already gives — otherwise dropping an
+            // invalid file silently enqueues with zero client-side feedback.
+            validateAndEnqueueFiles(
+              files,
+              enqueueUploads,
+              (suggestion) => toast(t('nameDialog.sanitizeSuggestion', { suggestion })),
+              (issueMessage) => toast.error(tv(issueMessage as never))
+            );
+          }
         }}
       >
         {isLoading && entries.length === 0 ? (
@@ -581,6 +626,8 @@ export default function FilesFeed({ mode, groupId, folderId = null, basePath }: 
             toast.success(t('toasts.moveSuccess'));
             refetch();
           } catch (error) {
+            const status = (error as {response?: {status?: number}} | undefined)?.response?.status;
+            if (status === 403) markForbidden(moveTarget.entry.kind, 'edit', moveTarget.entry.id);
             toast.error(moveTarget.entry.kind === 'file' ? translateFileApiError(t, error, 'errors.default') : translateFolderApiError(tf, error, 'errors.default'));
             throw error;
           }

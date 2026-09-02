@@ -37,32 +37,54 @@ export interface UploadDialogProps {
   enqueue: (files: File[]) => void;
 }
 
+/**
+ * Runs the same non-blocking client-side validation (spec §12) that both
+ * entry points capable of enqueuing files need: this dialog's dropzone/
+ * browse inputs, and FilesFeed's drag&drop handler. Validation failures
+ * never prevent the file from being enqueued — they only surface feedback
+ * (a filename sanitize suggestion, or the translated validation message)
+ * via the two callbacks, which each call site wires to its own `toast`/
+ * translator calls. Kept deliberately decoupled from next-intl's translator
+ * types here (both callers' `t`/`tv` instances are namespace-narrowed and
+ * don't share a common function type) — this function only does the
+ * validation loop + enqueue, the i18n/toast side effects stay at the call
+ * site. Any file that still fails server-side lands in the queue's
+ * per-item `error` state, which the floating panel already supports
+ * retrying.
+ */
+export function validateAndEnqueueFiles(
+  files: File[],
+  enqueue: (files: File[]) => void,
+  onSanitizeSuggestion: (suggestion: string) => void,
+  onValidationError: (issueMessage: string) => void
+): void {
+  if (files.length === 0) return;
+  for (const file of files) {
+    const parsed = uploadFileSchema.safeParse({ filename: file.name, file });
+    if (!parsed.success) {
+      const issue = parsed.error.issues[0];
+      if (issue?.path[0] === 'filename') {
+        onSanitizeSuggestion(sanitizeFilename(file.name));
+      } else if (issue) {
+        onValidationError(issue.message);
+      }
+    }
+  }
+  enqueue(files);
+}
+
 export default function UploadDialog({ open, onClose, enqueue }: UploadDialogProps) {
   const t = useTranslations('files');
   const tv = useTranslations('validation');
   const multiInputRef = useRef<HTMLInputElement>(null);
 
-  // Non-blocking per spec §12: validation failures never prevent the file from
-  // being enqueued — they only surface a toast (a sanitize suggestion for
-  // filename issues, the translated validation message otherwise). Any file
-  // that still fails on the server will land in the queue's per-item `error`
-  // state, which the floating panel already supports retrying.
-  const handleFilesSelected = (files: File[]) => {
-    if (files.length === 0) return;
-    for (const file of files) {
-      const parsed = uploadFileSchema.safeParse({ filename: file.name, file });
-      if (!parsed.success) {
-        const issue = parsed.error.issues[0];
-        if (issue?.path[0] === 'filename') {
-          const suggestion = sanitizeFilename(file.name);
-          toast(t('nameDialog.sanitizeSuggestion', { suggestion }));
-        } else if (issue) {
-          toast.error(tv(issue.message as never));
-        }
-      }
-    }
-    enqueue(files);
-  };
+  const handleFilesSelected = (files: File[]) =>
+    validateAndEnqueueFiles(
+      files,
+      enqueue,
+      (suggestion) => toast(t('nameDialog.sanitizeSuggestion', { suggestion })),
+      (issueMessage) => toast.error(tv(issueMessage as never))
+    );
 
   const handleMultiInputChange = (event: ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files ?? []);

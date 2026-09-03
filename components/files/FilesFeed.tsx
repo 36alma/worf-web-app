@@ -378,7 +378,14 @@ export default function FilesFeed({ mode, groupId, folderId = null, basePath }: 
         </div>
       </div>
 
-      <UploadDialog open={isUploadOpen} onClose={() => setIsUploadOpen(false)} enqueue={uploadQueue.enqueue} />
+      <UploadDialog
+        open={isUploadOpen}
+        onClose={() => setIsUploadOpen(false)}
+        enqueue={uploadQueue.enqueue}
+        items={uploadQueue.items}
+        onRetry={uploadQueue.retry}
+        onRemove={uploadQueue.removeSettled}
+      />
       <NameDialog open={isNewFolderOpen} title={tf('newFolder.title')} label={tf('newFolder.label')} submitLabel={tf('newFolder.submit')} onSubmit={handleCreateFolder} onClose={() => setIsNewFolderOpen(false)} />
       <NameDialog
         open={renameTarget !== null}

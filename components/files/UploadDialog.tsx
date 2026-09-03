@@ -6,6 +6,8 @@ import toast from 'react-hot-toast';
 import Modal from '@/components/ui/Modal';
 import Button from '@/components/ui/Button';
 import FileDropzone from '@/components/files/FileDropzone';
+import UploadItemRow from '@/components/files/UploadItemRow';
+import type { UploadItem } from '@/hooks/useUploadQueue';
 import { uploadFileSchema, ALLOWED_MIME_TYPES } from '@/lib/validation/files';
 import { sanitizeFilename } from '@/lib/utils/formatFiles';
 
@@ -13,15 +15,17 @@ export interface UploadDialogProps {
   open: boolean;
   onClose: () => void;
   /**
-   * The one piece of the lifted `useUploadQueue()` instance (owned by
-   * FilesFeed) this dialog actually needs — to hand off files selected via
-   * the dropzone or the multi-file browse input. `items`/`retry`/
-   * `removeSettled` are deliberately NOT part of this props type: the
-   * floating `<UploadProgressPanel>` that consumes them is rendered once at
-   * the FilesFeed level, not by this component (see FilesFeed.tsx), so this
-   * dialog has no use for them.
+   * The lifted `useUploadQueue()` instance (owned by FilesFeed) this dialog
+   * hands selected files to, and whose progress it renders inline — so
+   * selecting a file gives immediate feedback in the same modal instead of
+   * appearing to do nothing. The same `items` are also fed to the floating
+   * `<UploadProgressPanel>` at the FilesFeed level, which keeps tracking
+   * them after this dialog closes.
    */
   enqueue: (files: File[]) => void;
+  items: UploadItem[];
+  onRetry: (id: string) => void;
+  onRemove: (id: string) => void;
 }
 
 /**
@@ -60,7 +64,7 @@ export function validateAndEnqueueFiles(
   enqueue(files);
 }
 
-export default function UploadDialog({ open, onClose, enqueue }: UploadDialogProps) {
+export default function UploadDialog({ open, onClose, enqueue, items, onRetry, onRemove }: UploadDialogProps) {
   const t = useTranslations('files');
   const tv = useTranslations('validation');
   const multiInputRef = useRef<HTMLInputElement>(null);
@@ -98,6 +102,14 @@ export default function UploadDialog({ open, onClose, enqueue }: UploadDialogPro
         <Button type="button" variant="secondary" onClick={() => multiInputRef.current?.click()}>
           {t('upload.selectFile')}
         </Button>
+
+        {items.length > 0 && (
+          <div className="space-y-2 border-t border-[var(--border-subtle)] pt-3">
+            {items.map((item) => (
+              <UploadItemRow key={item.id} item={item} onRetry={onRetry} onRemove={onRemove} />
+            ))}
+          </div>
+        )}
 
         <div className="flex justify-end gap-3 pt-2">
           <Button type="button" variant="secondary" onClick={onClose}>

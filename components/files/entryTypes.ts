@@ -1,5 +1,6 @@
 import type { FileListItem } from '@/lib/api/files';
 import type { FolderListEntry } from '@/lib/api/folders';
+import type { ActionMenuItem } from './EntryActionsMenu';
 
 export type FileEntry = { kind: 'file' } & FileListItem;
 export type FolderEntry = { kind: 'folder' } & FolderListEntry;
@@ -25,7 +26,8 @@ export interface EntryListProps {
   onOpenFile: (fileId: string) => void;
   onOpenFolder: (folderId: string) => void;
   onToggleStar: (entry: FsEntry) => void;
-  renderActions: (entry: FsEntry) => React.ReactNode;
+  /** Builds the action list for an entry — consumed by the kebab menu, the right-click context menu, and the mobile long-press sheet alike. */
+  getActionItems: (entry: FsEntry) => ActionMenuItem[];
   /**
    * Whether to render the selection checkbox at all. Defaults to `true`
    * (preserves existing behavior for FilesFeed, the primary browsing

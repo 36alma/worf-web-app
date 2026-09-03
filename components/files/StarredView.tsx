@@ -14,7 +14,7 @@ import { Star } from 'lucide-react';
 import FileTable from '@/components/files/FileTable';
 import FileDetailSheet from '@/components/files/FileDetailSheet';
 import PreviewModal from '@/components/files/PreviewModal';
-import EntryActionsMenu, { type ActionMenuItem } from '@/components/files/EntryActionsMenu';
+import { type ActionMenuItem } from '@/components/files/EntryActionsMenu';
 import { toFileEntries, toFolderEntries, type FsEntry } from '@/components/files/entryTypes';
 
 const PAGE_SIZE = 20;
@@ -122,7 +122,7 @@ export default function StarredView() {
             if (folder) handleOpenFolder(id, folder.scope);
           }}
           onToggleStar={handleToggleStar}
-          renderActions={(entry) => <EntryActionsMenu items={buildActionItems(entry)} triggerLabel={t('table.actions')} sheetTitle={t('table.actions')} />}
+          getActionItems={buildActionItems}
           selectable={false}
         />
       )}

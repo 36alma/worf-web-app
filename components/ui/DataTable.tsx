@@ -1,7 +1,8 @@
 import * as ScrollArea from '@radix-ui/react-scroll-area';
 import * as Tooltip from '@radix-ui/react-tooltip';
 import {ArrowUpDown, MoreHorizontal, Table2} from 'lucide-react';
-import type {ReactNode} from 'react';
+import {Fragment} from 'react';
+import type {ReactElement, ReactNode} from 'react';
 
 export interface Column<T> {
   key: string;
@@ -14,9 +15,11 @@ export interface DataTableProps<T extends object> {
   rows: T[];
   /** Custom content rendered inside an empty tbody — replaces the default "No data" row. */
   emptyState?: ReactNode;
+  /** Wraps each rendered <tr> (e.g. in a right-click context menu). Defaults to rendering the <tr> as-is. */
+  rowWrapper?: (row: T, tr: ReactElement<Record<string, unknown>>) => ReactNode;
 }
 
-export default function DataTable<T extends object>({columns, rows, emptyState}: DataTableProps<T>) {
+export default function DataTable<T extends object>({columns, rows, emptyState, rowWrapper}: DataTableProps<T>) {
   return (
     <Tooltip.Provider delayDuration={170}>
       {/* 0.5px subtle border — background already separates the surface */}
@@ -71,27 +74,30 @@ export default function DataTable<T extends object>({columns, rows, emptyState}:
                     </td>
                   </tr>
                 ) : (
-                  rows.map((row, index) => (
+                  rows.map((row, index) => {
                     /* h-12 = 48px minimum row height */
-                    <tr
-                      key={index}
-                      className="table-row h-12 border-b border-[var(--border-subtle)] hover:bg-[var(--bg-hover)]"
-                    >
-                      {columns.map((column) => (
-                        <td key={String(column.key)} className="px-4 py-3 text-[var(--text-primary)]">
-                          {column.render ? column.render((row as Record<string, unknown>)[column.key], row) : String((row as Record<string, unknown>)[column.key] ?? '-')}
+                    const tr = (
+                      <tr
+                        key={index}
+                        className="table-row h-12 border-b border-[var(--border-subtle)] hover:bg-[var(--bg-hover)]"
+                      >
+                        {columns.map((column) => (
+                          <td key={String(column.key)} className="px-4 py-3 text-[var(--text-primary)]">
+                            {column.render ? column.render((row as Record<string, unknown>)[column.key], row) : String((row as Record<string, unknown>)[column.key] ?? '-')}
+                          </td>
+                        ))}
+                        <td className="px-2 text-[var(--text-secondary)]">
+                          <button
+                            type="button"
+                            className="inline-flex h-7 w-7 items-center justify-center rounded-[var(--radius-sm)] hover:bg-[var(--bg-active)] hover:text-[var(--text-primary)]"
+                          >
+                            <MoreHorizontal size={14} strokeWidth={1.75} />
+                          </button>
                         </td>
-                      ))}
-                      <td className="px-2 text-[var(--text-secondary)]">
-                        <button
-                          type="button"
-                          className="inline-flex h-7 w-7 items-center justify-center rounded-[var(--radius-sm)] hover:bg-[var(--bg-active)] hover:text-[var(--text-primary)]"
-                        >
-                          <MoreHorizontal size={14} strokeWidth={1.75} />
-                        </button>
-                      </td>
-                    </tr>
-                  ))
+                      </tr>
+                    );
+                    return rowWrapper ? <Fragment key={index}>{rowWrapper(row, tr)}</Fragment> : tr;
+                  })
                 )}
               </tbody>
             </table>

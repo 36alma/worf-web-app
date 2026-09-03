@@ -28,7 +28,6 @@ import FileDetailSheet from '@/components/files/FileDetailSheet';
 import PreviewModal from '@/components/files/PreviewModal';
 import FilesBreadcrumb from '@/components/files/FilesBreadcrumb';
 import NameDialog from '@/components/files/NameDialog';
-import EntryActionsMenu from '@/components/files/EntryActionsMenu';
 import StorageUsageBar from '@/components/files/StorageUsageBar';
 import ShareModal from '@/components/files/ShareModal';
 import { buildEntryActions, isPreviewable } from '@/components/files/entryActions';
@@ -216,27 +215,22 @@ export default function FilesFeed({ mode, groupId, folderId = null, basePath }: 
     }
   };
 
-  const renderActions = (entry: FsEntry) => (
-    <EntryActionsMenu
-      items={buildEntryActions(entry, {
-        // next-intl's Translator type restricts `key` to known message paths,
-        // which is narrower than EntryActionsContext's `(key: string) => string`;
-        // this wrapper widens the parameter type back to plain string without
-        // touching entryActions.tsx's contract.
-        t: (key: string) => t(key as Parameters<typeof t>[0]),
-        onOpenFolder: (target) => handleOpenFolder(target.id),
-        onPreview: (target) => setPreviewFileId(target.id),
-        onDetails: (target) => setSelectedFileId(target.id),
-        onShare: (target) => setShareTarget(target),
-        onDownload: (target) => void handleDownload(target),
-        onRename: (target) => setRenameTarget(target),
-        onToggleStar: (target) => void handleToggleStar(target),
-        onDelete: (target) => setDeleteTarget(target),
-      })}
-      triggerLabel={t('table.actions')}
-      sheetTitle={t('table.actions')}
-    />
-  );
+  const getActionItems = (entry: FsEntry) =>
+    buildEntryActions(entry, {
+      // next-intl's Translator type restricts `key` to known message paths,
+      // which is narrower than EntryActionsContext's `(key: string) => string`;
+      // this wrapper widens the parameter type back to plain string without
+      // touching entryActions.tsx's contract.
+      t: (key: string) => t(key as Parameters<typeof t>[0]),
+      onOpenFolder: (target) => handleOpenFolder(target.id),
+      onPreview: (target) => setPreviewFileId(target.id),
+      onDetails: (target) => setSelectedFileId(target.id),
+      onShare: (target) => setShareTarget(target),
+      onDownload: (target) => void handleDownload(target),
+      onRename: (target) => setRenameTarget(target),
+      onToggleStar: (target) => void handleToggleStar(target),
+      onDelete: (target) => setDeleteTarget(target),
+    });
 
   const title = mode === 'group' ? t('groupPage.title') : t('page.title');
 
@@ -321,7 +315,7 @@ export default function FilesFeed({ mode, groupId, folderId = null, basePath }: 
           onOpenFile={handleOpenFile}
           onOpenFolder={handleOpenFolder}
           onToggleStar={handleToggleStar}
-          renderActions={renderActions}
+          getActionItems={getActionItems}
         />
       ) : (
         <FileTable
@@ -331,7 +325,7 @@ export default function FilesFeed({ mode, groupId, folderId = null, basePath }: 
           onOpenFile={handleOpenFile}
           onOpenFolder={handleOpenFolder}
           onToggleStar={handleToggleStar}
-          renderActions={renderActions}
+          getActionItems={getActionItems}
         />
       )}
 

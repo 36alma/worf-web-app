@@ -25,11 +25,20 @@ export interface EntryActionsMenuProps {
   items: ActionMenuItem[];
   triggerLabel: string;
   sheetTitle: string;
+  /**
+   * Controls the mobile bottom sheet from outside (e.g. a long-press
+   * handler on the row/card). Omit for the default uncontrolled
+   * kebab-button-only behavior.
+   */
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
-export default function EntryActionsMenu({ items, triggerLabel, sheetTitle }: EntryActionsMenuProps) {
+export default function EntryActionsMenu({ items, triggerLabel, sheetTitle, open, onOpenChange }: EntryActionsMenuProps) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
-  const [sheetOpen, setSheetOpen] = useState(false);
+  const [internalSheetOpen, setInternalSheetOpen] = useState(false);
+  const sheetOpen = open ?? internalSheetOpen;
+  const setSheetOpen = onOpenChange ?? setInternalSheetOpen;
   const visibleItems = items.filter((item) => !item.hidden);
 
   if (visibleItems.length === 0) return null;

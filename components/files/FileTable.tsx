@@ -1,10 +1,14 @@
 'use client';
 
+import { cloneElement, useState, type ReactElement } from 'react';
 import { useTranslations } from 'next-intl';
 import { Folder, Star } from 'lucide-react';
 import DataTable, { type Column } from '@/components/ui/DataTable';
+import { ContextMenu, ContextMenuTrigger, ContextMenuContent, ContextMenuItem } from '@/components/ui/ContextMenu';
+import EntryActionsMenu, { type ActionMenuItem } from './EntryActionsMenu';
 import FileTypeIcon from './FileTypeIcon';
 import ThumbnailImage from './ThumbnailImage';
+import { useLongPress } from './useLongPress';
 import { type EntryListProps, type FsEntry, getEntryDateIso, getEntryName } from './entryTypes';
 import { formatFileSize, formatMimeType, formatUploadedAt } from '@/lib/utils/formatFiles';
 
@@ -15,11 +19,12 @@ export default function FileTable({
   onOpenFile,
   onOpenFolder,
   onToggleStar,
-  renderActions,
+  getActionItems,
   selectable = true,
   starrable = true,
 }: EntryListProps) {
   const t = useTranslations('files');
+  const [longPressId, setLongPressId] = useState<string | null>(null);
 
   const columns: Column<FsEntry>[] = [
     ...(selectable ? [{
@@ -103,7 +108,15 @@ export default function FileTable({
     {
       key: 'actions',
       label: t('table.actions'),
-      render: (_value, row) => renderActions(row),
+      render: (_value, row) => (
+        <EntryActionsMenu
+          items={getActionItems(row)}
+          triggerLabel={t('table.actions')}
+          sheetTitle={t('table.actions')}
+          open={longPressId === row.id}
+          onOpenChange={(open) => setLongPressId(open ? row.id : null)}
+        />
+      ),
     },
   ];
 
@@ -112,6 +125,40 @@ export default function FileTable({
       columns={columns}
       rows={entries}
       emptyState={<span className="text-sm text-[var(--text-tertiary)]">{t('table.emptyText')}</span>}
+      rowWrapper={(row, tr) => (
+        <FileTableRow row={row} tr={tr} getActionItems={getActionItems} onLongPress={() => setLongPressId(row.id)} />
+      )}
     />
+  );
+}
+
+function FileTableRow({
+  row,
+  tr,
+  getActionItems,
+  onLongPress,
+}: {
+  row: FsEntry;
+  tr: ReactElement<Record<string, unknown>>;
+  getActionItems: (entry: FsEntry) => ActionMenuItem[];
+  onLongPress: () => void;
+}) {
+  const longPress = useLongPress(onLongPress);
+  const items = getActionItems(row);
+
+  return (
+    <ContextMenu>
+      <ContextMenuTrigger asChild>{cloneElement(tr, longPress)}</ContextMenuTrigger>
+      <ContextMenuContent>
+        {items
+          .filter((item) => !item.hidden)
+          .map((item) => (
+            <ContextMenuItem key={item.key} disabled={item.disabled} variant={item.variant === 'danger' ? 'danger' : 'default'} onSelect={item.onSelect}>
+              {item.icon}
+              {item.label}
+            </ContextMenuItem>
+          ))}
+      </ContextMenuContent>
+    </ContextMenu>
   );
 }

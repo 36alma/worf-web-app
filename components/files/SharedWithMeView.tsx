@@ -12,7 +12,7 @@ import EmptyState from '@/components/ui/EmptyState';
 import FileTable from '@/components/files/FileTable';
 import FileDetailSheet from '@/components/files/FileDetailSheet';
 import FolderDetailSheet from '@/components/files/FolderDetailSheet';
-import EntryActionsMenu, { type ActionMenuItem } from '@/components/files/EntryActionsMenu';
+import { type ActionMenuItem } from '@/components/files/EntryActionsMenu';
 import { toFileEntries, toFolderEntries, type FsEntry } from '@/components/files/entryTypes';
 
 const PAGE_SIZE = 20;
@@ -87,7 +87,7 @@ export default function SharedWithMeView() {
           onOpenFile={setSelectedFileId}
           onOpenFolder={setSelectedFolderId}
           onToggleStar={() => undefined}
-          renderActions={(entry) => <EntryActionsMenu items={buildActionItems(entry)} triggerLabel={t('table.actions')} sheetTitle={t('table.actions')} />}
+          getActionItems={buildActionItems}
           selectable={false}
           starrable={false}
         />

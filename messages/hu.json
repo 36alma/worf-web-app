@@ -384,6 +384,8 @@
       "delete": "Törlés",
       "clear": "Kijelölés törlése",
       "deleteSummary": "{succeeded}/{total} elem törölve.",
+      "confirmDeleteTitle": "Elemek törlése",
+      "confirmDeleteMessage": "Biztosan a Kukába helyezed a kijelölt {count} elemet? Később visszaállíthatók.",
       "move": "Áthelyezés",
       "moveSummary": "{succeeded}/{total} elem áthelyezve.",
       "share": "Megosztás csoporttal",

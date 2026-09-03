@@ -2,6 +2,8 @@
 
 import { cloneElement, useState, type ReactElement } from 'react';
 import { useTranslations } from 'next-intl';
+import { useDraggable, useDroppable } from '@dnd-kit/core';
+import clsx from 'clsx';
 import { Folder, Star } from 'lucide-react';
 import DataTable, { type Column } from '@/components/ui/DataTable';
 import { ContextMenu, ContextMenuTrigger, ContextMenuContent, ContextMenuItem } from '@/components/ui/ContextMenu';
@@ -145,10 +147,28 @@ function FileTableRow({
 }) {
   const longPress = useLongPress(onLongPress);
   const items = getActionItems(row);
+  const draggable = useDraggable({ id: `entry-drag:${row.id}`, data: { entry: row } });
+  const droppable = useDroppable({ id: `folder-drop:${row.id}`, data: { folderId: row.id }, disabled: row.kind !== 'folder' });
+  const trProps = tr.props as { className?: string };
+
+  const draggableTr = cloneElement(tr, {
+    ...longPress,
+    ...draggable.listeners,
+    ...draggable.attributes,
+    ref: (node: HTMLTableRowElement | null) => {
+      draggable.setNodeRef(node);
+      droppable.setNodeRef(node);
+    },
+    className: clsx(
+      trProps.className,
+      draggable.isDragging && 'opacity-40',
+      droppable.isOver && row.kind === 'folder' && 'bg-[var(--bg-active)] ring-2 ring-inset ring-[var(--accent)]'
+    ),
+  });
 
   return (
     <ContextMenu>
-      <ContextMenuTrigger asChild>{cloneElement(tr, longPress)}</ContextMenuTrigger>
+      <ContextMenuTrigger asChild>{draggableTr}</ContextMenuTrigger>
       <ContextMenuContent>
         {items
           .filter((item) => !item.hidden)

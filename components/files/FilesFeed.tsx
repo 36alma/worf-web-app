@@ -4,10 +4,20 @@ import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useLocale, useTranslations } from 'next-intl';
 import toast from 'react-hot-toast';
-import { FolderPlus, Star } from 'lucide-react';
+import {
+  DndContext,
+  DragOverlay,
+  PointerSensor,
+  KeyboardSensor,
+  useSensor,
+  useSensors,
+  type DragStartEvent,
+  type DragEndEvent,
+} from '@dnd-kit/core';
+import { File, Folder, FolderPlus, Star } from 'lucide-react';
 import { LayoutGrid, List, Search } from 'lucide-react';
-import { listFiles, requestDownload, buildDownloadUrl, deleteFile, renameFile, starFile, unstarFile, type FileListItem } from '@/lib/api/files';
-import { listFolder, createFolder, deleteFolder, renameFolder, starFolder, unstarFolder } from '@/lib/api/folders';
+import { listFiles, requestDownload, buildDownloadUrl, deleteFile, renameFile, starFile, unstarFile, moveFile, type FileListItem } from '@/lib/api/files';
+import { listFolder, createFolder, deleteFolder, renameFolder, starFolder, unstarFolder, moveFolder } from '@/lib/api/folders';
 import { translateFileApiError } from '@/lib/i18n/files';
 import { translateFolderApiError } from '@/lib/i18n/folders';
 import { getFileCategory, type FileCategory } from '@/lib/utils/formatFiles';
@@ -31,8 +41,10 @@ import FilesBreadcrumb from '@/components/files/FilesBreadcrumb';
 import NameDialog from '@/components/files/NameDialog';
 import StorageUsageBar from '@/components/files/StorageUsageBar';
 import ShareModal from '@/components/files/ShareModal';
+import BulkShareDialog from '@/components/files/BulkShareDialog';
+import MoveToFolderDialog from '@/components/files/MoveToFolderDialog';
 import { buildEntryActions, isPreviewable } from '@/components/files/entryActions';
-import { toFileEntries, toFolderEntries, type FsEntry } from '@/components/files/entryTypes';
+import { getEntryName, toFileEntries, toFolderEntries, type FileEntry, type FsEntry } from '@/components/files/entryTypes';
 
 type CategoryFilter = FileCategory | 'all';
 type ViewMode = 'list' | 'grid';
@@ -81,6 +93,16 @@ export default function FilesFeed({ mode, groupId, folderId = null, basePath }: 
   const [previewFileId, setPreviewFileId] = useState<string | null>(null);
   const [shareTarget, setShareTarget] = useState<FsEntry | null>(null);
   const [storageRefreshKey, setStorageRefreshKey] = useState(0);
+  const [activeDragEntry, setActiveDragEntry] = useState<FsEntry | null>(null);
+  const [isBulkMoveOpen, setIsBulkMoveOpen] = useState(false);
+  const [isBulkShareOpen, setIsBulkShareOpen] = useState(false);
+  const [isBulkDeleteConfirmOpen, setIsBulkDeleteConfirmOpen] = useState(false);
+  const [isBulkBusy, setIsBulkBusy] = useState(false);
+
+  const dndSensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(KeyboardSensor)
+  );
 
   const {
     listA: subfolders,
@@ -173,6 +195,70 @@ export default function FilesFeed({ mode, groupId, folderId = null, basePath }: 
     }
   };
 
+  const moveEntries = async (items: FsEntry[], targetFolderId: string | null) => {
+    const results = await Promise.allSettled(
+      items.map((item) => (item.kind === 'file' ? moveFile(item.id, targetFolderId) : moveFolder(item.id, targetFolderId)))
+    );
+    const succeeded = results.filter((result) => result.status === 'fulfilled').length;
+    const summary = t('bulk.moveSummary', { succeeded, total: results.length });
+    if (succeeded === results.length) toast.success(summary);
+    else toast.error(summary);
+    refetch();
+    setSelectedIds(new Set());
+  };
+
+  const handleDragStart = (event: DragStartEvent) => {
+    setActiveDragEntry((event.active.data.current as { entry?: FsEntry } | undefined)?.entry ?? null);
+  };
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    const draggedEntry = (active.data.current as { entry?: FsEntry } | undefined)?.entry;
+    setActiveDragEntry(null);
+    if (!over || !draggedEntry) return;
+    const targetFolderId = (over.data.current as { folderId?: string | null } | undefined)?.folderId;
+    if (targetFolderId === undefined) return;
+    if (draggedEntry.kind === 'folder' && draggedEntry.id === targetFolderId) return;
+    const items = selectedIds.has(draggedEntry.id) && selectedIds.size > 1
+      ? entries.filter((entry) => selectedIds.has(entry.id))
+      : [draggedEntry];
+    void moveEntries(items, targetFolderId);
+  };
+
+  const selectedEntries = useMemo(() => entries.filter((entry) => selectedIds.has(entry.id)), [entries, selectedIds]);
+  const selectedFileEntries = useMemo(() => selectedEntries.filter((entry): entry is FileEntry => entry.kind === 'file'), [selectedEntries]);
+
+  const handleBulkDownload = async () => {
+    setIsBulkBusy(true);
+    try {
+      await Promise.allSettled(selectedFileEntries.map((entry) => handleDownload(entry)));
+    } finally {
+      setIsBulkBusy(false);
+    }
+  };
+
+  const handleBulkDeleteConfirm = async () => {
+    setIsBulkBusy(true);
+    try {
+      const results = await Promise.allSettled(
+        selectedEntries.map((entry) => (entry.kind === 'file' ? deleteFile(entry.id) : deleteFolder(entry.id)))
+      );
+      const succeeded = results.filter((result) => result.status === 'fulfilled').length;
+      const summary = t('bulk.deleteSummary', { succeeded, total: results.length });
+      if (succeeded === results.length) toast.success(summary);
+      else toast.error(summary);
+      setIsBulkDeleteConfirmOpen(false);
+      setSelectedIds(new Set());
+      refreshFilesAndStorage();
+    } finally {
+      setIsBulkBusy(false);
+    }
+  };
+
+  const handleBulkMove = async (targetFolderId: string | null) => {
+    await moveEntries(selectedEntries, targetFolderId);
+  };
+
   const handleRenameSubmit = async (name: string) => {
     if (!renameTarget) return;
     try {
@@ -237,6 +323,7 @@ export default function FilesFeed({ mode, groupId, folderId = null, basePath }: 
   const title = mode === 'group' ? t('groupPage.title') : t('page.title');
 
   return (
+    <DndContext sensors={dndSensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
     <section className="space-y-4">
       <div className="flex items-center justify-between">
         <div className="min-w-0">
@@ -378,7 +465,52 @@ export default function FilesFeed({ mode, groupId, folderId = null, basePath }: 
         onConfirm={() => void handleDeleteConfirm()}
       />
       <UploadProgressPanel items={uploadQueue.items} onRetry={uploadQueue.retry} onRemove={uploadQueue.removeSettled} />
+
+      <BulkActionBar
+        count={selectedIds.size}
+        shareableCount={selectedFileEntries.length}
+        onDownloadAll={() => void handleBulkDownload()}
+        onDeleteAll={() => setIsBulkDeleteConfirmOpen(true)}
+        onShareAll={() => setIsBulkShareOpen(true)}
+        onMoveAll={() => setIsBulkMoveOpen(true)}
+        onClear={() => setSelectedIds(new Set())}
+        isBusy={isBulkBusy}
+      />
+      <MoveToFolderDialog
+        open={isBulkMoveOpen}
+        title={t('bulk.move')}
+        scope={mode}
+        groupId={groupId}
+        onSelect={handleBulkMove}
+        onClose={() => setIsBulkMoveOpen(false)}
+      />
+      <BulkShareDialog
+        open={isBulkShareOpen}
+        fileIds={selectedFileEntries.map((entry) => entry.id)}
+        onClose={() => setIsBulkShareOpen(false)}
+        onShared={() => setSelectedIds(new Set())}
+      />
+      <ConfirmDialog
+        open={isBulkDeleteConfirmOpen}
+        title={t('bulk.confirmDeleteTitle')}
+        message={t('bulk.confirmDeleteMessage', { count: selectedIds.size })}
+        onCancel={() => setIsBulkDeleteConfirmOpen(false)}
+        onConfirm={() => void handleBulkDeleteConfirm()}
+      />
     </section>
+    <DragOverlay>
+      {activeDragEntry && (
+        <div className="flex items-center gap-2 rounded-[var(--radius-md)] border border-[var(--border-default)] bg-[var(--bg-elevated)] px-3 py-2 text-sm text-[var(--text-primary)] shadow-lg">
+          {activeDragEntry.kind === 'folder' ? (
+            <Folder size={16} strokeWidth={1.75} className="text-[var(--text-tertiary)]" />
+          ) : (
+            <File size={16} strokeWidth={1.75} className="text-[var(--text-tertiary)]" />
+          )}
+          <span className="max-w-[16rem] truncate">{getEntryName(activeDragEntry)}</span>
+        </div>
+      )}
+    </DragOverlay>
+    </DndContext>
   );
 }
 

@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import { Folder, Star } from 'lucide-react';
 import { useTranslations } from 'next-intl';
+import { useDraggable, useDroppable } from '@dnd-kit/core';
+import clsx from 'clsx';
 import { ContextMenu, ContextMenuTrigger, ContextMenuContent, ContextMenuItem } from '@/components/ui/ContextMenu';
 import EntryActionsMenu from './EntryActionsMenu';
 import ThumbnailImage from './ThumbnailImage';
@@ -86,13 +88,18 @@ function FileGridCard({
   const dateIso = getEntryDateIso(entry);
   const items = getActionItems(entry);
   const longPress = useLongPress(() => onSheetOpenChange(true));
+  const draggable = useDraggable({ id: `entry-drag:${entry.id}`, data: { entry } });
+  const droppable = useDroppable({ id: `folder-drop:${entry.id}`, data: { folderId: entry.id }, disabled: entry.kind !== 'folder' });
+  const setRefs = (node: HTMLDivElement | null) => {
+    draggable.setNodeRef(node);
+    droppable.setNodeRef(node);
+  };
 
   return (
     <ContextMenu>
       <ContextMenuTrigger asChild>
         <div
-          role="button"
-          tabIndex={0}
+          ref={setRefs}
           onClick={() => (entry.kind === 'folder' ? onOpenFolder(entry.id) : onOpenFile(entry.id))}
           onKeyDown={(event) => {
             if (event.key === 'Enter' || event.key === ' ') {
@@ -101,7 +108,13 @@ function FileGridCard({
             }
           }}
           {...longPress}
-          className="group relative flex cursor-pointer flex-col items-start gap-2 rounded-[var(--radius-lg)] border-[0.5px] border-[var(--border-subtle)] bg-[var(--bg-surface)] p-3 text-left transition-colors hover:bg-[var(--bg-hover)]"
+          {...draggable.listeners}
+          {...draggable.attributes}
+          className={clsx(
+            'group relative flex cursor-pointer flex-col items-start gap-2 rounded-[var(--radius-lg)] border-[0.5px] border-[var(--border-subtle)] bg-[var(--bg-surface)] p-3 text-left transition-colors hover:bg-[var(--bg-hover)]',
+            draggable.isDragging && 'opacity-40',
+            droppable.isOver && entry.kind === 'folder' && 'bg-[var(--bg-active)] ring-2 ring-inset ring-[var(--accent)]'
+          )}
         >
           {/* Wrap (not resize) the checkbox to a 44px min hit area (spec §1.1).
               Positioning/visibility classes move to the <label> wrapper; the

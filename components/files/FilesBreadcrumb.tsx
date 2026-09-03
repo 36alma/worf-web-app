@@ -1,8 +1,10 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import Link from 'next/link';
 import { useLocale, useTranslations } from 'next-intl';
+import { useDroppable } from '@dnd-kit/core';
+import clsx from 'clsx';
 import { ChevronRight, MoreHorizontal } from 'lucide-react';
 import { getFolderMetadata } from '@/lib/api/folders';
 import {
@@ -96,9 +98,11 @@ export default function FilesBreadcrumb({ folderId, basePath }: FilesBreadcrumbP
           …
         </span>
       )}
-      <Link href={rootHref} className="shrink-0 hover:text-[var(--text-primary)] hover:underline">
-        {t('page.title')}
-      </Link>
+      <DroppableCrumb folderId={null} disabled={folderId === null}>
+        <Link href={rootHref} className="shrink-0 hover:text-[var(--text-primary)] hover:underline">
+          {t('page.title')}
+        </Link>
+      </DroppableCrumb>
       {visible.map((segment, index) => (
         <span key={segment.id} className="flex shrink-0 items-center gap-1.5">
           <ChevronRight size={14} strokeWidth={1.75} className="text-[var(--text-tertiary)]" />
@@ -122,12 +126,23 @@ export default function FilesBreadcrumb({ folderId, basePath }: FilesBreadcrumbP
           {index === visible.length - 1 ? (
             <span className="font-medium text-[var(--text-primary)]">{segment.name}</span>
           ) : (
-            <Link href={`/${locale}${basePath}/folder/${encodeURIComponent(segment.id)}`} className="hover:text-[var(--text-primary)] hover:underline">
-              {segment.name}
-            </Link>
+            <DroppableCrumb folderId={segment.id}>
+              <Link href={`/${locale}${basePath}/folder/${encodeURIComponent(segment.id)}`} className="hover:text-[var(--text-primary)] hover:underline">
+                {segment.name}
+              </Link>
+            </DroppableCrumb>
           )}
         </span>
       ))}
     </nav>
+  );
+}
+
+function DroppableCrumb({ folderId, disabled, children }: { folderId: string | null; disabled?: boolean; children: ReactNode }) {
+  const { setNodeRef, isOver } = useDroppable({ id: `folder-drop:${folderId ?? 'root'}`, data: { folderId }, disabled });
+  return (
+    <span ref={setNodeRef} className={clsx('shrink-0 rounded px-0.5', isOver && !disabled && 'bg-[var(--bg-active)] ring-2 ring-inset ring-[var(--accent)]')}>
+      {children}
+    </span>
   );
 }

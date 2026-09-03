@@ -384,6 +384,8 @@
       "delete": "Delete",
       "clear": "Clear selection",
       "deleteSummary": "{succeeded}/{total} items deleted.",
+      "confirmDeleteTitle": "Delete items",
+      "confirmDeleteMessage": "Are you sure you want to move {count} items to trash? They can be restored later.",
       "move": "Move",
       "moveSummary": "{succeeded}/{total} items moved.",
       "share": "Share with group",

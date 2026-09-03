@@ -77,9 +77,9 @@ describe('buildEntryActions', () => {
     expect(keys).not.toContain('share');
   });
 
-  it('folders get open + share + rename + star + delete, no preview/details/download', () => {
+  it('folders get open + details + share + rename + star + delete, no preview/download', () => {
     const keys = buildEntryActions(makeFolder(), baseContext).map((item) => item.key);
-    expect(keys).toEqual(['open', 'share', 'rename', 'star', 'delete']);
+    expect(keys).toEqual(['open', 'details', 'share', 'rename', 'star', 'delete']);
   });
 
   it('marks download hidden when forbidden', () => {

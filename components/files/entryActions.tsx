@@ -42,13 +42,14 @@ export function buildEntryActions(entry: FsEntry, ctx: EntryActionsContext): Act
     });
   }
 
+  items.push({
+    key: 'details',
+    label: ctx.t('preview.details'),
+    icon: <FileText size={16} strokeWidth={1.75} />,
+    onSelect: () => ctx.onDetails(entry),
+  });
+
   if (entry.kind === 'file') {
-    items.push({
-      key: 'details',
-      label: ctx.t('preview.details'),
-      icon: <FileText size={16} strokeWidth={1.75} />,
-      onSelect: () => ctx.onDetails(entry),
-    });
     items.push({
       key: 'download',
       label: ctx.t('detail.download'),

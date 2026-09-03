@@ -572,6 +572,19 @@
     "share": {
       "modalTitle": "Share folder"
     },
+    "detail": {
+      "title": "Folder details",
+      "tabs": {
+        "metadata": "Metadata",
+        "audit": "Log"
+      },
+      "fields": {
+        "name": "Name",
+        "scope": "Scope",
+        "createdAt": "Created"
+      },
+      "delete": "Delete"
+    },
     "trashHelperText": "Deleted folders and files can be restored until they are permanently deleted.",
     "confirmPermanentDelete": {
       "message": "Are you sure you want to permanently delete this folder and everything inside it? This action cannot be undone."

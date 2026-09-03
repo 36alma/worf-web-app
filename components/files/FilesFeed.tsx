@@ -25,6 +25,7 @@ import BulkActionBar from '@/components/files/BulkActionBar';
 import UploadDialog from '@/components/files/UploadDialog';
 import UploadProgressPanel from '@/components/files/UploadProgressPanel';
 import FileDetailSheet from '@/components/files/FileDetailSheet';
+import FolderDetailSheet from '@/components/files/FolderDetailSheet';
 import PreviewModal from '@/components/files/PreviewModal';
 import FilesBreadcrumb from '@/components/files/FilesBreadcrumb';
 import NameDialog from '@/components/files/NameDialog';
@@ -76,6 +77,7 @@ export default function FilesFeed({ mode, groupId, folderId = null, basePath }: 
   const [renameTarget, setRenameTarget] = useState<FsEntry | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<FsEntry | null>(null);
   const [selectedFileId, setSelectedFileId] = useState<string | null>(null);
+  const [selectedFolderId, setSelectedFolderId] = useState<string | null>(null);
   const [previewFileId, setPreviewFileId] = useState<string | null>(null);
   const [shareTarget, setShareTarget] = useState<FsEntry | null>(null);
   const [storageRefreshKey, setStorageRefreshKey] = useState(0);
@@ -224,7 +226,7 @@ export default function FilesFeed({ mode, groupId, folderId = null, basePath }: 
       t: (key: string) => t(key as Parameters<typeof t>[0]),
       onOpenFolder: (target) => handleOpenFolder(target.id),
       onPreview: (target) => setPreviewFileId(target.id),
-      onDetails: (target) => setSelectedFileId(target.id),
+      onDetails: (target) => (target.kind === 'folder' ? setSelectedFolderId(target.id) : setSelectedFileId(target.id)),
       onShare: (target) => setShareTarget(target),
       onDownload: (target) => void handleDownload(target),
       onRename: (target) => setRenameTarget(target),
@@ -343,6 +345,12 @@ export default function FilesFeed({ mode, groupId, folderId = null, basePath }: 
         onDeleted={() => { setSelectedFileId(null); refreshFilesAndStorage(); }}
         onChanged={refetch}
         onPreview={setPreviewFileId}
+      />
+      <FolderDetailSheet
+        folderId={selectedFolderId}
+        onClose={() => setSelectedFolderId(null)}
+        onDeleted={() => { setSelectedFolderId(null); refreshFilesAndStorage(); }}
+        onChanged={refetch}
       />
       <PreviewModal
         files={fileEntries}

@@ -1005,7 +1005,23 @@
     "show_password": "Jelszó megjelenítése",
     "hide_password": "Jelszó elrejtése",
     "show_password_repeat": "Jelszó megerősítés megjelenítése",
-    "hide_password_repeat": "Jelszó megerősítés elrejtése"
+    "hide_password_repeat": "Jelszó megerősítés elrejtése",
+    "mcp": {
+      "nav_title": "MCP szerver",
+      "nav_description": "Csatlakoztasd az AI klienseidet (pl. Claude) a Worf MCP szerveréhez.",
+      "title": "MCP szerver",
+      "subtitle": "Ezekkel az adatokkal kapcsolhatod össze az AI kliensedet a Worf fiókoddal.",
+      "endpoint_label": "MCP végpont URL",
+      "endpoint_description": "Add hozzá ezt az URL-t az MCP kliensedhez (pl. Claude) egyéni szerverként.",
+      "discovery_label": "OAuth discovery URL",
+      "discovery_description": "Az engedélyezési szerver metaadatai, amelyekből a kliens automatikusan felismeri a bejelentkezési és regisztrációs végpontokat.",
+      "copy": "Másolás",
+      "copied": "Vágólapra másolva",
+      "copy_failed": "Másolás sikertelen",
+      "dynamic_registration_title": "Dinamikus kliensregisztráció",
+      "dynamic_registration_description": "A szerver támogatja a dinamikus kliensregisztrációt (RFC 7591), így az MCP kliensek külön előzetes regisztráció nélkül, automatikusan tudnak csatlakozni és hitelesíteni.",
+      "missing_config": "Az MCP szerver adatai jelenleg nem elérhetők."
+    }
   },
   "admin": {
     "title": "Admin menü",

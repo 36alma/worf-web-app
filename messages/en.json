@@ -1005,7 +1005,23 @@
     "show_password": "Show password",
     "hide_password": "Hide password",
     "show_password_repeat": "Show password confirmation",
-    "hide_password_repeat": "Hide password confirmation"
+    "hide_password_repeat": "Hide password confirmation",
+    "mcp": {
+      "nav_title": "MCP server",
+      "nav_description": "Connect your AI clients (e.g. Claude) to the Worf MCP server.",
+      "title": "MCP server",
+      "subtitle": "Use these details to connect your AI client to your Worf account.",
+      "endpoint_label": "MCP endpoint URL",
+      "endpoint_description": "Add this URL to your MCP client (e.g. Claude) as a custom server.",
+      "discovery_label": "OAuth discovery URL",
+      "discovery_description": "Authorization server metadata the client uses to automatically discover the login and registration endpoints.",
+      "copy": "Copy",
+      "copied": "Copied to clipboard",
+      "copy_failed": "Copy failed",
+      "dynamic_registration_title": "Dynamic client registration",
+      "dynamic_registration_description": "The server supports dynamic client registration (RFC 7591), so MCP clients can connect and authenticate automatically without any manual pre-registration.",
+      "missing_config": "MCP server details are currently unavailable."
+    }
   },
   "admin": {
     "title": "Admin menu",

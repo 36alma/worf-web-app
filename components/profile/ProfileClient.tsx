@@ -1,7 +1,9 @@
 'use client';
 
 import {useEffect, useMemo, useState} from 'react';
-import {useTranslations} from 'next-intl';
+import {useLocale, useTranslations} from 'next-intl';
+import Link from 'next/link';
+import {ChevronRight, Plug} from 'lucide-react';
 import toast from 'react-hot-toast';
 import AccountFields from '@/components/profile/AccountFields';
 import LanguageGrid from '@/components/profile/LanguageGrid';
@@ -23,6 +25,7 @@ const emptyProfile: ProfileData = {
 export default function ProfileClient() {
   const t = useTranslations('profile');
   const commonT = useTranslations('common');
+  const locale = useLocale();
   const {setUser} = useAuthStore();
   const [profile, setProfile] = useState<ProfileData>(emptyProfile);
   const [loading, setLoading] = useState(true);
@@ -115,6 +118,10 @@ export default function ProfileClient() {
       language: {
         title: commonT('language'),
         description: t('language_description')
+      },
+      mcp: {
+        title: t('mcp.nav_title'),
+        description: t('mcp.nav_description')
       }
     }),
     [commonT, t]
@@ -159,6 +166,20 @@ export default function ProfileClient() {
         <div className="space-y-4">
           <PasswordSection labels={copy.password} />
           <LanguageGrid title={copy.language.title} description={copy.language.description} />
+
+          <Link
+            href={`/${locale}/profile/mcp`}
+            className="surface flex items-center gap-3 rounded-[var(--radius-lg)] p-5 transition-colors hover:bg-[var(--bg-hover)]"
+          >
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[var(--bg-surface)]">
+              <Plug className="h-4 w-4 text-[var(--accent)]" strokeWidth={1.75} />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="display-font text-lg text-[var(--text-primary)]">{copy.mcp.title}</p>
+              <p className="text-sm text-[var(--text-secondary)]">{copy.mcp.description}</p>
+            </div>
+            <ChevronRight className="h-4 w-4 shrink-0 text-[var(--text-tertiary)]" strokeWidth={1.75} />
+          </Link>
         </div>
       </div>
     </div>

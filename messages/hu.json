@@ -14,6 +14,7 @@
     "dashboard": "Vezérlőpult",
     "groups": "Csoportok",
     "tasks": "Feladatok",
+    "minutes": "Jegyzőkönyvek",
     "calendar": "Naptár",
     "posts": "Posztok",
     "files": "Fájlok",
@@ -112,6 +113,166 @@
     "group_posts": "Csoport posztok",
     "group_roles_permissions": "Csoport szerepkörök és jogosultságok"
   },
+  "group_minutes": {
+    "nav_label": "Jegyzőkönyvek",
+    "list": {
+      "title": "Jegyzőkönyvek",
+      "empty": "Még nincs jegyzőkönyv.",
+      "create": "Új jegyzőkönyv",
+      "import": "Import dokumentumból",
+      "filter_status_all": "Minden állapot",
+      "filter_date_from": "Ettől",
+      "filter_date_to": "Eddig",
+      "version_label": "{version}. verzió"
+    },
+    "status_enum": {
+      "DRAFT": "Piszkozat",
+      "PENDING_APPROVAL": "Hitelesítésre vár",
+      "APPROVED": "Jóváhagyva",
+      "ARCHIVED": "Archivált"
+    },
+    "role_enum": {
+      "ATTENDEE": "Résztvevő",
+      "CHAIR": "Levezető elnök",
+      "LEADER": "Vezető",
+      "MINUTE_TAKER": "Jegyzőkönyvvezető",
+      "WITNESS": "Hitelesítő"
+    },
+    "form": {
+      "subject": "Tárgy",
+      "meeting_date": "Gyűlés dátuma",
+      "location": "Helyszín",
+      "minute_taker": "Jegyzőkönyvvezető",
+      "save": "Mentés",
+      "cancel": "Mégse",
+      "delete": "Törlés",
+      "delete_confirm": "Törlöd ezt a piszkozat jegyzőkönyvet?"
+    },
+    "agenda": {
+      "title": "Napirendi pontok",
+      "add": "Napirendi pont hozzáadása",
+      "item_title": "Cím",
+      "discussion": "Elhangzottak",
+      "decision": "Döntés",
+      "presenter": "Előterjesztő",
+      "delete_confirm": "Törlöd ezt a napirendi pontot?",
+      "action_items": "Feladatok",
+      "add_action_item": "Feladat hozzáadása",
+      "description": "Leírás",
+      "due_date": "Határidő",
+      "assignee": "Felelős",
+      "promote_to_task": "Task-ká alakítás",
+      "promoted": "Összekapcsolva a(z) {issueKey} taskkal",
+      "delete_action_confirm": "Törlöd ezt a feladatot?"
+    },
+    "participants": {
+      "title": "Résztvevők",
+      "add": "Résztvevő hozzáadása",
+      "role": "Szerepkör",
+      "member": "Csoporttag",
+      "free_text_name": "Név (nem tag)",
+      "remove_confirm": "Eltávolítod ezt a résztvevőt?",
+      "prepopulate_from_event": "Résztvevők előtöltése az eseményből"
+    },
+    "witness": {
+      "title": "Hitelesítők",
+      "progress": "{total}-ból {approved} hitelesítő jóváhagyta",
+      "approve": "Jóváhagyás",
+      "reject": "Elutasítás",
+      "reason_prompt": "Elutasítás indoklása",
+      "rejection_reason": "Elutasítás indoka: {reason}",
+      "no_access": "Nem vagy hitelesítőként felvéve ezen a jegyzőkönyvön."
+    },
+    "attachments": {
+      "title": "Mellékletek",
+      "add": "Fájl csatolása",
+      "label": "Címke",
+      "remove_confirm": "Eltávolítod ezt a mellékletet?",
+      "export_pdf": "PDF exportálása",
+      "exported": "A PDF exportálva és csatolva lett.",
+      "download": "Letöltés"
+    },
+    "state": {
+      "finalize": "Lezárás",
+      "finalize_confirm": "Lezárod ezt a piszkozatot és elküldöd hitelesítésre?",
+      "finalize_needs_witness": "Adj hozzá legalább egy hitelesítőt a lezárás előtt.",
+      "revise": "Új verzió létrehozása",
+      "revise_confirm": "Létrehozol egy új piszkozat verziót ebből a jóváhagyott jegyzőkönyvből?"
+    },
+    "import": {
+      "title": "Jegyzőkönyv importálása",
+      "step_upload": "1. Dokumentum feltöltése",
+      "step_analyze": "2. Elemzés",
+      "step_review": "3. Ellenőrzés és megerősítés",
+      "upload_hint": "Tölts fel egy Word vagy PDF dokumentumot a digitalizáláshoz.",
+      "analyzing": "Dokumentum elemzése…",
+      "disabled": "A jegyzőkönyv-import funkció nincs engedélyezve.",
+      "confirm": "Jegyzőkönyv létrehozása",
+      "back": "Vissza",
+      "confidence_notes": "AI megjegyzések"
+    },
+    "editor": {
+      "toolbar": {
+        "paragraph": "Bekezdés",
+        "bold": "Félkövér",
+        "italic": "Dőlt",
+        "strikethrough": "Áthúzott",
+        "heading1": "Címsor 1",
+        "heading2": "Címsor 2",
+        "alignLeft": "Balra igazítás",
+        "alignCenter": "Középre igazítás",
+        "alignRight": "Jobbra igazítás",
+        "blockquote": "Idézet",
+        "bulletList": "Pontozott lista",
+        "orderedList": "Számozott lista",
+        "taskList": "Feladatlista",
+        "codeBlock": "Kódblokk",
+        "horizontalRule": "Elválasztó vonal",
+        "link": "Hivatkozás",
+        "image": "Kép",
+        "table": "Táblázat"
+      },
+      "prompts": {
+        "linkUrl": "Hivatkozás URL-je",
+        "imageUrl": "Kép URL-je"
+      },
+      "autosave": {
+        "saving": "Mentés…",
+        "saved": "Mentve",
+        "atSuffix": ""
+      },
+      "table": {
+        "insertTable": "Táblázat beszúrása",
+        "selectSize": "Méret kiválasztása",
+        "addRowBefore": "Sor beszúrása előtte",
+        "addRowAfter": "Sor beszúrása utána",
+        "deleteRow": "Sor törlése",
+        "addColumnBefore": "Oszlop beszúrása előtte",
+        "addColumnAfter": "Oszlop beszúrása utána",
+        "deleteColumn": "Oszlop törlése",
+        "mergeCells": "Cellák egyesítése",
+        "splitCell": "Cella szétválasztása",
+        "toggleHeader": "Fejléc sor be/ki",
+        "deleteTable": "Táblázat törlése",
+        "addRow": "Sor hozzáadása",
+        "addColumn": "Oszlop hozzáadása",
+        "rowOperations": "Sor",
+        "columnOperations": "Oszlop",
+        "cellOperations": "Cella"
+      }
+    },
+    "errors": {
+      "default": "Hiba történt. Kérjük, próbáld újra.",
+      "api": {
+        "403": "Nincs jogosultságod ehhez a művelethez.",
+        "404": "Ez a rekord már nem található.",
+        "422": "A megadott adat érvénytelen.",
+        "429": "Túl sok kérés — kérjük, várj egy kicsit, majd próbáld újra.",
+        "502": "Az AI szolgáltatás nem tudta feldolgozni ezt a dokumentumot.",
+        "503": "A jegyzőkönyv-import funkció nincs engedélyezve."
+      }
+    }
+  },
   "tasks": {
     "title": "Feladatok",
     "placeholder": "Itt jelenik meg a task panel, státusz és komment kezelés.",
@@ -154,7 +315,8 @@
       "progress": "Haladás",
       "dueDate": "Határidő",
       "createdAt": "Létrehozva",
-      "emptyText": "Nincs találat a szűrések alapján."
+      "emptyText": "Nincs találat a szűrések alapján.",
+      "sprint": "Sprint"
     },
     "actions": {
       "save": "Mentés",
@@ -185,10 +347,11 @@
       "URGENT": "Kritikus"
     },
     "views": {
-      "kanban": "Kanban",
+      "kanban": "Tábla",
       "list": "Lista",
       "calendar": "Naptár",
-      "timeline": "Idővonalas"
+      "timeline": "Idővonalas",
+      "backlog": "Backlog"
     },
     "board": {
       "emptyColumn": "Húzz ide feladatot",
@@ -208,7 +371,9 @@
       "dateTo": "Eddig",
       "clear": "Szűrők törlése",
       "apply": "Alkalmaz",
-      "noSelection": "Nincs kiválasztva"
+      "noSelection": "Nincs kiválasztva",
+      "archive": "Archívum",
+      "includeArchived": "Archivált feladatok megjelenítése"
     },
     "form": {
       "summary": "Összefoglaló",
@@ -255,6 +420,61 @@
     },
     "category": {
       "manage": "Címkék kezelése"
+    },
+    "sprint": {
+      "manage": "Sprintek kezelése",
+      "title": "Sprintek",
+      "switcherLabel": "Sprint",
+      "all": "Összes feladat",
+      "backlog": "Backlog",
+      "create": "Új sprint",
+      "edit": "Szerkesztés",
+      "save": "Mentés",
+      "cancel": "Mégse",
+      "name": "Sprint neve",
+      "namePlaceholder": "pl. Sprint 12",
+      "goal": "Sprint cél",
+      "goalPlaceholder": "Mit szeretnénk elérni ebben a sprintben?",
+      "startDate": "Kezdés",
+      "endDate": "Befejezés",
+      "dateRangeInvalid": "A kezdő dátumnak korábbinak kell lennie, mint a záró dátum.",
+      "noSprints": "Még nincs egyetlen sprint sem ebben a csoportban.",
+      "noReadPermission": "Nincs jogosultságod a sprintek megtekintéséhez.",
+      "deleteConfirm": "Biztosan törlöd a(z) \"{name}\" sprintet? A hozzá tartozó feladatok visszakerülnek a backlogba.",
+      "closeConfirm": "Biztosan lezárod a(z) \"{name}\" sprintet? A még nem kész feladatok visszakerülnek a backlogba.",
+      "loadError": "Nem sikerült betölteni a sprinteket.",
+      "createSuccess": "Sprint létrehozva.",
+      "createError": "Hiba a sprint létrehozása során.",
+      "updateSuccess": "Sprint frissítve.",
+      "updateError": "Hiba a sprint frissítése során.",
+      "deleteSuccess": "Sprint törölve.",
+      "deleteError": "Hiba a sprint törlése során.",
+      "startSuccess": "Sprint elindítva.",
+      "startError": "Hiba a sprint indítása során.",
+      "closeSuccess": "Sprint lezárva. {count} feladat visszakerült a backlogba.",
+      "closeError": "Hiba a sprint lezárása során.",
+      "status": {
+        "PLANNED": "Tervezett",
+        "ACTIVE": "Aktív",
+        "CLOSED": "Lezárva"
+      }
+    },
+    "backlog": {
+      "expand": "Kibontás",
+      "collapse": "Összecsukás",
+      "activeLabel": "Aktív",
+      "closedLabel": "Lezárva",
+      "addDates": "Dátumok hozzáadása",
+      "itemsSuffix": "({count} munkatétel)",
+      "startSprint": "Sprint indítása",
+      "closeSprint": "Sprint lezárása",
+      "createSprint": "Sprint létrehozása",
+      "newSprintName": "Sprint {count}",
+      "emptySprint": "Tervezd meg a sprintet a backlogból áthúzott elemekkel, vagy hozz létre egy újat.",
+      "emptyBacklog": "A backlog üres. Vedd fel az első elemet alább.",
+      "quickAddPlaceholder": "Írd le, mit kell elvégezni",
+      "create": "Létrehozás",
+      "createLink": "Létrehozás"
     },
     "toasts": {
       "saving": "Mentés...",
@@ -1090,7 +1310,8 @@
       "users": "Felhasználók",
       "groups": "Csoportok",
       "roles": "Role-ok",
-      "storage": "Tárhely"
+      "storage": "Tárhely",
+      "oauth": "OAuth kliensek"
     },
     "columns": {
       "id": "Azonosító",
@@ -1105,6 +1326,45 @@
       "group_name": "Csoport név",
       "description": "Leírás",
       "actions": "Műveletek"
+    },
+    "oauth": {
+      "title": "OAuth kliensek",
+      "show_revoked": "Visszavontak mutatása",
+      "load_error": "Az OAuth kliensek betöltése sikertelen.",
+      "no_clients": "Nincs OAuth kliens.",
+      "revoke": "Visszavonás",
+      "revoking": "Visszavonás...",
+      "revoke_title": "OAuth kliens visszavonása",
+      "revoke_confirm": "Biztosan visszavonod ezt a klienst: {name}? A visszavonás azonnal érvénybe lép, és a klienshez tartozó ÖSSZES access/refresh tokent is visszavonja. Ez a művelet nem visszafordítható.",
+      "revoke_success": "A kliens visszavonása sikeres.",
+      "revoke_error": "A kliens visszavonása sikertelen.",
+      "total": "Összes: {total}",
+      "prev": "Előző",
+      "next": "Következő",
+      "page": "{page}. / {totalPages} oldal",
+      "columns": {
+        "name": "Név",
+        "client_type": "Típus",
+        "origin": "Eredet",
+        "origin_dcr": "DCR",
+        "origin_manual": "Kézi",
+        "status": "Állapot",
+        "status_active": "Aktív",
+        "status_revoked": "Visszavonva",
+        "created_at": "Létrehozva",
+        "actions": "Műveletek"
+      },
+      "cimd": {
+        "title": "CIMD kliens denylist",
+        "hint": "Csak akkor releváns, ha a szerveren az OAUTH_CIMD_ENABLED be van kapcsolva. A tiltás a client_id URL-hez már kiadott összes access/refresh tokent is visszavonja; a feloldás csak a jövőbeli kéréseket engedi újra, a korábban visszavont tokeneket nem állítja vissza.",
+        "url_label": "client_id URL",
+        "deny": "Tiltás",
+        "undeny": "Feloldás",
+        "deny_success": "A kliens URL letiltva.",
+        "deny_error": "A kliens URL tiltása sikertelen.",
+        "undeny_success": "A kliens URL feloldva.",
+        "undeny_error": "A kliens URL feloldása sikertelen."
+      }
     },
     "groupRoles": {
       "title": "Csoport Szerepkörök Kezelése",

@@ -14,6 +14,7 @@
     "dashboard": "Dashboard",
     "groups": "Groups",
     "tasks": "Tasks",
+    "minutes": "Minutes",
     "calendar": "Calendar",
     "posts": "Posts",
     "files": "Files",
@@ -112,6 +113,166 @@
     "group_posts": "Group posts",
     "group_roles_permissions": "Group roles and permissions"
   },
+  "group_minutes": {
+    "nav_label": "Minutes",
+    "list": {
+      "title": "Meeting minutes",
+      "empty": "No meeting minutes yet.",
+      "create": "New minutes",
+      "import": "Import from document",
+      "filter_status_all": "All statuses",
+      "filter_date_from": "From",
+      "filter_date_to": "To",
+      "version_label": "Version {version}"
+    },
+    "status_enum": {
+      "DRAFT": "Draft",
+      "PENDING_APPROVAL": "Pending approval",
+      "APPROVED": "Approved",
+      "ARCHIVED": "Archived"
+    },
+    "role_enum": {
+      "ATTENDEE": "Attendee",
+      "CHAIR": "Chair",
+      "LEADER": "Leader",
+      "MINUTE_TAKER": "Minute taker",
+      "WITNESS": "Witness"
+    },
+    "form": {
+      "subject": "Subject",
+      "meeting_date": "Meeting date",
+      "location": "Location",
+      "minute_taker": "Minute taker",
+      "save": "Save",
+      "cancel": "Cancel",
+      "delete": "Delete",
+      "delete_confirm": "Delete this meeting minutes draft?"
+    },
+    "agenda": {
+      "title": "Agenda items",
+      "add": "Add agenda item",
+      "item_title": "Title",
+      "discussion": "Discussion",
+      "decision": "Decision",
+      "presenter": "Presenter",
+      "delete_confirm": "Delete this agenda item?",
+      "action_items": "Action items",
+      "add_action_item": "Add action item",
+      "description": "Description",
+      "due_date": "Due date",
+      "assignee": "Assignee",
+      "promote_to_task": "Convert to task",
+      "promoted": "Linked to task {issueKey}",
+      "delete_action_confirm": "Delete this action item?"
+    },
+    "participants": {
+      "title": "Participants",
+      "add": "Add participant",
+      "role": "Role",
+      "member": "Group member",
+      "free_text_name": "Name (not a member)",
+      "remove_confirm": "Remove this participant?",
+      "prepopulate_from_event": "Prefill from calendar event"
+    },
+    "witness": {
+      "title": "Witnesses",
+      "progress": "{approved} of {total} witnesses approved",
+      "approve": "Approve",
+      "reject": "Reject",
+      "reason_prompt": "Reason for rejection",
+      "rejection_reason": "Rejection reason: {reason}",
+      "no_access": "You are not registered as a witness on this record."
+    },
+    "attachments": {
+      "title": "Attachments",
+      "add": "Attach file",
+      "label": "Label",
+      "remove_confirm": "Remove this attachment?",
+      "export_pdf": "Export as PDF",
+      "exported": "PDF exported and attached.",
+      "download": "Download"
+    },
+    "state": {
+      "finalize": "Finalize",
+      "finalize_confirm": "Finalize this draft and send for witness approval?",
+      "finalize_needs_witness": "Add at least one witness before finalizing.",
+      "revise": "Create new version",
+      "revise_confirm": "Create a new draft version from this approved minutes?"
+    },
+    "import": {
+      "title": "Import meeting minutes",
+      "step_upload": "1. Upload document",
+      "step_analyze": "2. Analyze",
+      "step_review": "3. Review & confirm",
+      "upload_hint": "Upload a Word or PDF document to digitize.",
+      "analyzing": "Analyzing document…",
+      "disabled": "The meeting minutes import feature is not enabled.",
+      "confirm": "Create minutes",
+      "back": "Back",
+      "confidence_notes": "AI notes"
+    },
+    "editor": {
+      "toolbar": {
+        "paragraph": "Paragraph",
+        "bold": "Bold",
+        "italic": "Italic",
+        "strikethrough": "Strikethrough",
+        "heading1": "Heading 1",
+        "heading2": "Heading 2",
+        "alignLeft": "Align left",
+        "alignCenter": "Align center",
+        "alignRight": "Align right",
+        "blockquote": "Blockquote",
+        "bulletList": "Bullet list",
+        "orderedList": "Ordered list",
+        "taskList": "Task list",
+        "codeBlock": "Code block",
+        "horizontalRule": "Horizontal rule",
+        "link": "Link",
+        "image": "Image",
+        "table": "Table"
+      },
+      "prompts": {
+        "linkUrl": "Link URL",
+        "imageUrl": "Image URL"
+      },
+      "autosave": {
+        "saving": "Saving…",
+        "saved": "Saved",
+        "atSuffix": ""
+      },
+      "table": {
+        "insertTable": "Insert table",
+        "selectSize": "Select size",
+        "addRowBefore": "Add row before",
+        "addRowAfter": "Add row after",
+        "deleteRow": "Delete row",
+        "addColumnBefore": "Add column before",
+        "addColumnAfter": "Add column after",
+        "deleteColumn": "Delete column",
+        "mergeCells": "Merge cells",
+        "splitCell": "Split cell",
+        "toggleHeader": "Toggle header row",
+        "deleteTable": "Delete table",
+        "addRow": "Add row",
+        "addColumn": "Add column",
+        "rowOperations": "Row",
+        "columnOperations": "Column",
+        "cellOperations": "Cell"
+      }
+    },
+    "errors": {
+      "default": "Something went wrong. Please try again.",
+      "api": {
+        "403": "You don't have permission to do this.",
+        "404": "This record was no longer found.",
+        "422": "The provided data is invalid.",
+        "429": "Too many requests — please wait a moment and try again.",
+        "502": "The AI service could not process this document.",
+        "503": "The meeting minutes import feature is not enabled."
+      }
+    }
+  },
   "tasks": {
     "title": "Tasks",
     "placeholder": "Task panel, status flow, and comments will be rendered here.",
@@ -154,7 +315,8 @@
       "progress": "Progress",
       "dueDate": "Due Date",
       "createdAt": "Created At",
-      "emptyText": "No results found for the selected filters."
+      "emptyText": "No results found for the selected filters.",
+      "sprint": "Sprint"
     },
     "actions": {
       "save": "Save",
@@ -185,10 +347,11 @@
       "URGENT": "Critical"
     },
     "views": {
-      "kanban": "Kanban",
+      "kanban": "Board",
       "list": "List",
       "calendar": "Calendar",
-      "timeline": "Timeline"
+      "timeline": "Timeline",
+      "backlog": "Backlog"
     },
     "board": {
       "emptyColumn": "Drop a task here",
@@ -208,7 +371,9 @@
       "dateTo": "To",
       "clear": "Clear filters",
       "apply": "Apply",
-      "noSelection": "No selection"
+      "noSelection": "No selection",
+      "archive": "Archive",
+      "includeArchived": "Show archived tasks"
     },
     "form": {
       "summary": "Summary",
@@ -255,6 +420,61 @@
     },
     "category": {
       "manage": "Manage categories"
+    },
+    "sprint": {
+      "manage": "Manage sprints",
+      "title": "Sprints",
+      "switcherLabel": "Sprint",
+      "all": "All tasks",
+      "backlog": "Backlog",
+      "create": "New sprint",
+      "edit": "Edit",
+      "save": "Save",
+      "cancel": "Cancel",
+      "name": "Sprint name",
+      "namePlaceholder": "e.g. Sprint 12",
+      "goal": "Sprint goal",
+      "goalPlaceholder": "What do we want to achieve in this sprint?",
+      "startDate": "Start date",
+      "endDate": "End date",
+      "dateRangeInvalid": "The start date must be earlier than the end date.",
+      "noSprints": "There are no sprints in this group yet.",
+      "noReadPermission": "You do not have permission to view sprints.",
+      "deleteConfirm": "Delete sprint \"{name}\"? Its tasks will move back to the backlog.",
+      "closeConfirm": "Close sprint \"{name}\"? Tasks that aren't done yet will move back to the backlog.",
+      "loadError": "Failed to load sprints.",
+      "createSuccess": "Sprint created.",
+      "createError": "Failed to create sprint.",
+      "updateSuccess": "Sprint updated.",
+      "updateError": "Failed to update sprint.",
+      "deleteSuccess": "Sprint deleted.",
+      "deleteError": "Failed to delete sprint.",
+      "startSuccess": "Sprint started.",
+      "startError": "Failed to start sprint.",
+      "closeSuccess": "Sprint closed. {count} task(s) moved back to the backlog.",
+      "closeError": "Failed to close sprint.",
+      "status": {
+        "PLANNED": "Planned",
+        "ACTIVE": "Active",
+        "CLOSED": "Closed"
+      }
+    },
+    "backlog": {
+      "expand": "Expand",
+      "collapse": "Collapse",
+      "activeLabel": "Active",
+      "closedLabel": "Closed",
+      "addDates": "Add dates",
+      "itemsSuffix": "({count} work items)",
+      "startSprint": "Start sprint",
+      "closeSprint": "Close sprint",
+      "createSprint": "Create sprint",
+      "newSprintName": "Sprint {count}",
+      "emptySprint": "Plan your sprint by dragging items from the backlog, or create a new one.",
+      "emptyBacklog": "Your backlog is empty. Create your first item below.",
+      "quickAddPlaceholder": "Describe what needs to be done",
+      "create": "Create",
+      "createLink": "Create"
     },
     "toasts": {
       "saving": "Saving...",
@@ -1090,7 +1310,8 @@
       "users": "Users",
       "groups": "Groups",
       "roles": "Roles",
-      "storage": "Storage"
+      "storage": "Storage",
+      "oauth": "OAuth clients"
     },
     "columns": {
       "id": "ID",
@@ -1105,6 +1326,45 @@
       "group_name": "Group name",
       "description": "Description",
       "actions": "Actions"
+    },
+    "oauth": {
+      "title": "OAuth clients",
+      "show_revoked": "Show revoked clients",
+      "load_error": "Failed to load OAuth clients.",
+      "no_clients": "No OAuth clients found.",
+      "revoke": "Revoke",
+      "revoking": "Revoking...",
+      "revoke_title": "Revoke OAuth client",
+      "revoke_confirm": "Are you sure you want to revoke {name}? This immediately revokes the client AND all access/refresh tokens issued to it. This action cannot be undone.",
+      "revoke_success": "Client revoked successfully.",
+      "revoke_error": "Failed to revoke client.",
+      "total": "Total: {total}",
+      "prev": "Previous",
+      "next": "Next",
+      "page": "Page {page} / {totalPages}",
+      "columns": {
+        "name": "Name",
+        "client_type": "Type",
+        "origin": "Origin",
+        "origin_dcr": "DCR",
+        "origin_manual": "Manual",
+        "status": "Status",
+        "status_active": "Active",
+        "status_revoked": "Revoked",
+        "created_at": "Created",
+        "actions": "Actions"
+      },
+      "cimd": {
+        "title": "CIMD client denylist",
+        "hint": "Only relevant if OAUTH_CIMD_ENABLED is turned on server-side. Denying a client_id URL also revokes every access/refresh token already issued to it; undeny only allows future requests again.",
+        "url_label": "client_id URL",
+        "deny": "Deny",
+        "undeny": "Undeny",
+        "deny_success": "Client URL denied.",
+        "deny_error": "Failed to deny client URL.",
+        "undeny_success": "Client URL undenied.",
+        "undeny_error": "Failed to undeny client URL."
+      }
     },
     "groupRoles": {
       "title": "Manage Group Roles",

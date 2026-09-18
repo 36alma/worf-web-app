@@ -9,6 +9,7 @@ export type NavKey =
   | 'dashboard'
   | 'groups'
   | 'tasks'
+  | 'minutes'
   | 'calendar'
   | 'posts'
   | 'files'
@@ -21,6 +22,7 @@ export const navPermissionRequirements: Record<NavKey, PermissionRequirement | n
   dashboard: null,
   groups: {anyOf: ['group.get.user', 'group.get.all.group']},
   tasks: 'GROUP_ONLY',
+  minutes: 'GROUP_ONLY',
   calendar: 'GROUP_ONLY',
   posts: {anyOf: ['post.get.global']},
   // Files domain has no RBAC permission for plain access — the backend enforces
@@ -42,6 +44,7 @@ export const navPermissionRequirements: Record<NavKey, PermissionRequirement | n
 
 export const groupNavPermissionRequirements: Partial<Record<NavKey, PermissionRequirement>> = {
   tasks: {anyOf: ['group.task.read']},
+  minutes: {anyOf: ['group.minutes.read']},
   calendar: {anyOf: ['group.calendar.read', 'group.calendar.write']},
   posts: {anyOf: ['group.post.read']},
   roles: {anyOf: ['group.role.get']},
@@ -52,6 +55,7 @@ export const systemRoutePermissionRequirements: Record<string, PermissionRequire
   dashboard: null,
   groups: {anyOf: ['group.get.user', 'group.get.all.group']},
   tasks: 'GROUP_ONLY',
+  minutes: 'GROUP_ONLY',
   calendar: 'GROUP_ONLY',
   posts: {anyOf: ['post.get.global']},
   files: null,
@@ -70,6 +74,7 @@ export const systemRoutePermissionRequirements: Record<string, PermissionRequire
 export const groupRoutePermissionRequirements: Record<string, PermissionRequirement | null> = {
   '': null,
   tasks: {anyOf: ['group.task.read']},
+  minutes: {anyOf: ['group.minutes.read']},
   calendar: {anyOf: ['group.calendar.read', 'group.calendar.write']},
   posts: {anyOf: ['group.post.read']},
   files: null,

@@ -25,6 +25,10 @@ interface EventFormModalProps {
   initialRange: EventDraftRange | null;
   timezone: string;
   submitting: boolean;
+  /** Create mode only: lets the caller pick the target calendar (shown when there is more than one). */
+  calendars?: {id: string; name: string}[];
+  calendarId?: string;
+  onCalendarChange?: (calendarId: string) => void;
   onClose: () => void;
   onSubmit: (values: EventFormValues) => Promise<void>;
 }
@@ -38,6 +42,9 @@ export default function EventFormModal({
   initialRange,
   timezone,
   submitting,
+  calendars,
+  calendarId,
+  onCalendarChange,
   onClose,
   onSubmit
 }: EventFormModalProps) {
@@ -92,6 +99,23 @@ export default function EventFormModal({
     <Modal open={open} title={mode === 'create' ? copy.createEvent : copy.editEvent} onClose={onClose}>
       <form className="space-y-4" onSubmit={handleSubmit}>
         <div className="grid gap-4 md:grid-cols-2">
+          {mode === 'create' && calendars && calendars.length > 1 && onCalendarChange ? (
+            <div className="space-y-1 md:col-span-2">
+              <label className="text-sm text-[var(--text-secondary)]">{copy.selectCalendar}</label>
+              <select
+                value={calendarId ?? ''}
+                onChange={(event) => onCalendarChange(event.target.value)}
+                className="h-[var(--input-height)] w-full rounded-[var(--input-radius)] border border-[var(--border-default)] bg-[var(--bg-input)] px-3 text-sm"
+              >
+                {calendars.map((calendar) => (
+                  <option key={calendar.id} value={calendar.id}>
+                    {calendar.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          ) : null}
+
           <div className="space-y-1 md:col-span-2">
             <label className="text-sm text-[var(--text-secondary)]">{copy.eventName}</label>
             <input

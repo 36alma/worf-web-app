@@ -263,28 +263,37 @@ export function useCalendarData({groupId, locale, enabled, copy}: UseCalendarDat
     }
   };
 
-  const createEvent = async (values: EventFormValues) => {
-    if (!activeCalendarId) {
-      return;
+  /**
+   * Creates an event in `calendarId` (default: the active calendar).
+   * Resolves to the new event's id (`''` when the server did not echo one) or `null` when nothing was created.
+   */
+  const createEvent = async (values: EventFormValues, calendarId: string = activeCalendarId): Promise<string | null> => {
+    if (!calendarId) {
+      return null;
     }
 
     setIsMutating(true);
 
     try {
-      await worfFetch({
+      const payload = await worfFetch<Record<string, unknown> | null>({
         path: '/v1/group/calendar/event/create',
         locale,
         body: {
           group_id: groupId,
-          group_calendar_id: activeCalendarId,
+          group_calendar_id: calendarId,
           ...serializeEventForm(values)
         },
         successMessage: copy.toasts.eventCreated
       });
 
-      await loadEvents(activeCalendarId);
+      await loadEvents(calendarId);
+
+      const body = (payload?.data && typeof payload.data === 'object' ? payload.data : payload) as Record<string, unknown> | null;
+      const createdId = body?.group_calendar_event_id ?? body?.calendar_event_id ?? body?.event_id ?? body?.id;
+      return createdId == null ? '' : String(createdId);
     } catch {
       // Silent Policy: worfFetch already shows toast on error.
+      return null;
     } finally {
       setIsMutating(false);
     }

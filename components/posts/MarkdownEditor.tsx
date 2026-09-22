@@ -5,7 +5,7 @@ import * as Popover from '@radix-ui/react-popover';
 import * as Separator from '@radix-ui/react-separator';
 import * as Toolbar from '@radix-ui/react-toolbar';
 import * as Tooltip from '@radix-ui/react-tooltip';
-import {Extension} from '@tiptap/core';
+import {Extension, type AnyExtension} from '@tiptap/core';
 import Image from '@tiptap/extension-image';
 import Link from '@tiptap/extension-link';
 import Placeholder from '@tiptap/extension-placeholder';
@@ -132,6 +132,8 @@ export interface MarkdownEditorProps {
   placeholder?: string;
   rows?: number;
   i18n: MarkdownEditorI18n;
+  /** Extra TipTap extensions (e.g. mention/slash-command nodes for the minutes editor). Pass a stable (memoized) array. */
+  extraExtensions?: AnyExtension[];
 }
 
 interface ToolbarItem {
@@ -492,7 +494,7 @@ function TableContextMenu({
   );
 }
 
-export default function MarkdownEditor({value, onChange, placeholder = '', rows = 14, i18n}: MarkdownEditorProps) {
+export default function MarkdownEditor({value, onChange, placeholder = '', rows = 14, i18n, extraExtensions = []}: MarkdownEditorProps) {
   const minHeight = useMemo(() => Math.max(400, rows * 22), [rows]);
   const [saveState, setSaveState] = useState<'saved' | 'saving'>('saved');
   const [savedAt, setSavedAt] = useState('');
@@ -533,7 +535,8 @@ export default function MarkdownEditor({value, onChange, placeholder = '', rows 
       TableCell.configure({
         HTMLAttributes: {class: 'editor-table-cell'}
       }),
-      TableKeyboardShortcuts
+      TableKeyboardShortcuts,
+      ...extraExtensions
     ],
     content: value || '',
     editorProps: {

@@ -24,7 +24,7 @@ interface PostReadScreenProps {
   postId: string;
 }
 
-interface ReadPostData {
+export interface ReadPostData {
   id: string;
   title: string;
   body: string;
@@ -49,7 +49,7 @@ const readData = (payload: unknown): unknown => {
   return payload;
 };
 
-const normalizeReadPost = (payload: unknown): ReadPostData => {
+export const normalizeReadPost = (payload: unknown): ReadPostData => {
   const source = readData(payload);
 
   if (!source || typeof source !== 'object') {
@@ -110,7 +110,7 @@ const normalizeReadPost = (payload: unknown): ReadPostData => {
   };
 };
 
-const formatDateTime = (value: string, locale: string, fallback: string): string => {
+export const formatDateTime = (value: string, locale: string, fallback: string): string => {
   if (!value) {
     return fallback;
   }

@@ -10,6 +10,7 @@ import {useRouter} from 'next/navigation';
 import toast from 'react-hot-toast';
 import ConfirmDialog from '@/components/ui/ConfirmDialog';
 import MarkdownEditor from '@/components/posts/MarkdownEditor';
+import {buildPostEditorI18n} from '@/components/posts/postEditorI18n';
 import Button from '@/components/ui/Button';
 import FieldError from '@/components/ui/FieldError';
 import {useFieldValidation} from '@/hooks/useFieldValidation';
@@ -27,7 +28,7 @@ import {
 
 type RawObject = Record<string, unknown>;
 
-interface PostCategory {
+export interface PostCategory {
   id: string;
   name: string;
 }
@@ -85,7 +86,7 @@ const findArrayValue = (source: unknown): unknown[] => {
   return [];
 };
 
-const normalizeCategories = (payload: unknown): PostCategory[] => {
+export const normalizeCategories = (payload: unknown): PostCategory[] => {
   const source = readData(payload);
   const arrayValue = findArrayValue(source);
 
@@ -109,7 +110,7 @@ const normalizeCategories = (payload: unknown): PostCategory[] => {
     .filter((row): row is PostCategory => Boolean(row));
 };
 
-const normalizeSinglePost = (payload: unknown): Snapshot => {
+export const normalizeSinglePost = (payload: unknown): Snapshot => {
   const source = readData(payload);
 
   if (!source || typeof source !== 'object') {
@@ -552,56 +553,7 @@ export default function PostEditorScreen({scope, groupId = '', postId = ''}: Pos
                 onChange={setBody}
                 placeholder={editorT('placeholder')}
                 rows={26}
-                i18n={{
-                  toolbar: {
-                    paragraph: editorT('toolbar.paragraph'),
-                    bold: editorT('toolbar.bold'),
-                    italic: editorT('toolbar.italic'),
-                    strikethrough: editorT('toolbar.strikethrough'),
-                    heading1: editorT('toolbar.heading1'),
-                    heading2: editorT('toolbar.heading2'),
-                    alignLeft: editorT('toolbar.alignLeft'),
-                    alignCenter: editorT('toolbar.alignCenter'),
-                    alignRight: editorT('toolbar.alignRight'),
-                    blockquote: editorT('toolbar.blockquote'),
-                    bulletList: editorT('toolbar.bulletList'),
-                    orderedList: editorT('toolbar.orderedList'),
-                    taskList: editorT('toolbar.taskList'),
-                    codeBlock: editorT('toolbar.codeBlock'),
-                    horizontalRule: editorT('toolbar.horizontalRule'),
-                    link: editorT('toolbar.link'),
-                    image: editorT('toolbar.image'),
-                    table: editorT('toolbar.table')
-                  },
-                  prompts: {
-                    linkUrl: editorT('prompts.link_url'),
-                    imageUrl: editorT('prompts.image_url')
-                  },
-                  autosave: {
-                    saving: editorT('autosave.saving'),
-                    saved: editorT('autosave.saved'),
-                    atSuffix: editorT('autosave.at_suffix')
-                  },
-                  table: {
-                    insertTable: editorT('table.insertTable'),
-                    selectSize: editorT('table.selectSize'),
-                    addRowBefore: editorT('table.addRowBefore'),
-                    addRowAfter: editorT('table.addRowAfter'),
-                    deleteRow: editorT('table.deleteRow'),
-                    addColumnBefore: editorT('table.addColumnBefore'),
-                    addColumnAfter: editorT('table.addColumnAfter'),
-                    deleteColumn: editorT('table.deleteColumn'),
-                    mergeCells: editorT('table.mergeCells'),
-                    splitCell: editorT('table.splitCell'),
-                    toggleHeader: editorT('table.toggleHeader'),
-                    deleteTable: editorT('table.deleteTable'),
-                    addRow: editorT('table.addRow'),
-                    addColumn: editorT('table.addColumn'),
-                    rowOperations: editorT('table.rowOperations'),
-                    columnOperations: editorT('table.columnOperations'),
-                    cellOperations: editorT('table.cellOperations')
-                  }
-                }}
+                i18n={buildPostEditorI18n((key) => editorT(key as never))}
               />
             </section>
           </>

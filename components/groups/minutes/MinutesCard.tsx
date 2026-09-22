@@ -3,9 +3,20 @@
 import {useLocale, useTranslations} from 'next-intl';
 import Link from 'next/link';
 import MinutesStatusBadge from './MinutesStatusBadge';
+import MinutesArchivedBadge from './MinutesArchivedBadge';
+import MinutesTagChips from './MinutesTagChips';
 import type {MeetingMinutes} from './types';
 
-export default function MinutesCard({groupId, minutes}: {groupId: string; minutes: MeetingMinutes}) {
+export default function MinutesCard({
+  groupId,
+  minutes,
+  awaitingMyVote = false
+}: {
+  groupId: string;
+  minutes: MeetingMinutes;
+  /** The signed-in user is a witness who still has to (re)vote on this record. */
+  awaitingMyVote?: boolean;
+}) {
   const t = useTranslations('group_minutes');
   const locale = useLocale();
   const meetingDate = new Date(minutes.meeting_date).toLocaleDateString(locale);
@@ -13,16 +24,25 @@ export default function MinutesCard({groupId, minutes}: {groupId: string; minute
   return (
     <Link
       href={`/${locale}/groups/${encodeURIComponent(groupId)}/minutes/${encodeURIComponent(minutes.id)}`}
-      className="flex items-center justify-between rounded-xl border border-[var(--border-default)] bg-[var(--bg-surface)] px-4 py-3 transition-colors hover:bg-[var(--bg-hover)]"
+      className="flex items-center justify-between gap-3 rounded-xl border border-[var(--border-default)] bg-[var(--bg-surface)] px-4 py-3 transition-colors hover:bg-[var(--bg-hover)]"
     >
-      <div className="min-w-0">
+      <div className="min-w-0 space-y-1">
         <div className="truncate font-medium text-[var(--text-primary)]">{minutes.subject}</div>
         <div className="text-sm text-[var(--text-secondary)]">
           {meetingDate}
           {minutes.version > 1 ? ` · ${t('list.version_label', {version: minutes.version})}` : ''}
         </div>
+        <MinutesTagChips tags={minutes.tags} />
       </div>
-      <MinutesStatusBadge status={minutes.status} />
+      <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
+        {awaitingMyVote && (
+          <span className="inline-flex items-center rounded-full border border-amber-300 bg-amber-100 px-2.5 py-0.5 text-xs font-semibold text-amber-800 dark:border-amber-700 dark:bg-amber-900/40 dark:text-amber-200">
+            {t('list.awaiting_you')}
+          </span>
+        )}
+        {minutes.archived_at && <MinutesArchivedBadge />}
+        <MinutesStatusBadge status={minutes.status} />
+      </div>
     </Link>
   );
 }

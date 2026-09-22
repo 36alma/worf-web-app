@@ -25,7 +25,9 @@ export default function MinutesDetailPage({
         modify: hasPermission('group.minutes.modify'),
         finalize: hasPermission('group.minutes.finalize'),
         approve: hasPermission('group.minutes.approve'),
-        attachmentManage: hasPermission('group.minutes.attachment.manage')
+        attachmentManage: hasPermission('group.minutes.attachment.manage'),
+        archive: hasPermission('group.minutes.archive'),
+        delete: hasPermission('group.minutes.delete')
       }}
     />
   );

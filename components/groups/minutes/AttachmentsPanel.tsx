@@ -9,7 +9,7 @@ import {buildDownloadUrl, requestDownload} from '@/lib/api/files';
 import {uploadFile} from '@/lib/utils/uploadFile';
 import {exportMinutesPdf, linkAttachment, unlinkAttachment} from '@/lib/api/minutes';
 import {translateMinutesApiError} from '@/lib/i18n/minutes';
-import type {MinutesAttachment} from './types';
+import type {MinutesAttachment, MinutesExportResult} from './types';
 
 export interface AttachmentsPanelProps {
   groupId: string;
@@ -17,9 +17,21 @@ export interface AttachmentsPanelProps {
   attachments: MinutesAttachment[];
   canManage: boolean;
   onChange: (attachments: MinutesAttachment[]) => void;
+  /**
+   * A new PDF was attached (`cached: false`): the parent re-reads the record so the list carries the server's
+   * attachment, not a guess. Without it the panel appends a local entry instead.
+   */
+  onExported?: () => void;
 }
 
-export default function AttachmentsPanel({groupId, minutesId, attachments, canManage, onChange}: AttachmentsPanelProps) {
+export default function AttachmentsPanel({
+  groupId,
+  minutesId,
+  attachments,
+  canManage,
+  onChange,
+  onExported
+}: AttachmentsPanelProps) {
   const t = useTranslations('group_minutes');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
@@ -61,8 +73,18 @@ export default function AttachmentsPanel({groupId, minutesId, attachments, canMa
     setBusy(true);
     try {
       const {data} = await exportMinutesPdf({group_id: groupId, minutes_id: minutesId});
-      const fileId = (data as {file_id: string}).file_id;
-      onChange([...attachments, {id: `pdf-${fileId}`, minutes_id: minutesId, file_id: fileId, label: 'Exportált PDF'}]);
+      const {file_id: fileId, cached} = data as MinutesExportResult;
+      // Identical content answers with the file that already exists (`cached: true`) and attaches nothing,
+      // so the list stays as it is. Only a fresh export shows up as a new attachment.
+      if (cached) {
+        toast.success(t('attachments.export_cached'));
+        return;
+      }
+      if (onExported) {
+        onExported();
+      } else if (!attachments.some((a) => a.file_id === fileId)) {
+        onChange([...attachments, {id: `pdf-${fileId}`, minutes_id: minutesId, file_id: fileId, label: t('attachments.exported_label')}]);
+      }
       toast.success(t('attachments.exported'));
     } catch (error) {
       toast.error(translateMinutesApiError(t, error, 'errors.default'));

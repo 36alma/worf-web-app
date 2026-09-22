@@ -6,6 +6,7 @@ import {useLocale, useTranslations} from 'next-intl';
 import toast from 'react-hot-toast';
 import {useGroupPermission} from '@/components/providers/GroupPermissionContext';
 import MinutesHeaderForm, {type MinutesHeaderFormValues} from '@/components/groups/minutes/MinutesHeaderForm';
+import {fromLocalInput} from '@/components/groups/minutes/minutesDates';
 import {createMinutes} from '@/lib/api/minutes';
 import {translateMinutesApiError} from '@/lib/i18n/minutes';
 
@@ -25,9 +26,10 @@ export default function NewMinutesPage({params}: {params: Promise<{groupId: stri
       const {data} = await createMinutes({
         group_id: decodedGroupId,
         subject: values.subject,
-        meeting_date: values.meeting_date,
-        location: values.location || undefined,
-        minute_taker_id: values.minute_taker_id || undefined
+        meeting_date: fromLocalInput(values.meeting_date),
+        // Mandatory: the form keeps the submit button disabled until a minute taker is picked.
+        minute_taker_id: values.minute_taker_id,
+        location: values.location || undefined
       });
       const minutesId = (data as {minutes_id: string}).minutes_id;
       router.push(`/${locale}/groups/${encodeURIComponent(decodedGroupId)}/minutes/${encodeURIComponent(minutesId)}`);

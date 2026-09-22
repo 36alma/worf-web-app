@@ -29,7 +29,11 @@ export default function GroupMinutesPage({params}: {params: Promise<{groupId: st
   return (
     <MinutesListClient
       groupId={decodedGroupId}
-      permissions={{create: hasPermission('group.minutes.create')}}
+      permissions={{
+        create: hasPermission('group.minutes.create'),
+        approve: hasPermission('group.minutes.approve'),
+        delete: hasPermission('group.minutes.delete')
+      }}
     />
   );
 }

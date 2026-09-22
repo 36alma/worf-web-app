@@ -36,7 +36,7 @@ export default function AgendaItemList({groupId, minutesId, agendaItems, editabl
       const agendaItemId = (data as {agenda_item_id: string}).agenda_item_id;
       onChange([
         ...agendaItems,
-        {id: agendaItemId, minutes_id: minutesId, sort_order: sortOrder, title: newTitle, action_items: []}
+        {id: agendaItemId, minutes_id: minutesId, sort_order: sortOrder, title: newTitle, content_html: ''}
       ]);
       setNewTitle('');
     } catch (error) {

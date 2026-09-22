@@ -1,58 +1,45 @@
 'use client';
 
-import {useState} from 'react';
-import {useTranslations} from 'next-intl';
-import toast from 'react-hot-toast';
-import Button from '@/components/ui/Button';
-import {castWitnessVote} from '@/lib/api/minutes';
-import {translateMinutesApiError} from '@/lib/i18n/minutes';
-import type {MinutesParticipant, MinutesStatus} from './types';
+import {useLocale, useTranslations} from 'next-intl';
+import {AlertTriangle} from 'lucide-react';
+import type {GroupUser} from '@/components/groups/tasks/types';
+import type {ApprovalStatus, MinutesStatus} from './types';
+import {participantName} from './participantName';
+import type {WitnessState} from './witness';
+import {NO_WITNESS_FLAGS, type WitnessFlags} from './witnessIssues';
 
 export interface WitnessPanelProps {
-  groupId: string;
-  minutesId: string;
   status: MinutesStatus;
-  participants: MinutesParticipant[];
-  currentUserId: string | null;
-  canApprove: boolean;
-  onVoted: () => void;
+  state: WitnessState;
+  members: GroupUser[];
+  /** Witnesses that are no longer eligible — they can never vote, so the approval is stuck on them. */
+  witnessFlags?: WitnessFlags;
 }
 
-export default function WitnessPanel({
-  groupId,
-  minutesId,
-  status,
-  participants,
-  currentUserId,
-  canApprove,
-  onVoted
-}: WitnessPanelProps) {
+const STATUS_CLASSES: Record<ApprovalStatus, string> = {
+  PENDING: 'text-[var(--text-tertiary)]',
+  APPROVED: 'text-emerald-600 dark:text-emerald-400',
+  REJECTED: 'text-red-600 dark:text-red-400'
+};
+
+function Warning({children}: {children: string}) {
+  return (
+    <p className="flex items-start gap-2 rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-800 dark:border-amber-800 dark:bg-amber-900/30 dark:text-amber-200">
+      <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+      <span>{children}</span>
+    </p>
+  );
+}
+
+/** Who has to approve and how each witness voted. The vote buttons live in `WitnessVoteBar`. */
+export default function WitnessPanel({status, state, members, witnessFlags = NO_WITNESS_FLAGS}: WitnessPanelProps) {
   const t = useTranslations('group_minutes');
-  const [busy, setBusy] = useState(false);
-  const witnesses = participants.filter((p) => p.role === 'WITNESS');
+  const locale = useLocale();
+  const {witnesses, approvedCount, selfWithoutPermission, externalWitnesses} = state;
 
   if (witnesses.length === 0) return null;
 
-  const approvedCount = witnesses.filter((w) => w.approval_status === 'APPROVED').length;
-  const selfWitness = witnesses.find((w) => w.user_id === currentUserId);
-  const canVote = status === 'PENDING_APPROVAL' && canApprove && !!selfWitness && selfWitness.approval_status === 'PENDING';
-
-  const vote = async (decision: 'APPROVE' | 'REJECT') => {
-    let reason: string | undefined;
-    if (decision === 'REJECT') {
-      reason = window.prompt(t('witness.reason_prompt')) ?? undefined;
-      if (!reason) return;
-    }
-    setBusy(true);
-    try {
-      await castWitnessVote({group_id: groupId, minutes_id: minutesId, decision, reason});
-      onVoted();
-    } catch (error) {
-      toast.error(translateMinutesApiError(t, error, 'errors.default'));
-    } finally {
-      setBusy(false);
-    }
-  };
+  const awaiting = status === 'PENDING_APPROVAL';
 
   return (
     <div className="space-y-3 rounded-xl border border-[var(--border-default)] p-4">
@@ -60,23 +47,34 @@ export default function WitnessPanel({
       <p className="text-sm text-[var(--text-secondary)]">
         {t('witness.progress', {approved: approvedCount, total: witnesses.length})}
       </p>
+
       <ul className="space-y-1 text-sm text-[var(--text-primary)]">
-        {witnesses.map((w) => (
-          <li key={w.id}>
-            {w.user_id ?? w.display_name} — {w.approval_status ?? 'PENDING'}
-          </li>
-        ))}
+        {witnesses.map((w) => {
+          const approval: ApprovalStatus = w.approval_status ?? 'PENDING';
+          const approvedAt = w.approved_at ? new Date(w.approved_at) : null;
+          return (
+            <li key={w.id} className="flex flex-wrap items-center gap-x-2">
+              <span>{participantName(w, members, t('participants.unknown_name'))}</span>
+              {!w.user_id && <span className="text-xs text-[var(--text-tertiary)]">({t('witness.external')})</span>}
+              {witnessFlags.has(w.id) && (
+                <span className="inline-flex items-center gap-1 text-xs text-amber-700 dark:text-amber-300">
+                  <AlertTriangle className="h-3.5 w-3.5" />
+                  {t('witness.ineligible')}
+                </span>
+              )}
+              <span className="text-[var(--text-tertiary)]">—</span>
+              <span className={STATUS_CLASSES[approval]}>{t(`witness.status.${approval}`)}</span>
+              {approval === 'APPROVED' && approvedAt && !Number.isNaN(approvedAt.getTime()) && (
+                <span className="text-xs text-[var(--text-tertiary)]">{approvedAt.toLocaleString(locale)}</span>
+              )}
+            </li>
+          );
+        })}
       </ul>
-      {canVote && (
-        <div className="flex gap-2">
-          <Button variant="primary" disabled={busy} onClick={() => vote('APPROVE')}>
-            {t('witness.approve')}
-          </Button>
-          <Button variant="secondary" disabled={busy} onClick={() => vote('REJECT')}>
-            {t('witness.reject')}
-          </Button>
-        </div>
-      )}
+
+      {awaiting && selfWithoutPermission && <Warning>{t('witness.no_permission_hint')}</Warning>}
+      {awaiting && externalWitnesses.length > 0 && <Warning>{t('witness.external_warning')}</Warning>}
+      {awaiting && witnessFlags.size > 0 && <Warning>{t('witness.stuck_hint', {count: witnessFlags.size})}</Warning>}
     </div>
   );
 }

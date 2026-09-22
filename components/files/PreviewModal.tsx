@@ -85,6 +85,7 @@ export default function PreviewModal({ files, currentFileId, onNavigate, onClose
     <Dialog.Root open={!!currentFileId} onOpenChange={(nextOpen) => !nextOpen && onClose()}>
       <Dialog.Portal>
         <Dialog.Content
+          aria-describedby={undefined}
           className="fixed inset-0 z-[100] flex flex-col bg-black/90 focus:outline-none"
           onTouchStart={(event) => { touchStartX.current = event.touches[0].clientX; }}
           onTouchEnd={(event) => {

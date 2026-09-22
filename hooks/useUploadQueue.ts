@@ -11,6 +11,8 @@ export interface UploadItem {
   status: UploadItemStatus;
   progress: number;
   errorMessage?: string;
+  /** Set once the upload is `done` — the id of the created file. */
+  fileId?: string;
 }
 
 export interface UseUploadQueueOptions {
@@ -24,7 +26,7 @@ export interface UseUploadQueueOptions {
 let idCounter = 0;
 const nextId = () => `upload-${++idCounter}`;
 
-async function uploadOne(file: File, options: UseUploadQueueOptions, onProgress: (percent: number) => void): Promise<void> {
+async function uploadOne(file: File, options: UseUploadQueueOptions, onProgress: (percent: number) => void): Promise<string> {
   const startResponse = await startUpload({
     filename: file.name,
     mime_type: file.type,
@@ -47,6 +49,7 @@ async function uploadOne(file: File, options: UseUploadQueueOptions, onProgress:
 
   await completeUpload({ upload_id, file_id, original_name: file.name });
   onProgress(100);
+  return file_id;
 }
 
 export function useUploadQueue(options: UseUploadQueueOptions) {
@@ -101,8 +104,8 @@ export function useUploadQueue(options: UseUploadQueueOptions) {
 
   const runUpload = async (id: string, file: File) => {
     try {
-      await uploadOne(file, optionsRef.current, (percent) => updateItem(id, { progress: percent }));
-      updateItem(id, { status: 'done', progress: 100 });
+      const fileId = await uploadOne(file, optionsRef.current, (percent) => updateItem(id, { progress: percent }));
+      updateItem(id, { status: 'done', progress: 100, fileId });
     } catch (error) {
       updateItem(id, { status: 'error', errorMessage: error instanceof Error ? error.message : 'upload_failed' });
     } finally {

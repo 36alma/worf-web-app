@@ -45,7 +45,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button(
       {...props}
     >
       {loading ? <Loader2 className="size-4 animate-spin" aria-hidden /> : startIcon}
-      {children != null && children !== false && <span>{children}</span>}
+      {children != null && children !== false && <span className="inline-flex items-center whitespace-nowrap">{children}</span>}
       {!loading && endIcon}
     </button>
   );

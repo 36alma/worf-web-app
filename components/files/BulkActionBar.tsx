@@ -41,30 +41,30 @@ export default function BulkActionBar({ count, shareableCount, onDownloadAll, on
       <div className="flex min-w-0 items-center gap-3 overflow-x-auto rounded-[var(--radius-lg)] border border-[var(--border-default)] bg-[var(--bg-elevated)] px-4 py-2.5 shadow-2xl">
         <span className="shrink-0 text-sm text-[var(--text-primary)]">{t('bulk.selectedCount', { count })}</span>
         <div className="flex min-w-0 items-center gap-2 overflow-x-auto">
-          <Button type="button" variant="secondary" size="sm" className="shrink-0" onClick={onDownloadAll} disabled={isBusy}>
-            <Download size={14} strokeWidth={1.75} className="mr-1" />
-            {t('bulk.download')}
+          <Button type="button" variant="secondary" size="sm" className="shrink-0 flex-row whitespace-nowrap" onClick={onDownloadAll} disabled={isBusy}>
+            <Download size={14} strokeWidth={1.75} className="mr-1 shrink-0" />
+            <span className="whitespace-nowrap">{t('bulk.download')}</span>
           </Button>
           <Button
             type="button"
             variant="secondary"
             size="sm"
-            className="shrink-0"
+            className="shrink-0 flex-row whitespace-nowrap"
             onClick={onShareAll}
             disabled={isBusy || tooManyForShare}
             title={tooManyForShare ? t('bulk.tooManyForShare') : undefined}
             aria-label={tooManyForShare ? t('bulk.tooManyForShare') : t('bulk.share')}
           >
-            <Users size={14} strokeWidth={1.75} className="mr-1" />
-            {t('bulk.share')}
+            <Users size={14} strokeWidth={1.75} className="mr-1 shrink-0" />
+            <span className="whitespace-nowrap">{t('bulk.share')}</span>
           </Button>
-          <Button type="button" variant="secondary" size="sm" className="shrink-0" onClick={onMoveAll} disabled={isBusy}>
-            <FolderInput size={14} strokeWidth={1.75} className="mr-1" />
-            {t('bulk.move')}
+          <Button type="button" variant="secondary" size="sm" className="shrink-0 flex-row whitespace-nowrap" onClick={onMoveAll} disabled={isBusy}>
+            <FolderInput size={14} strokeWidth={1.75} className="mr-1 shrink-0" />
+            <span className="whitespace-nowrap">{t('bulk.move')}</span>
           </Button>
-          <Button type="button" variant="danger" size="sm" className="shrink-0" onClick={onDeleteAll} disabled={isBusy}>
-            <Trash2 size={14} strokeWidth={1.75} className="mr-1" />
-            {t('bulk.delete')}
+          <Button type="button" variant="danger" size="sm" className="shrink-0 flex-row whitespace-nowrap" onClick={onDeleteAll} disabled={isBusy}>
+            <Trash2 size={14} strokeWidth={1.75} className="mr-1 shrink-0" />
+            <span className="whitespace-nowrap">{t('bulk.delete')}</span>
           </Button>
         </div>
         <button type="button" onClick={onClear} aria-label={t('bulk.clear')} className="shrink-0 rounded p-1 text-[var(--text-tertiary)] hover:bg-[var(--bg-hover)]">

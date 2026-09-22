@@ -8,7 +8,7 @@ import { hasPermissionRequirement, type PermissionRequirement } from '@/lib/perm
 import { usePermissionStore } from '@/lib/store/permissionStore';
 
 interface SectionConfig {
-  key: 'users' | 'groups' | 'roles' | 'storage';
+  key: 'users' | 'groups' | 'roles' | 'storage' | 'oauth';
   requirement: PermissionRequirement;
 }
 
@@ -28,6 +28,10 @@ const sectionConfigs: SectionConfig[] = [
   {
     key: 'storage',
     requirement: { anyOf: ['files.storage.limit.user.set', 'files.storage.limit.group.set'] }
+  },
+  {
+    key: 'oauth',
+    requirement: { anyOf: ['oauth.client.list.admin'] }
   }
 ];
 

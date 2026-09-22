@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import * as AlertDialog from '@radix-ui/react-alert-dialog';
 import { AlertTriangle } from 'lucide-react';
 import { useTranslations } from 'next-intl';
@@ -11,9 +12,11 @@ export interface ConfirmDialogProps {
   onConfirm: () => void;
   cancelLabel?: string;
   confirmLabel?: string;
+  /** Extra content under the message — e.g. an option the confirmed action takes into account. */
+  children?: ReactNode;
 }
 
-export default function ConfirmDialog({ open, title, message, onCancel, onConfirm, cancelLabel, confirmLabel }: ConfirmDialogProps) {
+export default function ConfirmDialog({ open, title, message, onCancel, onConfirm, cancelLabel, confirmLabel, children }: ConfirmDialogProps) {
   const t = useTranslations('common');
 
   return (
@@ -25,7 +28,8 @@ export default function ConfirmDialog({ open, title, message, onCancel, onConfir
             <AlertTriangle size={18} strokeWidth={1.75} className="text-[var(--warning)]" />
             {title}
           </AlertDialog.Title>
-          <AlertDialog.Description className="mb-4 text-sm text-[var(--text-secondary)]">{message}</AlertDialog.Description>
+          <AlertDialog.Description className={`text-sm text-[var(--text-secondary)] ${children ? 'mb-3' : 'mb-4'}`}>{message}</AlertDialog.Description>
+          {children && <div className="mb-4">{children}</div>}
           <div className="flex justify-end gap-2">
             <AlertDialog.Cancel asChild>
               <Button className='p-2' variant="secondary" onClick={onCancel} startIcon={<AlertTriangle size={16} strokeWidth={1.75} />}>

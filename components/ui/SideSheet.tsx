@@ -29,6 +29,7 @@ export default function SideSheet({open, title, onClose, children}: SideSheetPro
 
         {/* Content – bottom sheet mobilon, right panel desktopom */}
         <Dialog.Content
+          aria-describedby={undefined}
           className={[
             // Mobil alap: teljes szélességű bottom sheet
             'fixed inset-x-0 bottom-0 z-50 flex flex-col',

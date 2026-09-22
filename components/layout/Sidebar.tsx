@@ -15,6 +15,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { ElementType } from 'react';
 import { getUserGroups } from '@/lib/api/groups';
 import { getGroupPermissions } from '@/lib/api/permissions';
+import { usePendingWitnessMinutes } from '@/hooks/usePendingWitnessMinutes';
 import { normalizeGroupId } from '@/lib/utils/groupId';
 import {
   hasPermissionRequirement,
@@ -113,6 +114,7 @@ function SidebarContent({ isMobile }: { isMobile?: boolean }) {
   const t = useTranslations('nav');
   const groupsT = useTranslations('groups');
   const commonT = useTranslations('common');
+  const minutesT = useTranslations('group_minutes');
   const locale = useLocale();
   const router = useRouter();
   const pathname = usePathname();
@@ -199,6 +201,14 @@ function SidebarContent({ isMobile }: { isMobile?: boolean }) {
   }, [pathGroupId, selectedGroupId, selectedGroupName, setSelectedGroupId, groups]);
 
   const activeGroupId = pathGroupId || selectedGroupId;
+
+  // The minutes awaiting this user's witness vote, across all groups — the badge on the Minutes item. A count of
+  // one record is enough (`total`), and it is re-read while moving around the minutes pages, where votes happen.
+  const { total: pendingMinutes } = usePendingWitnessMinutes({
+    enabled: !!user,
+    loadNumber: 1,
+    refreshKey: pathname.includes('/minutes') ? pathname : ''
+  });
 
   useEffect(() => {
     if (!pathGroupId || !isGroupsLoaded || isGroupsLoadError) return;
@@ -404,6 +414,15 @@ function SidebarContent({ isMobile }: { isMobile?: boolean }) {
                           >
                             <Icon size={18} strokeWidth={1.75} />
                             {t(key)}
+                            {key === 'minutes' && pendingMinutes > 0 && (
+                              <span
+                                className="ml-auto inline-flex min-w-5 items-center justify-center rounded-full bg-amber-100 px-1.5 text-[11px] font-semibold text-amber-800 dark:bg-amber-900/40 dark:text-amber-200"
+                                aria-label={minutesT('list.awaiting_you')}
+                                title={minutesT('list.awaiting_you')}
+                              >
+                                {pendingMinutes}
+                              </span>
+                            )}
                           </Link>
                         </Tooltip.Trigger>
                         <Tooltip.Portal>

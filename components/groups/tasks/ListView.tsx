@@ -1,5 +1,5 @@
 import {useTranslations} from 'next-intl';
-import {Task} from './types';
+import {Task, Sprint} from './types';
 import clsx from 'clsx';
 import {Calendar} from 'lucide-react';
 import TaskTypeBadge from './TaskTypeBadge';
@@ -33,6 +33,7 @@ export interface ListViewProps {
   selectedTaskIds: string[];
   onToggleSelection: (taskId: string) => void;
   onToggleAll: () => void;
+  sprintsById?: Record<string, Sprint>;
 }
 
 export default function ListView({
@@ -41,7 +42,8 @@ export default function ListView({
   onTaskClick,
   selectedTaskIds,
   onToggleSelection,
-  onToggleAll
+  onToggleAll,
+  sprintsById
 }: ListViewProps) {
   const t = useTranslations('tasks');
 
@@ -66,6 +68,7 @@ export default function ListView({
                 isSelected={selectedTaskIds.includes(task.id)}
                 onToggleSelection={() => onToggleSelection(task.id)}
                 showCheckbox={permissions.task.delete}
+                sprintLabel={task.sprint_id ? sprintsById?.[task.sprint_id]?.sprint_name : undefined}
               />
             ))}
           </div>
@@ -139,9 +142,12 @@ export default function ListView({
                       </td>
                       <td className="px-4 py-3 text-fg">
                         <div className="max-w-md truncate font-medium">{task.summary}</div>
-                        {task.categories && task.categories.length > 0 && (
-                          <div className="mt-1 flex gap-1">
-                            {task.categories.map((c) => (
+                        {(task.categories && task.categories.length > 0) || (task.sprint_id && sprintsById?.[task.sprint_id]) ? (
+                          <div className="mt-1 flex flex-wrap gap-1">
+                            {task.sprint_id && sprintsById?.[task.sprint_id] && (
+                              <Badge variant="accent">{sprintsById[task.sprint_id].sprint_name}</Badge>
+                            )}
+                            {task.categories?.map((c) => (
                               <span
                                 key={c.task_category_id}
                                 style={{backgroundColor: c.color + '22', color: c.color}}
@@ -151,7 +157,7 @@ export default function ListView({
                               </span>
                             ))}
                           </div>
-                        )}
+                        ) : null}
                       </td>
                       <td className="px-4 py-3">
                         {task.priority ? (

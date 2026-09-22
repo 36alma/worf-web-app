@@ -9,7 +9,7 @@ import * as Dialog from '@radix-ui/react-dialog';
 import {X, Plus, Sparkles} from 'lucide-react';
 import clsx from 'clsx';
 import toast from 'react-hot-toast';
-import {Task, GroupUser, STATUSES, TASK_TYPES, PRIORITIES} from './types';
+import {Task, GroupUser, Sprint, STATUSES, TASK_TYPES, PRIORITIES} from './types';
 import AssigneeCombobox from './AssigneeCombobox';
 import {createTask, modifyTask} from '@/lib/api/tasks';
 import {translateTaskApiError, translateTaskPriority, translateTaskStatus, translateTaskType} from '@/lib/i18n/tasks';
@@ -27,9 +27,14 @@ export interface TaskFormModalProps {
   groupId: string;
   initialData?: Task;
   onSuccess: () => void;
+  /** Fired once after a successful create, before `onSuccess`/`onClose` — lets callers reference the new task. */
+  onCreated?: (task: {id: string; issue_key: string; summary: string}) => void;
   groupUsers?: GroupUser[];
   groupUsersLoading?: boolean;
+  sprints?: Sprint[];
 }
+
+const BACKLOG_VALUE = '__backlog__';
 
 type TaskFormValues = {
   issue_key: string;
@@ -43,6 +48,7 @@ type TaskFormValues = {
   story_points?: string;
   due_at?: string;
   started_at?: string;
+  sprint_id?: string;
 };
 
 export default function TaskFormModal({
@@ -51,8 +57,10 @@ export default function TaskFormModal({
   groupId,
   initialData,
   onSuccess,
+  onCreated,
   groupUsers = [],
-  groupUsersLoading = false
+  groupUsersLoading = false,
+  sprints = []
 }: TaskFormModalProps) {
   const t = useTranslations('tasks');
 
@@ -67,7 +75,8 @@ export default function TaskFormModal({
     parent_task_id: z.string().optional(),
     story_points: z.string().optional(),
     due_at: z.string().optional(),
-    started_at: z.string().optional()
+    started_at: z.string().optional(),
+    sprint_id: z.string().optional()
   }), [t]);
 
   const {
@@ -89,7 +98,8 @@ export default function TaskFormModal({
       parent_task_id: '',
       story_points: '',
       due_at: '',
-      started_at: ''
+      started_at: '',
+      sprint_id: BACKLOG_VALUE
     }
   });
 
@@ -110,7 +120,8 @@ export default function TaskFormModal({
         parent_task_id: initialData.parent_task_id || '',
         story_points: initialData.story_points != null ? String(initialData.story_points) : '',
         due_at: initialData.due_at ? new Date(initialData.due_at).toISOString().slice(0, 16) : '',
-        started_at: initialData.started_at ? new Date(initialData.started_at).toISOString().slice(0, 16) : ''
+        started_at: initialData.started_at ? new Date(initialData.started_at).toISOString().slice(0, 16) : '',
+        sprint_id: initialData.sprint_id || BACKLOG_VALUE
       });
       return;
     }
@@ -126,7 +137,8 @@ export default function TaskFormModal({
       parent_task_id: '',
       story_points: '',
       due_at: '',
-      started_at: ''
+      started_at: '',
+      sprint_id: BACKLOG_VALUE
     });
   }, [groupUsers, initialData, open, reset]);
 
@@ -164,6 +176,17 @@ export default function TaskFormModal({
         const previousStarted = initialData.started_at ? new Date(initialData.started_at).toISOString() : undefined;
         if (newStarted !== previousStarted) { payload.started_at = newStarted || null; hasChanges = true; }
 
+        const previousSprintId = initialData.sprint_id || null;
+        const newSprintId = data.sprint_id && data.sprint_id !== BACKLOG_VALUE ? data.sprint_id : null;
+        if (newSprintId !== previousSprintId) {
+          if (newSprintId === null) {
+            payload.unassign_sprint = true;
+          } else {
+            payload.sprint_id = newSprintId;
+          }
+          hasChanges = true;
+        }
+
         if (!hasChanges) {
           onClose();
           return;
@@ -185,11 +208,14 @@ export default function TaskFormModal({
         if (data.assignee_id) payload.assignee_id = data.assignee_id;
         if (data.parent_task_id) payload.parent_task_id = data.parent_task_id;
         if (data.story_points) payload.story_points = Number(data.story_points);
+        if (data.sprint_id && data.sprint_id !== BACKLOG_VALUE) payload.sprint_id = data.sprint_id;
 
         const createResponse = await createTask(payload as {group_id: string; [key: string]: unknown});
         toast.success(t('toasts.createSuccess'));
 
-        const createdId = createResponse?.data?.data?.id || createResponse?.data?.id;
+        const createdBody = createResponse?.data?.data ?? createResponse?.data;
+        const createdId = createdBody?.id || createdBody?.task_id;
+        if (createdId) onCreated?.({id: String(createdId), issue_key: data.issue_key, summary: data.summary});
         if (createdId && (data.due_at || data.started_at)) {
           const datePayload: Record<string, unknown> = {group_id: groupId, task_id: createdId};
           if (data.due_at) datePayload.due_at = new Date(data.due_at).toISOString();
@@ -223,8 +249,8 @@ export default function TaskFormModal({
     <Dialog.Root open={open} onOpenChange={(nextOpen) => !nextOpen && onClose()}>
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-50 bg-black/50 backdrop-blur-[3px] animate-in fade-in-0 duration-200" />
-        <Dialog.Content className="fixed left-1/2 top-1/2 z-50 w-[min(94vw,680px)] md:w-[min(96vw,880px)] -translate-x-1/2 -translate-y-1/2 rounded-lg border border-border bg-surface-2 animate-in fade-in-0 zoom-in-95 slide-in-from-bottom-2 duration-200">
-          <div className="flex items-center justify-between border-b border-[var(--border-subtle)] px-6 py-4">
+        <Dialog.Content aria-describedby={undefined} className="fixed left-1/2 top-1/2 z-50 flex max-h-[92dvh] w-[min(94vw,680px)] -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-lg border border-border bg-surface-2 animate-in fade-in-0 zoom-in-95 slide-in-from-bottom-2 duration-200 md:w-[min(96vw,880px)]">
+          <div className="flex shrink-0 items-center justify-between border-b border-[var(--border-subtle)] px-6 py-4">
             <div className="flex items-center gap-2.5">
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent/10">
                 {initialData ? <Sparkles size={16} className="text-accent" /> : <Plus size={16} className="text-accent" />}
@@ -240,7 +266,7 @@ export default function TaskFormModal({
             </Dialog.Close>
           </div>
 
-          <form onSubmit={handleSubmit(onSubmit)} className="flex max-h-[65vh] md:max-h-[75vh] flex-col gap-5 overflow-y-auto px-6 py-5">
+          <form onSubmit={handleSubmit(onSubmit)} className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto px-6 py-5">
             <div className="grid grid-cols-[160px_1fr] gap-4">
               <div>
                 <label className={labelClassName}>{t('table.key')} <span className="text-danger">*</span></label>
@@ -377,6 +403,29 @@ export default function TaskFormModal({
               </div>
             </div>
 
+            <div className="grid grid-cols-1 gap-4">
+              <div>
+                <label className={labelClassName}>{t('table.sprint')}</label>
+                <Controller
+                  name="sprint_id"
+                  control={control}
+                  render={({field}) => (
+                    <Select value={field.value || BACKLOG_VALUE} onValueChange={field.onChange}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value={BACKLOG_VALUE}>{t('sprint.backlog')}</SelectItem>
+                        {sprints.filter((sprint) => sprint.status !== 'CLOSED').map((sprint) => (
+                          <SelectItem key={sprint.id} value={sprint.id}>{sprint.sprint_name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
+              </div>
+            </div>
+
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className={labelClassName}>{t('form.startedAt')}</label>
@@ -389,7 +438,7 @@ export default function TaskFormModal({
             </div>
           </form>
 
-          <div className="flex justify-end gap-3 border-t border-[var(--border-subtle)] px-6 py-4">
+          <div className="flex shrink-0 justify-end gap-3 border-t border-[var(--border-subtle)] px-6 py-4">
             <button
               type="button"
               onClick={onClose}

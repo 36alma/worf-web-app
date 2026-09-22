@@ -26,6 +26,7 @@ export interface TaskCardProps {
   isSelected?: boolean;
   onToggleSelection?: () => void;
   onModifySummary?: (newSummary: string) => void;
+  sprintLabel?: string;
 }
 
 export default function TaskCard({
@@ -36,7 +37,8 @@ export default function TaskCard({
   isDragging,
   isSelected,
   onToggleSelection,
-  onModifySummary
+  onModifySummary,
+  sprintLabel
 }: TaskCardProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [editSummary, setEditSummary] = useState(task.summary);
@@ -155,6 +157,8 @@ export default function TaskCard({
         {task.story_points !== null && task.story_points !== undefined && task.story_points > 0 && (
           <Badge variant="neutral">{task.story_points} SP</Badge>
         )}
+
+        {sprintLabel && <Badge variant="accent">{sprintLabel}</Badge>}
 
         {task.due_at && (
           <span

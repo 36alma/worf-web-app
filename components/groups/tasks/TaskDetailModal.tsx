@@ -9,7 +9,7 @@ import {
   Hash, Archive, User, Sparkles, Type
 } from 'lucide-react';
 import clsx from 'clsx';
-import {Task, TaskHistoryItem, GroupUser, STATUSES, STATUS_LABELS, TASK_TYPES, TASK_TYPE_LABELS, PRIORITIES, PRIORITY_LABELS} from './types';
+import {Task, TaskHistoryItem, GroupUser, Sprint, STATUSES, STATUS_LABELS, TASK_TYPES, TASK_TYPE_LABELS, PRIORITIES, PRIORITY_LABELS} from './types';
 import AssigneeCombobox from './AssigneeCombobox';
 import TaskComments from './TaskComments';
 import TaskTypeBadge from './TaskTypeBadge';
@@ -45,12 +45,16 @@ export interface TaskDetailModalProps {
   /** Cached list of group users for assignee combobox */
   groupUsers?: GroupUser[];
   groupUsersLoading?: boolean;
+  sprints?: Sprint[];
 }
+
+const BACKLOG_VALUE = '__backlog__';
 
 export default function TaskDetailModal({
   open, onClose, task, groupId, permissions, onUpdateTask,
-  groupUsers = [], groupUsersLoading = false,
+  groupUsers = [], groupUsersLoading = false, sprints = [],
 }: TaskDetailModalProps) {
+  const t = useTranslations('tasks');
   const tv = useTranslations('validation');
   const [summary, setSummary] = useState(task?.summary || '');
   const [isEditingSummary, setIsEditingSummary] = useState(false);
@@ -60,6 +64,7 @@ export default function TaskDetailModal({
   const [historyItems, setHistoryItems] = useState<TaskHistoryItem[]>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
   const dragHandleRef = useRef<HTMLDivElement>(null);
+  const detailsScrollRef = useRef<HTMLDivElement>(null);
   const swipeStartY = useRef(0);
 
   useEffect(() => {
@@ -82,6 +87,12 @@ export default function TaskDetailModal({
   useEffect(() => {
     if (open) {
       setActiveTab('details');
+      // The scroll containers survive task switches (they aren't remounted) — without this,
+      // a shorter task can open still scrolled to wherever the previous/longer task left off,
+      // making the top (summary/description) and bottom (dates/categories) look cut off.
+      // On lg+ the two columns scroll on their own, so reset those as well as the outer container.
+      const scroller = detailsScrollRef.current;
+      if (scroller) [scroller, ...Array.from(scroller.children)].forEach((el) => el.scrollTo({top: 0}));
     }
   }, [open, task?.id]);
 
@@ -129,7 +140,15 @@ export default function TaskDetailModal({
     if (onUpdateTask) onUpdateTask(updatedTask);
 
     try {
-      await modifyTask({group_id: groupId, task_id: task.id, [field]: value});
+      if (field === 'sprint_id') {
+        await modifyTask(
+          value === null
+            ? {group_id: groupId, task_id: task.id, unassign_sprint: true}
+            : {group_id: groupId, task_id: task.id, sprint_id: value}
+        );
+      } else {
+        await modifyTask({group_id: groupId, task_id: task.id, [field]: value});
+      }
     } catch (error: any) {
       const status = error?.response?.status;
       if (status === 422) toast.error('Hibás érték (422)');
@@ -213,9 +232,8 @@ export default function TaskDetailModal({
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-50 bg-black/50 backdrop-blur-[3px] animate-in fade-in-0 duration-200" />
 
-        {/* Bottom sheet mobilon, centered modal md+-on */}
         {/* Bottom sheet mobilon, full screen md+-on */}
-        <Dialog.Content className={[
+        <Dialog.Content aria-describedby={undefined} className={[
           // Mobil: bottom sheet
           'fixed inset-x-0 bottom-0 z-50 flex flex-col',
           'max-h-[92dvh] bg-[var(--bg-elevated)]',
@@ -223,10 +241,8 @@ export default function TaskDetailModal({
           'data-[state=open]:animate-in data-[state=open]:slide-in-from-bottom',
           'data-[state=closed]:animate-out data-[state=closed]:slide-out-to-bottom',
           'duration-300',
-          // md+: full screen modal
-          'md:fixed md:inset-0 md:z-50 md:flex md:flex-col',
-          'md:w-screen md:h-screen md:max-h-screen md:max-w-none md:m-0',
-          'md:-translate-x-0 md:-translate-y-0 md:left-0 md:top-0 md:bottom-0 md:right-0',
+          // md+: teljes képernyő. inset-0 (nem w-screen/h-screen), hogy a görgetősáv / dvh miatt ne lógjon túl
+          'md:inset-0 md:max-h-none',
           'md:rounded-none md:border-none md:shadow-none',
           'md:data-[state=open]:slide-in-from-bottom-0 md:data-[state=open]:zoom-in-100',
         ].join(' ')}>
@@ -290,13 +306,13 @@ export default function TaskDetailModal({
             </Tabs.List>
 
             {/* ── Details Tab ── */}
-            <Tabs.Content value="details" className="flex min-h-0 flex-1 flex-col outline-none">
-              {/* Görgethető tartalom + safe-area */}
-              <div className="min-h-0 flex-1 overflow-y-auto px-6 py-5 pr-5 pb-[max(20px,env(safe-area-inset-bottom))]">
-                <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-8 max-w-7xl mx-auto w-full">
-                  
+            {/* data-[state=inactive]:hidden: a Radix az inaktív panelt is renderelve hagyja (`hidden` attr), de a `flex` osztály felülírja → üresen elvinné a hely felét */}
+            <Tabs.Content value="details" className="flex min-h-0 flex-1 flex-col outline-none data-[state=inactive]:hidden">
+              {/* lg alatt egy közös görgető; lg+-on két, egymástól független görgethető oszlop, ami kitölti a teljes magasságot */}
+              <div ref={detailsScrollRef} className="min-h-0 flex-1 overflow-y-auto pb-[max(20px,env(safe-area-inset-bottom))] lg:grid lg:grid-cols-[minmax(0,1fr)_380px] lg:grid-rows-[minmax(0,1fr)] lg:overflow-hidden lg:pb-0">
+
                   {/* Left Column: Summary, Description, Subtasks, Comments */}
-                  <div className="flex flex-col gap-6 min-w-0">
+                  <div className="flex min-w-0 flex-col gap-6 px-6 py-5 lg:min-h-0 lg:overflow-y-auto">
                     {/* ── Summary (Inline Edit) ── */}
                     <div>
                       <h3 className="flex items-center gap-2 text-xs font-medium text-[var(--text-tertiary)] uppercase tracking-wider mb-2">
@@ -407,7 +423,7 @@ export default function TaskDetailModal({
                   </div>
 
                   {/* Right Column: Meta details Sidebar */}
-                  <div className="flex flex-col gap-5 lg:border-l-2 lg:border-[var(--border-default)] lg:pl-8">
+                  <div className="flex flex-col gap-5 px-6 py-5 lg:min-h-0 lg:overflow-y-auto lg:border-l-2 lg:border-[var(--border-default)]">
                     {/* Fields Group */}
                     <div className="flex flex-col gap-3">
                       {/* Task Type */}
@@ -490,6 +506,31 @@ export default function TaskDetailModal({
                           />
                         ) : (
                           <span className="font-medium text-sm text-[var(--text-primary)]">{task.story_points ?? '—'}</span>
+                        )}
+                      </div>
+
+                      {/* Sprint */}
+                      <div className={fieldCardCls}>
+                        <span className={labelCls}>{t('table.sprint')}</span>
+                        {canEdit ? (
+                          <Select
+                            value={task.sprint_id || BACKLOG_VALUE}
+                            onValueChange={(val) => handleUpdate('sprint_id', val === BACKLOG_VALUE ? null : val)}
+                          >
+                            <SelectTrigger className={inlineSelectTriggerCls}>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value={BACKLOG_VALUE}>{t('sprint.backlog')}</SelectItem>
+                              {sprints.filter((sprint) => sprint.status !== 'CLOSED' || sprint.id === task.sprint_id).map((sprint) => (
+                                <SelectItem key={sprint.id} value={sprint.id}>{sprint.sprint_name}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        ) : (
+                          <span className="font-medium text-sm text-[var(--text-primary)]">
+                            {task.sprint_id ? sprints.find((s) => s.id === task.sprint_id)?.sprint_name || task.sprint_id : t('sprint.backlog')}
+                          </span>
                         )}
                       </div>
                     </div>
@@ -616,12 +657,11 @@ export default function TaskDetailModal({
                     )}
                   </div>
 
-                </div>
               </div>
             </Tabs.Content>
 
             {/* ── History Tab ── */}
-            <Tabs.Content value="history" className="flex min-h-0 flex-1 flex-col outline-none">
+            <Tabs.Content value="history" className="flex min-h-0 flex-1 flex-col outline-none data-[state=inactive]:hidden">
               <div className="min-h-0 flex-1 overflow-y-auto px-6 py-5 pr-5">
               {historyLoading ? (
                 <div className="relative border-l-2 border-[var(--border-subtle)] ml-4 py-2">

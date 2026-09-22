@@ -2,7 +2,7 @@ import React from 'react';
 import {useSortable} from '@dnd-kit/sortable';
 import {CSS} from '@dnd-kit/utilities';
 import TaskCard from './TaskCard';
-import {Task} from './types';
+import {Task, Sprint} from './types';
 
 interface SortableTaskCardProps {
   task: Task;
@@ -11,6 +11,7 @@ interface SortableTaskCardProps {
   isSelected?: boolean;
   onToggleSelection?: () => void;
   onModifySummary?: (newSummary: string) => void;
+  sprintsById?: Record<string, Sprint>;
 }
 
 export default function SortableTaskCard({
@@ -19,7 +20,8 @@ export default function SortableTaskCard({
   onClick,
   isSelected,
   onToggleSelection,
-  onModifySummary
+  onModifySummary,
+  sprintsById
 }: SortableTaskCardProps) {
   const {
     attributes,
@@ -54,6 +56,7 @@ export default function SortableTaskCard({
         isSelected={isSelected}
         onToggleSelection={onToggleSelection}
         onModifySummary={onModifySummary}
+        sprintLabel={task.sprint_id ? sprintsById?.[task.sprint_id]?.sprint_name : undefined}
       />
     </div>
   );

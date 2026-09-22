@@ -9,9 +9,9 @@ import Badge from '@/components/ui/Badge';
 import Avatar from '@/components/ui/Avatar';
 import {translateTaskPriority, translateTaskStatus} from '@/lib/i18n/tasks';
 
-type BadgeVariant = 'neutral' | 'success' | 'warning' | 'danger' | 'info' | 'accent';
+export type BadgeVariant = 'neutral' | 'success' | 'warning' | 'danger' | 'info' | 'accent';
 
-const PRIORITY_VARIANT: Record<string, BadgeVariant> = {
+export const PRIORITY_VARIANT: Record<string, BadgeVariant> = {
   LOW: 'success',
   MEDIUM: 'warning',
   HIGH: 'danger',
@@ -19,7 +19,7 @@ const PRIORITY_VARIANT: Record<string, BadgeVariant> = {
   URGENT: 'danger',
 };
 
-const STATUS_VARIANT: Record<string, BadgeVariant> = {
+export const STATUS_VARIANT: Record<string, BadgeVariant> = {
   TODO: 'neutral',
   IN_PROGRESS: 'warning',
   IN_REVIEW: 'info',
@@ -33,6 +33,7 @@ export interface TaskListCardProps {
   isSelected?: boolean;
   onToggleSelection?: () => void;
   showCheckbox?: boolean;
+  sprintLabel?: string;
 }
 
 export default function TaskListCard({
@@ -41,6 +42,7 @@ export default function TaskListCard({
   isSelected,
   onToggleSelection,
   showCheckbox,
+  sprintLabel,
 }: TaskListCardProps) {
   const t = useTranslations('tasks');
 
@@ -85,6 +87,7 @@ export default function TaskListCard({
             {translateTaskPriority(t, task.priority)}
           </Badge>
         )}
+        {sprintLabel && <Badge variant="accent">{sprintLabel}</Badge>}
       </div>
 
       {/* Row 2: summary */}

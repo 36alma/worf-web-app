@@ -6,7 +6,7 @@ import apiClient from './client';
  * Reference: system prompt section 3 - Module Scope Rules
  */
 
-export const getTaskPanel = (data: {group_id: string; page_number?: number; load_task_number?: number; status?: string}) =>
+export const getTaskPanel = (data: {group_id: string; page_number?: number; load_task_number?: number; status?: string; sprint_id?: string; backlog_only?: boolean; include_archived?: boolean}) =>
   apiClient.post('/v1/task/panel', data);
 
 export const getTask = (data: {group_id: string; task_id: string}) =>

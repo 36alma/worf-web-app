@@ -83,6 +83,25 @@ export interface Task {
   reporter_id?: TaskUser | null;
   task_group_id?: string | null;
   categories?: TaskCategory[];
+  sprint_id?: string | null;
+  location?: TaskLocation;
+}
+
+export type TaskLocation = 'BACKLOG' | 'BOTH' | 'SPRINT';
+
+export type SprintStatus = 'PLANNED' | 'ACTIVE' | 'CLOSED';
+
+export interface Sprint {
+  id: string;
+  group_id: string;
+  sprint_name: string;
+  sprint_goal: string | null;
+  start_date: string;
+  end_date: string;
+  status: SprintStatus;
+  closed_at?: string | null;
+  created_at: string;
+  modified_at?: string | null;
 }
 
 export interface CommentAuthor {

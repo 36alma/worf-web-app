@@ -4,7 +4,7 @@ import {SortableContext, verticalListSortingStrategy} from '@dnd-kit/sortable';
 import {ChevronDown, ChevronRight, MoreHorizontal} from 'lucide-react';
 import clsx from 'clsx';
 import {useTranslations} from 'next-intl';
-import {Task} from './types';
+import {Task, Sprint} from './types';
 import SortableTaskCard from './SortableTaskCard';
 import EmptyState from '@/components/ui/EmptyState';
 
@@ -18,6 +18,7 @@ export interface TaskColumnProps {
   selectedTaskIds: string[];
   onToggleSelection: (taskId: string) => void;
   onModifyTaskSummary: (taskId: string, newSummary: string) => void;
+  sprintsById?: Record<string, Sprint>;
 }
 
 // Column status → dot colour (spec §5 column header).
@@ -38,7 +39,8 @@ export default function TaskColumn({
   onTaskClick,
   selectedTaskIds,
   onToggleSelection,
-  onModifyTaskSummary
+  onModifyTaskSummary,
+  sprintsById
 }: TaskColumnProps) {
   const t = useTranslations('tasks');
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -114,6 +116,7 @@ export default function TaskColumn({
               isSelected={selectedTaskIds.includes(task.id)}
               onToggleSelection={() => onToggleSelection(task.id)}
               onModifySummary={(newSummary) => onModifyTaskSummary(task.id, newSummary)}
+              sprintsById={sprintsById}
             />
           ))}
         </SortableContext>

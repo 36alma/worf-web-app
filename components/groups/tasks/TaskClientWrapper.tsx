@@ -2,7 +2,7 @@
 
 import {useState, useEffect, useMemo, useCallback} from 'react';
 import {useTranslations} from 'next-intl';
-import {Plus, Tags, Filter, Search, Columns3, List, Calendar as CalendarIcon, Trash2, Clock} from 'lucide-react';
+import {Plus, Tags, Filter, Search, Columns3, List, Calendar as CalendarIcon, Trash2, Clock, CalendarRange, Rows3} from 'lucide-react';
 import toast from 'react-hot-toast';
 
 import Button from '@/components/ui/Button';
@@ -10,43 +10,35 @@ import { Input } from '@/components/ui/Input';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/Tabs';
 import Skeleton from '@/components/ui/Skeleton';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import AvatarGroup from '@/components/ui/AvatarGroup';
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem
+} from '@/components/ui/select';
 
 import KanbanView from './KanbanView';
 import ListView from './ListView';
 import CalendarView from './CalendarView';
 import TimelineView from './TimelineView';
+import BacklogView from './BacklogView';
 import FilterSheet, {FilterState} from './FilterSheet';
 import TaskDetailModal from './TaskDetailModal';
 import TaskFormModal from './TaskFormModal';
 import CategoryManagerModal from './CategoryManagerModal';
+import SprintManagerModal from './SprintManagerModal';
 
-import {Task, GroupUser} from './types';
-import {getTaskPanel, modifyTask, deleteTask} from '@/lib/api/tasks';
+import {Task, GroupUser, Sprint} from './types';
+import {getTask, getTaskPanel, modifyTask, deleteTask} from '@/lib/api/tasks';
+import {getSprintList} from '@/lib/api/sprints';
 import {getGroupMembers} from '@/lib/api/groups';
+import {parseGroupUsers} from '@/lib/utils/groupUsers';
 import {translateTaskApiError} from '@/lib/i18n/tasks';
 
-const parseGroupUsers = (payload: unknown): GroupUser[] => {
-  if (!payload || typeof payload !== 'object') return [];
-  const raw = payload as Record<string, unknown>;
-  const data = raw.data ?? raw;
-  const inner = typeof data === 'object' && data !== null ? (data as Record<string, unknown>) : {};
-  const arr = inner.data ?? inner.users ?? inner.group_users ?? inner.items ?? (Array.isArray(data) ? data : []);
-  if (!Array.isArray(arr)) return [];
-
-  return arr
-    .map((item: any): GroupUser | null => {
-      if (!item || typeof item !== 'object') return null;
-      const user_id = String(item.user_id ?? '').trim();
-      if (!user_id) return null;
-      return {
-        user_id,
-        full_name: String(item.full_name ?? item.fullname ?? item.name ?? item.email ?? ''),
-        email: String(item.email ?? ''),
-        username: String(item.username ?? (item.email ?? '').split('@')[0] ?? '')
-      };
-    })
-    .filter((user): user is GroupUser => user !== null);
-};
+const BACKLOG_VALUE = '__backlog__';
+const ALL_VALUE = '__all__';
 
 export interface TaskClientWrapperProps {
   groupId: string;
@@ -54,12 +46,14 @@ export interface TaskClientWrapperProps {
     task: { read: boolean; create: boolean; modify: boolean; delete: boolean };
     category: { read: boolean; create: boolean; modify: boolean; delete: boolean };
     comment: { read: boolean; create: boolean; modify: boolean; delete: boolean };
+    sprint: { read: boolean; create: boolean; modify: boolean; delete: boolean; start: boolean; close: boolean };
   };
 }
 
 export default function TaskClientWrapper({groupId, permissions}: TaskClientWrapperProps) {
   const t = useTranslations('tasks');
-  const [activeView, setActiveView] = useState<'kanban' | 'list' | 'calendar' | 'timeline'>('kanban');
+  const [activeView, setActiveView] = useState<'kanban' | 'list' | 'calendar' | 'timeline' | 'backlog'>('kanban');
+  const [backlogRefreshKey, setBacklogRefreshKey] = useState(0);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [groupUsers, setGroupUsers] = useState<GroupUser[]>([]);
@@ -69,15 +63,19 @@ export default function TaskClientWrapper({groupId, permissions}: TaskClientWrap
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isCategoryManagerOpen, setIsCategoryManagerOpen] = useState(false);
+  const [isSprintManagerOpen, setIsSprintManagerOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [selectedTaskIds, setSelectedTaskIds] = useState<string[]>([]);
+  const [sprints, setSprints] = useState<Sprint[]>([]);
+  const [sprintContext, setSprintContext] = useState<string>(ALL_VALUE);
   const [filters, setFilters] = useState<FilterState>({
     search: '',
     myTasksOnly: false,
     status: [],
     priority: [],
     dateFrom: '',
-    dateTo: ''
+    dateTo: '',
+    includeArchived: false
   });
 
   // Switch to list view on mobile since Kanban/Timeline are hidden
@@ -109,15 +107,50 @@ export default function TaskClientWrapper({groupId, permissions}: TaskClientWrap
     fetchGroupUsers();
   }, [fetchGroupUsers]);
 
+  const fetchSprints = useCallback(async () => {
+    if (!permissions.sprint.read) return;
+    try {
+      const response = await getSprintList({group_id: groupId, limit: 200});
+      const data = response.data?.data || response.data || [];
+      const list = Array.isArray(data.sprints) ? data.sprints : Array.isArray(data) ? data : [];
+      setSprints(list);
+    } catch {
+      // Non-critical for the task page.
+    }
+  }, [groupId, permissions.sprint.read]);
+
+  useEffect(() => {
+    fetchSprints();
+  }, [fetchSprints]);
+
+  const sprintsById = useMemo(() => {
+    const map: Record<string, Sprint> = {};
+    sprints.forEach((sprint) => { map[sprint.id] = sprint; });
+    return map;
+  }, [sprints]);
+
   const fetchTasks = useCallback(async () => {
     if (!permissions.task.read) return;
 
     setLoading(true);
     try {
+      const sprintFilter: {sprint_id?: string; backlog_only?: boolean} =
+        sprintContext === ALL_VALUE ? {} :
+        sprintContext === BACKLOG_VALUE ? {backlog_only: true} :
+        {sprint_id: sprintContext};
+
+      // Egy lezárt sprint task-jai mind archiváltak — enélkül üres listát adna a szerver.
+      const isClosedSprintSelected = sprintContext !== ALL_VALUE && sprintContext !== BACKLOG_VALUE
+        && sprintsById[sprintContext]?.status === 'CLOSED';
+
       const response = await getTaskPanel({
         group_id: groupId,
         page_number: currentPage,
-        load_task_number: 100
+        load_task_number: 100,
+        ...sprintFilter,
+        // A backend a mezőt false-ra is elutasítja ("Extra inputs are not
+        // permitted"), ha nincs rá szükség — csak akkor küldjük, ha true.
+        ...(filters.includeArchived || isClosedSprintSelected ? {include_archived: true} : {})
       });
 
       const data = response.data?.data || response.data || {};
@@ -139,11 +172,25 @@ export default function TaskClientWrapper({groupId, permissions}: TaskClientWrap
     } finally {
       setLoading(false);
     }
-  }, [currentPage, groupId, permissions.task.read, t]);
+  }, [currentPage, groupId, permissions.task.read, sprintContext, sprintsById, filters.includeArchived, t]);
 
   useEffect(() => {
     fetchTasks();
   }, [fetchTasks]);
+
+  // Deep link from a `/task` chip in the editor: ?task=<id> opens that task's detail.
+  useEffect(() => {
+    const taskId = new URLSearchParams(window.location.search).get('task');
+    if (!taskId) return;
+    getTask({group_id: groupId, task_id: taskId})
+      .then(({data}) => setSelectedTask((data?.task ?? data) as Task))
+      .catch((error) => toast.error(translateTaskApiError(t, error, 'toasts.loadError')));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [groupId]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [sprintContext]);
 
   const filteredTasks = useMemo(() => {
     return tasks.filter((task) => {
@@ -253,7 +300,8 @@ export default function TaskClientWrapper({groupId, permissions}: TaskClientWrap
     filters.status.length > 0 ||
     filters.priority.length > 0 ||
     !!filters.dateFrom ||
-    !!filters.dateTo;
+    !!filters.dateTo ||
+    filters.includeArchived;
 
   return (
     <div className="flex h-full flex-col gap-6">
@@ -261,6 +309,28 @@ export default function TaskClientWrapper({groupId, permissions}: TaskClientWrap
         <h1 className="text-title text-fg">{t('page.title')}</h1>
 
         <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+          {permissions.sprint.read && activeView !== 'backlog' && (
+            <Select value={sprintContext} onValueChange={setSprintContext}>
+              <SelectTrigger className="w-full sm:w-44">
+                <SelectValue placeholder={t('sprint.switcherLabel')} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={ALL_VALUE}>{t('sprint.all')}</SelectItem>
+                <SelectItem value={BACKLOG_VALUE}>{t('sprint.backlog')}</SelectItem>
+                {sprints.map((sprint) => (
+                  <SelectItem key={sprint.id} value={sprint.id}>{sprint.sprint_name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+
+          {activeView === 'backlog' && groupUsers.length > 0 && (
+            <AvatarGroup
+              users={groupUsers.map((user) => ({name: user.full_name}))}
+              className="hidden sm:flex"
+            />
+          )}
+
           <div className="relative">
             <Search
               className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-fg-muted"
@@ -288,17 +358,20 @@ export default function TaskClientWrapper({groupId, permissions}: TaskClientWrap
 
           <Tabs value={activeView} onValueChange={(value) => setActiveView(value as typeof activeView)}>
             <TabsList>
+              <TabsTrigger value="timeline" className="hidden lg:inline-flex">
+                <Clock size={15} /> <span className="hidden sm:inline">{t('views.timeline')}</span>
+              </TabsTrigger>
               <TabsTrigger value="kanban" className="hidden lg:inline-flex">
                 <Columns3 size={15} /> <span className="hidden sm:inline">{t('views.kanban')}</span>
               </TabsTrigger>
-              <TabsTrigger value="list">
-                <List size={15} /> <span className="hidden sm:inline">{t('views.list')}</span>
+              <TabsTrigger value="backlog">
+                <Rows3 size={15} /> <span className="hidden sm:inline">{t('views.backlog')}</span>
               </TabsTrigger>
               <TabsTrigger value="calendar">
                 <CalendarIcon size={15} /> <span className="hidden sm:inline">{t('views.calendar')}</span>
               </TabsTrigger>
-              <TabsTrigger value="timeline" className="hidden lg:inline-flex">
-                <Clock size={15} /> <span className="hidden sm:inline">{t('views.timeline')}</span>
+              <TabsTrigger value="list">
+                <List size={15} /> <span className="hidden sm:inline">{t('views.list')}</span>
               </TabsTrigger>
             </TabsList>
           </Tabs>
@@ -321,6 +394,24 @@ export default function TaskClientWrapper({groupId, permissions}: TaskClientWrap
             </TooltipProvider>
           )}
 
+          {permissions.sprint.read && (
+            <TooltipProvider delayDuration={200}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => setIsSprintManagerOpen(true)}
+                    aria-label={t('sprint.manage')}
+                    className="px-2"
+                    startIcon={<CalendarRange size={16} />}
+                  />
+                </TooltipTrigger>
+                <TooltipContent>{t('sprint.manage')}</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
+
           {permissions.task.create && (
             <Button
               variant="primary"
@@ -334,7 +425,7 @@ export default function TaskClientWrapper({groupId, permissions}: TaskClientWrap
         </div>
       </div>
 
-      {permissions.task.delete && selectedTaskIds.length > 0 && activeView !== 'calendar' && activeView !== 'timeline' && (
+      {permissions.task.delete && selectedTaskIds.length > 0 && activeView !== 'calendar' && activeView !== 'timeline' && activeView !== 'backlog' && (
         <div className="flex items-center justify-between rounded-lg border border-border bg-surface-1 px-4 py-3 animate-in slide-in-from-top-2">
           <span className="text-sm font-medium text-fg">
             {t('badges.selectedCount', {count: selectedTaskIds.length})}
@@ -351,7 +442,18 @@ export default function TaskClientWrapper({groupId, permissions}: TaskClientWrap
       )}
 
       <div className="relative flex min-w-0 flex-1 overflow-hidden">
-        {loading && tasks.length === 0 ? (
+        {activeView === 'backlog' ? (
+          <BacklogView
+            groupId={groupId}
+            permissions={permissions}
+            sprints={sprints}
+            onSprintsChanged={setSprints}
+            onTaskClick={setSelectedTask}
+            searchQuery={filters.search}
+            onManageSprint={() => setIsSprintManagerOpen(true)}
+            refreshKey={backlogRefreshKey}
+          />
+        ) : loading && tasks.length === 0 ? (
           <div className="flex flex-1 gap-4">
             {[0, 1, 2].map((column) => (
               <div key={column} className="hidden flex-1 flex-col gap-3 lg:flex">
@@ -378,6 +480,7 @@ export default function TaskClientWrapper({groupId, permissions}: TaskClientWrap
                 onToggleSelection={toggleSelection}
                 onModifyTaskSummary={handleModifySummary}
                 onTaskMove={handleTaskMove}
+                sprintsById={sprintsById}
               />
             )}
             {activeView === 'list' && (
@@ -388,6 +491,7 @@ export default function TaskClientWrapper({groupId, permissions}: TaskClientWrap
                 selectedTaskIds={selectedTaskIds}
                 onToggleSelection={toggleSelection}
                 onToggleAll={handleToggleAll}
+                sprintsById={sprintsById}
               />
             )}
             {activeView === 'calendar' && (
@@ -410,30 +514,32 @@ export default function TaskClientWrapper({groupId, permissions}: TaskClientWrap
         )}
       </div>
 
-      <div className="mt-2 flex items-center justify-between border-t border-border pt-4">
-        <p className="text-sm text-fg-secondary">
-          {t('pagination.page')} <span className="font-medium text-fg">{currentPage}</span>{' '}
-          {tasks.length > 0 && t('pagination.showing', {count: tasks.length})}
-        </p>
-        <div className="flex gap-2">
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
-            disabled={currentPage === 1 || loading}
-          >
-            {t('pagination.prev')}
-          </Button>
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={() => setCurrentPage((page) => page + 1)}
-            disabled={!hasMore || loading}
-          >
-            {t('pagination.next')}
-          </Button>
+      {activeView !== 'backlog' && (
+        <div className="mt-2 flex items-center justify-between border-t border-border pt-4">
+          <p className="text-sm text-fg-secondary">
+            {t('pagination.page')} <span className="font-medium text-fg">{currentPage}</span>{' '}
+            {tasks.length > 0 && t('pagination.showing', {count: tasks.length})}
+          </p>
+          <div className="flex gap-2">
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
+              disabled={currentPage === 1 || loading}
+            >
+              {t('pagination.prev')}
+            </Button>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => setCurrentPage((page) => page + 1)}
+              disabled={!hasMore || loading}
+            >
+              {t('pagination.next')}
+            </Button>
+          </div>
         </div>
-      </div>
+      )}
 
       <FilterSheet open={isFilterOpen} onClose={() => setIsFilterOpen(false)} filters={filters} onApplyFilters={setFilters} />
 
@@ -446,9 +552,11 @@ export default function TaskClientWrapper({groupId, permissions}: TaskClientWrap
         onUpdateTask={(updatedTask) => {
           setTasks((prev) => prev.map((task) => task.id === updatedTask.id ? updatedTask : task));
           setSelectedTask(updatedTask);
+          setBacklogRefreshKey((key) => key + 1);
         }}
         groupUsers={groupUsers}
         groupUsersLoading={groupUsersLoading}
+        sprints={sprints}
       />
 
       {isFormOpen && (
@@ -457,9 +565,13 @@ export default function TaskClientWrapper({groupId, permissions}: TaskClientWrap
           initialData={undefined}
           onClose={() => setIsFormOpen(false)}
           groupId={groupId}
-          onSuccess={fetchTasks}
+          onSuccess={() => {
+            fetchTasks();
+            setBacklogRefreshKey((key) => key + 1);
+          }}
           groupUsers={groupUsers}
           groupUsersLoading={groupUsersLoading}
+          sprints={sprints}
         />
       )}
 
@@ -469,6 +581,16 @@ export default function TaskClientWrapper({groupId, permissions}: TaskClientWrap
           onClose={() => setIsCategoryManagerOpen(false)}
           groupId={groupId}
           permissions={permissions.category}
+        />
+      )}
+
+      {isSprintManagerOpen && (
+        <SprintManagerModal
+          open={isSprintManagerOpen}
+          onClose={() => setIsSprintManagerOpen(false)}
+          groupId={groupId}
+          permissions={permissions.sprint}
+          onSprintsChanged={setSprints}
         />
       )}
     </div>

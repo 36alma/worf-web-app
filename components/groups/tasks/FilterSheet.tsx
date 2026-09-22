@@ -11,6 +11,7 @@ export interface FilterState {
   priority: string[];
   dateFrom: string;
   dateTo: string;
+  includeArchived: boolean;
 }
 
 export interface FilterSheetProps {
@@ -119,12 +120,25 @@ export default function FilterSheet({open, onClose, filters, onApplyFilters}: Fi
           </div>
         </div>
 
+        <div className="flex flex-col gap-3">
+          <h3 className="text-section text-fg">{t('filter.archive')}</h3>
+          <label className={rowCls}>
+            <input
+              type="checkbox"
+              checked={localFilters.includeArchived}
+              onChange={(event) => setLocalFilters((prev) => ({...prev, includeArchived: event.target.checked}))}
+              className={checkboxCls}
+            />
+            {t('filter.includeArchived')}
+          </label>
+        </div>
+
         <div className="mt-6 flex gap-3">
           <Button
             variant="secondary"
             size="lg"
             className="flex-1"
-            onClick={() => setLocalFilters({search: localFilters.search, myTasksOnly: localFilters.myTasksOnly, status: [], priority: [], dateFrom: '', dateTo: ''})}
+            onClick={() => setLocalFilters({search: localFilters.search, myTasksOnly: localFilters.myTasksOnly, status: [], priority: [], dateFrom: '', dateTo: '', includeArchived: false})}
           >
             {t('filter.clear')}
           </Button>

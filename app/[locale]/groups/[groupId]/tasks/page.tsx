@@ -48,11 +48,19 @@ export default function GroupTasksPage({params}: {params: Promise<{groupId: stri
       create: hasPermission('group.task.comment.create'),
       modify: hasPermission('group.task.comment.modify'),
       delete: hasPermission('group.task.comment.delete')
+    },
+    sprint: {
+      read: hasPermission('group.sprint.read'),
+      create: hasPermission('group.sprint.create'),
+      modify: hasPermission('group.sprint.modify'),
+      delete: hasPermission('group.sprint.delete'),
+      start: hasPermission('group.sprint.start'),
+      close: hasPermission('group.sprint.close')
     }
   };
 
   return (
-    <section className="h-[calc(100vh-120px)] w-full">
+    <section className="flex min-h-0 w-full flex-1 flex-col">
       <TaskClientWrapper groupId={decodedGroupId} permissions={permissions} />
     </section>
   );

@@ -16,7 +16,7 @@ import {
 import {sortableKeyboardCoordinates} from '@dnd-kit/sortable';
 import TaskColumn from './TaskColumn';
 import TaskCard from './TaskCard';
-import {Task, STATUSES} from './types';
+import {Task, STATUSES, Sprint} from './types';
 import {translateTaskStatus} from '@/lib/i18n/tasks';
 
 export interface KanbanViewProps {
@@ -27,6 +27,7 @@ export interface KanbanViewProps {
   onToggleSelection: (taskId: string) => void;
   onModifyTaskSummary: (taskId: string, newSummary: string) => void;
   onTaskMove: (taskId: string, newStatus: string) => Promise<void>;
+  sprintsById?: Record<string, Sprint>;
 }
 
 export default function KanbanView({
@@ -36,7 +37,8 @@ export default function KanbanView({
   selectedTaskIds,
   onToggleSelection,
   onModifyTaskSummary,
-  onTaskMove
+  onTaskMove,
+  sprintsById
 }: KanbanViewProps) {
   const t = useTranslations('tasks');
   // Local state for optimistic drag & drop
@@ -171,6 +173,7 @@ export default function KanbanView({
                 selectedTaskIds={selectedTaskIds}
                 onToggleSelection={onToggleSelection}
                 onModifyTaskSummary={onModifyTaskSummary}
+                sprintsById={sprintsById}
               />
             </div>
           );

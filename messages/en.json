@@ -78,14 +78,99 @@
     "active_groups": "Active groups",
     "open_tasks": "Open tasks",
     "upcoming_events": "Upcoming events",
-    "vs_last_month": "vs last month",
-    "no_change": "No change",
-    "no_events_scheduled": "No events scheduled",
+    "kpi": {
+      "groups_hint": "Open groups",
+      "overdue": "{count} overdue",
+      "no_overdue": "None overdue",
+      "next_today": "Next: today {time}",
+      "next_tomorrow": "Next: tomorrow {time}",
+      "next_other": "Next: {day}, {time}",
+      "no_upcoming": "Nothing upcoming",
+      "unavailable": "Could not be loaded"
+    },
+    "my_tasks": {
+      "title": "Tasks assigned to me",
+      "filter_label": "Filter tasks",
+      "filter_open": "Open",
+      "filter_overdue": "Overdue",
+      "empty_open": "No open tasks assigned to you",
+      "empty_overdue": "You have no overdue tasks",
+      "more": "and {count} more",
+      "error": "Tasks could not be loaded",
+      "rate_limited": "Too many requests, try again later",
+      "retry": "Try again",
+      "due_on": "Due {date}",
+      "overdue_on": "Overdue since {date}",
+      "change_status": "Change status"
+    },
+    "upcoming": {
+      "title": "Upcoming events",
+      "window": "next {days} days",
+      "empty": "No events in the next {days} days",
+      "more": "and {count} more",
+      "error": "Events could not be loaded",
+      "rate_limited": "Too many requests, try again later",
+      "retry": "Try again",
+      "today": "Today",
+      "tomorrow": "Tomorrow",
+      "all_day": "All day",
+      "ongoing": "Ongoing",
+      "recurring": "Recurring"
+    },
+    "quick": {
+      "pick_group": "Which group?",
+      "pick_group_hint": "Choose the group to create it in.",
+      "no_groups": "Join a group first",
+      "no_permission": "You are not allowed to create this in that group",
+      "open_error": "Could not open the form",
+      "preparing": "Loading..."
+    },
+    "activity": {
+      "filter_label": "Filter activity",
+      "filter_all": "All",
+      "filter_task": "Tasks",
+      "filter_minutes": "Minutes",
+      "group_filter_label": "Filter by group",
+      "all_groups": "All groups",
+      "someone": "Someone",
+      "load_more": "Load more",
+      "loading_more": "Loading...",
+      "load_more_error": "Could not load more items",
+      "error": "Activity could not be loaded",
+      "rate_limited": "Too many requests, try again later",
+      "retry": "Try again",
+      "events": {
+        "unknown": "{actor} changed: {title}",
+        "task": {
+          "created": "{actor} created the task: {title}",
+          "status_changed": "{actor} changed the status ({from} → {to}): {title}",
+          "status_changed_plain": "{actor} changed the status: {title}",
+          "assignee_changed": "{actor} changed the assignee: {title}",
+          "reporter_changed": "{actor} changed the reporter: {title}",
+          "summary_changed": "{actor} renamed the task: {title}",
+          "description_changed": "{actor} edited the description: {title}",
+          "type_changed": "{actor} changed the type: {title}",
+          "priority_changed": "{actor} changed the priority ({from} → {to}): {title}",
+          "priority_changed_plain": "{actor} changed the priority: {title}",
+          "story_points_changed": "{actor} changed the story points: {title}",
+          "due_at_changed": "{actor} changed the due date: {title}",
+          "started_at_changed": "{actor} changed the start date: {title}",
+          "completed_at_changed": "{actor} changed the completion date: {title}",
+          "archive_changed": "{actor} changed the archived state: {title}",
+          "sprint_changed": "{actor} changed the sprint: {title}"
+        },
+        "minutes": {
+          "finalized": "{actor} finalized the minutes: {title}",
+          "witness_approved": "{actor} approved the minutes as a witness: {title}",
+          "witness_rejected": "{actor} rejected the minutes as a witness: {title}",
+          "approved": "The minutes were approved: {title}"
+        }
+      }
+    },
     "welcome_description": "Your dashboard is ready. Start by creating groups, assigning tasks, or scheduling events to see your widgets come alive.",
     "create_first_group": "Create first group",
     "read_documentation": "Read documentation",
     "recent_activity": "Recent activity",
-    "view_all": "View all",
     "no_recent_activity": "No recent activity",
     "activity_hint": "Actions from your team will appear here",
     "quick_actions": "Quick actions",
@@ -123,13 +208,26 @@
       "filter_status_all": "All statuses",
       "filter_date_from": "From",
       "filter_date_to": "To",
-      "version_label": "Version {version}"
+      "version_label": "Version {version}",
+      "filter_status_label": "Status",
+      "awaiting_you": "Awaiting your approval",
+      "filter_awaiting_me": "Awaiting me ({count})",
+      "awaiting_empty": "Nothing is awaiting your approval.",
+      "filter_archived_label": "Show",
+      "filter_archived_active": "Active",
+      "filter_archived_only": "Archived",
+      "filter_archived_all": "All",
+      "filter_tag_label": "Tag",
+      "filter_tag_all": "All tags",
+      "archived_badge": "Archived",
+      "trash": "Trash",
+      "empty_filtered": "No minutes match the filter."
     },
     "status_enum": {
       "DRAFT": "Draft",
       "PENDING_APPROVAL": "Pending approval",
       "APPROVED": "Approved",
-      "ARCHIVED": "Archived"
+      "ARCHIVED": "Superseded"
     },
     "role_enum": {
       "ATTENDEE": "Attendee",
@@ -146,24 +244,25 @@
       "save": "Save",
       "cancel": "Cancel",
       "delete": "Delete",
-      "delete_confirm": "Delete this meeting minutes draft?"
+      "delete_confirm": "Delete this meeting minutes draft?",
+      "minute_taker_placeholder": "Select a minute taker",
+      "minute_taker_hint": "Required. Only a member whose role may edit minutes can be selected.",
+      "minute_taker_missing": "Not set",
+      "minute_taker_no_candidates": "No minute taker to choose from — the group roles need the minutes edit permission.",
+      "minute_taker_not_eligible_selected": "The selected member can no longer be the minute taker (not an active member, or no minutes edit permission) — pick someone else.",
+      "minute_taker_ineligible": "The minute taker can no longer edit: not an active member, or lost the minutes edit permission.",
+      "minute_taker_ineligible_editable": "The minute taker can no longer edit — pick another one in the header, otherwise the minutes cannot be finalized.",
+      "minute_taker_legacy": "This older minutes has no minute taker. Set one in the header, otherwise it cannot be finalized."
     },
     "agenda": {
       "title": "Agenda items",
       "add": "Add agenda item",
       "item_title": "Title",
-      "discussion": "Discussion",
-      "decision": "Decision",
+      "content_placeholder": "Write what was discussed and decided — type @ to mention a participant, or / for a command.",
+      "save_content": "Save",
       "presenter": "Presenter",
       "delete_confirm": "Delete this agenda item?",
-      "action_items": "Action items",
-      "add_action_item": "Add action item",
-      "description": "Description",
-      "due_date": "Due date",
-      "assignee": "Assignee",
-      "promote_to_task": "Convert to task",
-      "promoted": "Linked to task {issueKey}",
-      "delete_action_confirm": "Delete this action item?"
+      "remove": "Delete agenda item"
     },
     "participants": {
       "title": "Participants",
@@ -172,16 +271,71 @@
       "member": "Group member",
       "free_text_name": "Name (not a member)",
       "remove_confirm": "Remove this participant?",
-      "prepopulate_from_event": "Prefill from calendar event"
+      "import_from_event": "Import participants from event",
+      "import_confirm": "Add selected",
+      "import_success": "Selected participants were added.",
+      "import_empty": "No candidate participants for this event.",
+      "already_added": "Already a participant",
+      "unknown_name": "Unknown member",
+      "witness_external_warning": "A witness who is not a group member cannot vote, so the minutes cannot be approved until you remove them.",
+      "remove": "Remove",
+      "witness_picker_hint": "A witness must be a registered group member whose role includes the minutes read and approve permissions.",
+      "witness_search_placeholder": "Search by name…",
+      "witness_no_candidates": "No eligible witness — the group roles need the minutes read and approve permissions.",
+      "witness_no_match": "No match for this search.",
+      "witness_candidates_failed": "The witness candidates could not be loaded. Refresh the page or check your permissions.",
+      "witness_already": "Already a witness",
+      "witness_promote": "Make witness",
+      "witness_truncated": "Only the first 50 candidates are shown — narrow it down with the search.",
+      "witness_ineligible": "This witness is no longer eligible: not an active member, or missing the read and approve permissions."
     },
     "witness": {
       "title": "Witnesses",
       "progress": "{approved} of {total} witnesses approved",
       "approve": "Approve",
       "reject": "Reject",
-      "reason_prompt": "Reason for rejection",
       "rejection_reason": "Rejection reason: {reason}",
-      "no_access": "You are not registered as a witness on this record."
+      "no_access": "You are not registered as a witness on this record.",
+      "awaiting_you": "Your approval is needed",
+      "awaiting_you_hint": "Read the minutes, then approve them or reject them with a reason.",
+      "already_approved": "You approved these minutes ({date}). You can change your vote while they are awaiting approval.",
+      "approve_title": "Approve minutes",
+      "approve_body": "Approve “{subject}” (version {version})? If you are the last witness, the minutes become approved.",
+      "reject_title": "Reject minutes",
+      "reject_body": "After a rejection the minutes go back to draft and every witness has to vote again.",
+      "reject_reason_label": "What was wrong?",
+      "reject_reason_placeholder": "E.g. agenda item 3 is incomplete…",
+      "confirm_approve": "Approve",
+      "confirm_reject": "Reject",
+      "cancel": "Cancel",
+      "approved_toast": "Your approval was recorded.",
+      "finalized_toast": "The minutes are approved.",
+      "rejected_toast": "Rejected — the minutes went back to draft.",
+      "vote_forbidden": "You cannot vote: you are not registered as a witness on these minutes, or your role lacks the approve permission.",
+      "vote_invalid_state": "The minutes are no longer awaiting approval; the page is refreshing.",
+      "status": {
+        "PENDING": "Awaiting vote",
+        "APPROVED": "Approved",
+        "REJECTED": "Rejected"
+      },
+      "external": "not a group member",
+      "no_permission_hint": "You are registered as a witness, but your role does not include the minutes approve permission — ask the group leader to add it.",
+      "external_warning": "A witness is not a group member and cannot vote, so the minutes cannot be approved.",
+      "ineligible": "not eligible",
+      "ineligible_banner": "{count, plural, one {# witness is} other {# witnesses are}} no longer eligible — replace them before finalizing.",
+      "stuck_banner": "{count, plural, one {# witness is} other {# witnesses are}} no longer eligible and cannot vote — undo the finalization, then replace them.",
+      "stuck_hint": "{count, plural, one {# witness is} other {# witnesses are}} no longer eligible and cannot vote — undo the finalization and replace them."
+    },
+    "versions": {
+      "title": "Versions",
+      "current": "viewing",
+      "not_latest": "This is not the latest version — the latest is version {version}.",
+      "restore": "Restore as a new version",
+      "restore_confirm": "Create a new draft version from the contents of this superseded version? The superseded version stays untouched.",
+      "restore_confirm_approved": "The currently approved version {version} becomes superseded, and there will be no valid approved version until the new draft is approved. Continue?",
+      "restore_blocked": "Finish or delete the in-progress version {version} first.",
+      "restored_toast": "New draft version created.",
+      "archived_hint": "Archived version — take it out of the archive first, then it can be restored."
     },
     "attachments": {
       "title": "Attachments",
@@ -190,14 +344,29 @@
       "remove_confirm": "Remove this attachment?",
       "export_pdf": "Export as PDF",
       "exported": "PDF exported and attached.",
-      "download": "Download"
+      "download": "Download",
+      "export_cached": "The PDF is already exported with this content — you will find it among the attachments.",
+      "exported_label": "Exported PDF"
     },
     "state": {
       "finalize": "Finalize",
       "finalize_confirm": "Finalize this draft and send for witness approval?",
       "finalize_needs_witness": "Add at least one witness before finalizing.",
       "revise": "Create new version",
-      "revise_confirm": "Create a new draft version from this approved minutes?"
+      "revise_confirm": "Create a new draft version from this approved minutes?",
+      "finalized_toast": "The minutes are finalized; the witnesses can vote.",
+      "finalize_needs_minute_taker": "Set a minute taker before finalizing.",
+      "finalize_failed": "Finalizing failed",
+      "finalize_ineligible_witnesses": "These witnesses do not qualify: {names}. Replace them in the Participants panel.",
+      "recall": "Undo finalization",
+      "recall_confirm": "Take the minutes back to draft? The witness votes so far are lost and the witnesses have to go through the approval again.",
+      "recall_hint": "If the approval is stuck (e.g. a witness lost the permission), take the minutes back to draft.",
+      "recalled_toast": "The minutes are back in draft.",
+      "finalize_minute_taker_ineligible": "The minute taker can no longer edit — pick another one before finalizing.",
+      "finalize_witness_ineligible": "{count, plural, one {# witness is} other {# witnesses are}} no longer eligible — replace them before finalizing.",
+      "recall_notify": "Notify the witnesses",
+      "recalled_toast_notified": "The minutes are back in draft and the witnesses were notified.",
+      "warnings_toast": "{count, plural, one {# witness in the new draft is} other {# witnesses in the new draft are}} no longer eligible — replace them before finalizing."
     },
     "import": {
       "title": "Import meeting minutes",
@@ -209,7 +378,18 @@
       "disabled": "The meeting minutes import feature is not enabled.",
       "confirm": "Create minutes",
       "back": "Back",
-      "confidence_notes": "AI notes"
+      "confidence_notes": "AI notes",
+      "no_participants": "The analysis found no participants.",
+      "witness_blocked": "{count, plural, one {# witness does} other {# witnesses do}} not qualify: a witness must be an assigned, eligible group member. Assign a member, or change the role to attendee.",
+      "witness_downgrade": "Change to attendee",
+      "needs_minute_taker": "Select a minute taker.",
+      "assign_hint": "Match the names to group members. A witness has to be an assigned, eligible member; a name without a member is imported as an outside participant.",
+      "assign_member": "Assign a group member",
+      "not_a_member": "Not a member (name only)",
+      "witness_needs_member": "A witness has to be assigned to a group member.",
+      "member_duplicate": "This member already appears in another row.",
+      "witness_candidates_unavailable": "The list of eligible witnesses could not be loaded (it needs the minutes edit permission), so every member is offered — the server decides whether they qualify.",
+      "fix_participants": "Fix the participants ({count})"
     },
     "editor": {
       "toolbar": {
@@ -259,6 +439,32 @@
         "rowOperations": "Row",
         "columnOperations": "Column",
         "cellOperations": "Cell"
+      },
+      "mentions": {
+        "empty": "No matches"
+      },
+      "commands": {
+        "empty": "No such command"
+      },
+      "flow": {
+        "deleted": "Deleted.",
+        "saved": "Saved.",
+        "confirm_delete_title": "Confirm deletion",
+        "confirm_delete": "Are you sure you want to delete: {label}?",
+        "yes_delete": "Yes, delete",
+        "search": "Search…",
+        "no_items": "No results",
+        "loading": "Loading…",
+        "load_more": "Load more",
+        "not_found": "This item no longer exists.",
+        "open_forbidden": "You don't have permission to open this item.",
+        "open_page": "Open full page"
+      },
+      "entities": {
+        "minutes": {
+          "create_title": "New minutes",
+          "modify_title": "Edit minutes"
+        }
       }
     },
     "errors": {
@@ -270,7 +476,78 @@
         "429": "Too many requests — please wait a moment and try again.",
         "502": "The AI service could not process this document.",
         "503": "The meeting minutes import feature is not enabled."
+      },
+      "code": {
+        "minute_taker_required": "A minute taker is required.",
+        "minute_taker_not_eligible": "The selected minute taker is not an active group member, or their role cannot edit minutes.",
+        "minute_taker_is_witness": "The minute taker cannot also be a witness. Remove them from the witnesses first.",
+        "witness_required": "At least one witness is required to finalize.",
+        "witness_requires_registered_user": "A witness must be a registered group member, not an external name.",
+        "witness_not_eligible": "The witness lacks the required permissions (read and approve), or is no longer an active member.",
+        "witness_is_minute_taker": "The minute taker cannot also be a witness.",
+        "recall_invalid_state": "Only minutes awaiting approval can have their finalization undone.",
+        "restore_not_archived": "Only a superseded (old) version can be restored.",
+        "restore_version_in_progress": "There is a version in progress; finish or delete it first.",
+        "archive_invalid_state": "The minutes cannot be archived in this state (awaiting approval, or already archived).",
+        "not_archived": "These minutes are not archived.",
+        "archived_read_only": "Archived minutes are read-only — take them out of the archive first.",
+        "delete_invalid_state": "Minutes awaiting approval cannot be deleted — undo the finalization first.",
+        "trash_restore_expired": "The restore deadline has passed; the minutes can no longer be restored.",
+        "tag_invalid": "Invalid tag: it cannot be empty and may be at most 50 characters long.",
+        "tag_limit_reached": "At most 10 tags can be added to a minutes record."
       }
+    },
+    "pending_all": {
+      "title": "Awaiting my approval",
+      "empty": "No minutes are waiting for your approval.",
+      "more": "…and {count} more."
+    },
+    "tags": {
+      "title": "Tags",
+      "empty": "No tags yet.",
+      "add_placeholder": "New tag…",
+      "add": "Add",
+      "remove": "Remove tag \"{tag}\"",
+      "hint": "Separate several tags with commas. At most {max} tags, each up to {length} characters.",
+      "limit_reached": "You have reached the limit of {max} tags.",
+      "too_many": "That many tags do not fit on the minutes (at most {max}).",
+      "invalid": "Invalid tag: it cannot be empty and may be at most {length} characters long."
+    },
+    "archive": {
+      "action": "Archive",
+      "unarchive": "Take out of archive",
+      "confirm": "Archive these minutes? They leave the default list and become read-only; you can take them out of the archive at any time.",
+      "unarchive_confirm": "Take these minutes out of the archive? They show up in the list again and can be edited.",
+      "archived_toast": "The minutes were archived.",
+      "unarchived_toast": "The minutes were taken out of the archive.",
+      "banner": "These minutes are archived ({date}) and therefore read-only. Take them out of the archive to edit them.",
+      "banner_read_only": "These minutes are archived ({date}), so they are read-only.",
+      "blocked_finalize": "Archived minutes cannot be finalized — take them out of the archive first.",
+      "blocked_revise": "A new version cannot be made from archived minutes — take them out of the archive first."
+    },
+    "delete": {
+      "action": "Delete",
+      "confirm_title": "Delete minutes",
+      "confirm": "The minutes move to the trash and can be restored until the deadline after deletion (30 days by default). After that they are deleted for good — approved minutes too.",
+      "confirm_version": "Only this version (version {version}) goes to the trash; the other versions of the minutes stay.",
+      "deleted_toast": "The minutes were moved to the trash."
+    },
+    "trash": {
+      "title": "Minutes trash",
+      "back": "Back to the minutes",
+      "intro": "Deleted minutes can be restored until the deadline shown. After that they are deleted for good and their content cannot be recovered.",
+      "empty": "The trash is empty.",
+      "deleted_at": "Deleted: {date}",
+      "deleted_by": "Deleted by: {name}",
+      "restorable_until": "Restorable until: {date}",
+      "expired": "The restore deadline has passed: {date}",
+      "restore": "Restore",
+      "restored_toast": "The minutes were restored.",
+      "restore_blocked": "The version chain already has a live version (draft, awaiting approval or approved), so this version cannot be restored right now.",
+      "load_more": "Load more"
+    },
+    "lifecycle": {
+      "pending_hint": "Minutes awaiting approval cannot be archived or deleted — undo the finalization first."
     }
   },
   "tasks": {

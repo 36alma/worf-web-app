@@ -78,14 +78,99 @@
     "active_groups": "Aktív csoportok",
     "open_tasks": "Nyitott feladatok",
     "upcoming_events": "Közelgő események",
-    "vs_last_month": "az előző hónaphoz képest",
-    "no_change": "Nincs változás",
-    "no_events_scheduled": "Nincsenek ütemezett események",
+    "kpi": {
+      "groups_hint": "Csoportok megnyitása",
+      "overdue": "{count} lejárt",
+      "no_overdue": "Nincs lejárt",
+      "next_today": "Következő: ma {time}",
+      "next_tomorrow": "Következő: holnap {time}",
+      "next_other": "Következő: {day}, {time}",
+      "no_upcoming": "Nincs közelgő",
+      "unavailable": "Nem sikerült betölteni"
+    },
+    "my_tasks": {
+      "title": "Hozzám rendelt feladatok",
+      "filter_label": "Feladatok szűrése",
+      "filter_open": "Nyitott",
+      "filter_overdue": "Lejárt",
+      "empty_open": "Nincs hozzád rendelt nyitott feladat",
+      "empty_overdue": "Nincs lejárt feladatod",
+      "more": "és még {count} feladat",
+      "error": "A feladatok nem tölthetők be",
+      "rate_limited": "Túl sok kérés, próbáld újra később",
+      "retry": "Újrapróbálás",
+      "due_on": "Határidő: {date}",
+      "overdue_on": "Lejárt: {date}",
+      "change_status": "Állapot módosítása"
+    },
+    "upcoming": {
+      "title": "Közelgő események",
+      "window": "következő {days} nap",
+      "empty": "Nincs esemény a következő {days} napban",
+      "more": "és még {count} esemény",
+      "error": "Az események nem tölthetők be",
+      "rate_limited": "Túl sok kérés, próbáld újra később",
+      "retry": "Újrapróbálás",
+      "today": "Ma",
+      "tomorrow": "Holnap",
+      "all_day": "Egész napos",
+      "ongoing": "Zajlik",
+      "recurring": "Ismétlődő"
+    },
+    "quick": {
+      "pick_group": "Melyik csoportban?",
+      "pick_group_hint": "Válaszd ki a csoportot, ahol létre szeretnéd hozni.",
+      "no_groups": "Előbb csatlakozz egy csoporthoz",
+      "no_permission": "Ebben a csoportban nincs jogosultságod a létrehozáshoz",
+      "open_error": "Nem sikerült megnyitni az űrlapot",
+      "preparing": "Betöltés..."
+    },
+    "activity": {
+      "filter_label": "Tevékenységek szűrése",
+      "filter_all": "Mind",
+      "filter_task": "Feladatok",
+      "filter_minutes": "Jegyzőkönyvek",
+      "group_filter_label": "Szűrés csoport szerint",
+      "all_groups": "Minden csoport",
+      "someone": "Valaki",
+      "load_more": "Több betöltése",
+      "loading_more": "Betöltés...",
+      "load_more_error": "Nem sikerült további elemeket betölteni",
+      "error": "A tevékenységek nem tölthetők be",
+      "rate_limited": "Túl sok kérés, próbáld újra később",
+      "retry": "Újrapróbálás",
+      "events": {
+        "unknown": "{actor} módosította: {title}",
+        "task": {
+          "created": "{actor} létrehozta a feladatot: {title}",
+          "status_changed": "{actor} módosította az állapotot ({from} → {to}): {title}",
+          "status_changed_plain": "{actor} módosította az állapotot: {title}",
+          "assignee_changed": "{actor} módosította a felelőst: {title}",
+          "reporter_changed": "{actor} módosította a bejelentőt: {title}",
+          "summary_changed": "{actor} átnevezte a feladatot: {title}",
+          "description_changed": "{actor} módosította a leírást: {title}",
+          "type_changed": "{actor} módosította a típust: {title}",
+          "priority_changed": "{actor} módosította a prioritást ({from} → {to}): {title}",
+          "priority_changed_plain": "{actor} módosította a prioritást: {title}",
+          "story_points_changed": "{actor} módosította a story pontokat: {title}",
+          "due_at_changed": "{actor} módosította a határidőt: {title}",
+          "started_at_changed": "{actor} módosította a kezdési időt: {title}",
+          "completed_at_changed": "{actor} módosította a befejezési időt: {title}",
+          "archive_changed": "{actor} módosította az archiválást: {title}",
+          "sprint_changed": "{actor} módosította a sprintet: {title}"
+        },
+        "minutes": {
+          "finalized": "{actor} véglegesítette a jegyzőkönyvet: {title}",
+          "witness_approved": "{actor} hitelesítette a jegyzőkönyvet: {title}",
+          "witness_rejected": "{actor} elutasította a jegyzőkönyv hitelesítését: {title}",
+          "approved": "A jegyzőkönyv jóváhagyva: {title}"
+        }
+      }
+    },
     "welcome_description": "A vezérlőpult készen áll. Kezdj csoportok létrehozásával, feladatok kiosztásával vagy események ütemezésével, hogy a widgetek életre keljenek.",
     "create_first_group": "Első csoport létrehozása",
     "read_documentation": "Dokumentáció megtekintése",
     "recent_activity": "Legutóbbi tevékenységek",
-    "view_all": "Összes megtekintése",
     "no_recent_activity": "Nincsenek legutóbbi tevékenységek",
     "activity_hint": "A csapatod tevékenységei itt fognak megjelenni",
     "quick_actions": "Gyors műveletek",
@@ -123,13 +208,26 @@
       "filter_status_all": "Minden állapot",
       "filter_date_from": "Ettől",
       "filter_date_to": "Eddig",
-      "version_label": "{version}. verzió"
+      "version_label": "{version}. verzió",
+      "filter_status_label": "Állapot",
+      "awaiting_you": "Rád vár a hitelesítés",
+      "filter_awaiting_me": "Rám vár ({count})",
+      "awaiting_empty": "Nincs rád váró hitelesítés.",
+      "filter_archived_label": "Megjelenítés",
+      "filter_archived_active": "Aktív",
+      "filter_archived_only": "Archivált",
+      "filter_archived_all": "Mind",
+      "filter_tag_label": "Címke",
+      "filter_tag_all": "Minden címke",
+      "archived_badge": "Archivált",
+      "trash": "Kuka",
+      "empty_filtered": "Nincs a szűrésnek megfelelő jegyzőkönyv."
     },
     "status_enum": {
       "DRAFT": "Piszkozat",
       "PENDING_APPROVAL": "Hitelesítésre vár",
       "APPROVED": "Jóváhagyva",
-      "ARCHIVED": "Archivált"
+      "ARCHIVED": "Leváltott"
     },
     "role_enum": {
       "ATTENDEE": "Résztvevő",
@@ -146,24 +244,25 @@
       "save": "Mentés",
       "cancel": "Mégse",
       "delete": "Törlés",
-      "delete_confirm": "Törlöd ezt a piszkozat jegyzőkönyvet?"
+      "delete_confirm": "Törlöd ezt a piszkozat jegyzőkönyvet?",
+      "minute_taker_placeholder": "Válassz jegyzőkönyvvezetőt",
+      "minute_taker_hint": "Kötelező. Csak olyan tag adható meg, akinek a szerepköre jogosult a jegyzőkönyv szerkesztésére.",
+      "minute_taker_missing": "Nincs megadva",
+      "minute_taker_no_candidates": "Nincs választható jegyzőkönyvvezető — a csoport szerepköreinek jegyzőkönyv-szerkesztési jogot kell adni.",
+      "minute_taker_not_eligible_selected": "A kiválasztott tag már nem lehet jegyzőkönyvvezető (nem aktív tag, vagy nincs jegyzőkönyv-szerkesztési joga) — válassz másikat.",
+      "minute_taker_ineligible": "A jegyzőkönyvvezető már nem szerkeszthet: nem aktív tag, vagy elvesztette a jegyzőkönyv-szerkesztési jogát.",
+      "minute_taker_ineligible_editable": "A jegyzőkönyvvezető már nem szerkeszthet — a fejlécben válassz másikat, különben a jegyzőkönyv nem zárható le.",
+      "minute_taker_legacy": "Ehhez a régi jegyzőkönyvhöz nincs jegyzőkönyvvezető megadva. Add meg a fejlécben, különben nem zárható le."
     },
     "agenda": {
       "title": "Napirendi pontok",
       "add": "Napirendi pont hozzáadása",
       "item_title": "Cím",
-      "discussion": "Elhangzottak",
-      "decision": "Döntés",
+      "content_placeholder": "Írd le, mi hangzott el, mi a döntés — gépelj @-ot a résztvevők megemlítéséhez, vagy /-t egy parancshoz.",
+      "save_content": "Mentés",
       "presenter": "Előterjesztő",
       "delete_confirm": "Törlöd ezt a napirendi pontot?",
-      "action_items": "Feladatok",
-      "add_action_item": "Feladat hozzáadása",
-      "description": "Leírás",
-      "due_date": "Határidő",
-      "assignee": "Felelős",
-      "promote_to_task": "Task-ká alakítás",
-      "promoted": "Összekapcsolva a(z) {issueKey} taskkal",
-      "delete_action_confirm": "Törlöd ezt a feladatot?"
+      "remove": "Napirendi pont törlése"
     },
     "participants": {
       "title": "Résztvevők",
@@ -172,16 +271,71 @@
       "member": "Csoporttag",
       "free_text_name": "Név (nem tag)",
       "remove_confirm": "Eltávolítod ezt a résztvevőt?",
-      "prepopulate_from_event": "Résztvevők előtöltése az eseményből"
+      "import_from_event": "Résztvevők importálása az eseményből",
+      "import_confirm": "Kiválasztottak hozzáadása",
+      "import_success": "A kiválasztott résztvevők hozzáadva.",
+      "import_empty": "Nincs jelölt résztvevő ehhez az eseményhez.",
+      "already_added": "Már résztvevő",
+      "unknown_name": "Ismeretlen tag",
+      "witness_external_warning": "Nem csoporttag hitelesítő nem tud szavazni, így a jegyzőkönyv nem válhat jóváhagyottá, amíg el nem távolítod.",
+      "remove": "Eltávolítás",
+      "witness_picker_hint": "Hitelesítőnek csak olyan regisztrált csoporttag választható, akinek a szerepköre tartalmazza a jegyzőkönyv megtekintés és jóváhagyás jogot.",
+      "witness_search_placeholder": "Keresés név szerint…",
+      "witness_no_candidates": "Nincs felvehető hitelesítő — a csoport szerepköreinek jegyzőkönyv-megtekintés és -jóváhagyás jogot kell adni.",
+      "witness_no_match": "Nincs találat erre a keresésre.",
+      "witness_candidates_failed": "A hitelesítő-jelöltek nem tölthetők be. Frissítsd az oldalt, vagy ellenőrizd a jogosultságodat.",
+      "witness_already": "Már hitelesítő",
+      "witness_promote": "Hitelesítővé teszem",
+      "witness_truncated": "Csak az első 50 jelölt látszik — szűkíts a keresővel.",
+      "witness_ineligible": "Ez a hitelesítő már nem alkalmas: nem aktív tag, vagy hiányzik a megtekintés és jóváhagyás joga."
     },
     "witness": {
       "title": "Hitelesítők",
       "progress": "{total}-ból {approved} hitelesítő jóváhagyta",
       "approve": "Jóváhagyás",
       "reject": "Elutasítás",
-      "reason_prompt": "Elutasítás indoklása",
       "rejection_reason": "Elutasítás indoka: {reason}",
-      "no_access": "Nem vagy hitelesítőként felvéve ezen a jegyzőkönyvön."
+      "no_access": "Nem vagy hitelesítőként felvéve ezen a jegyzőkönyvön.",
+      "awaiting_you": "Rád vár a hitelesítés",
+      "awaiting_you_hint": "Olvasd át a jegyzőkönyvet, majd hagyd jóvá, vagy utasítsd el indoklással.",
+      "already_approved": "Te már jóváhagytad ({date}). A szavazatodat addig módosíthatod, amíg a jegyzőkönyv hitelesítésre vár.",
+      "approve_title": "Jegyzőkönyv jóváhagyása",
+      "approve_body": "Jóváhagyod a(z) „{subject}” jegyzőkönyvet ({version}. verzió)? Ha te vagy az utolsó hitelesítő, a jegyzőkönyv jóváhagyottá válik.",
+      "reject_title": "Jegyzőkönyv elutasítása",
+      "reject_body": "Az elutasítás után a jegyzőkönyv visszakerül piszkozatba, és minden hitelesítőnek újra szavaznia kell.",
+      "reject_reason_label": "Mi nem volt rendben?",
+      "reject_reason_placeholder": "Pl. a 3. napirendi pont hiányos…",
+      "confirm_approve": "Jóváhagyom",
+      "confirm_reject": "Elutasítom",
+      "cancel": "Mégse",
+      "approved_toast": "A jóváhagyásod rögzítve.",
+      "finalized_toast": "A jegyzőkönyv jóváhagyva.",
+      "rejected_toast": "Elutasítva — a jegyzőkönyv visszakerült piszkozatba.",
+      "vote_forbidden": "Nem szavazhatsz: nem vagy hitelesítőként felvéve erre a jegyzőkönyvre, vagy a szerepköröd nem tartalmazza a jóváhagyás jogot.",
+      "vote_invalid_state": "A jegyzőkönyv már nem vár hitelesítésre, az oldal frissül.",
+      "status": {
+        "PENDING": "Szavazatra vár",
+        "APPROVED": "Jóváhagyta",
+        "REJECTED": "Elutasította"
+      },
+      "external": "nem csoporttag",
+      "no_permission_hint": "Hitelesítőként fel vagy véve, de a szerepköröd nem tartalmazza a jegyzőkönyv-jóváhagyás jogot — kérd a csoportvezetőt, hogy adja hozzá.",
+      "external_warning": "Van olyan hitelesítő, aki nem csoporttag, ezért nem tud szavazni. A jegyzőkönyv így nem válhat jóváhagyottá.",
+      "ineligible": "nem alkalmas",
+      "ineligible_banner": "{count} hitelesítő már nem alkalmas — cseréld le a lezárás előtt.",
+      "stuck_banner": "{count} hitelesítő már nem alkalmas, és nem tud szavazni — vond vissza a lezárást, majd cseréld le őket.",
+      "stuck_hint": "{count} hitelesítő már nem alkalmas, ezért nem tud szavazni — vond vissza a lezárást, és cseréld le őket."
+    },
+    "versions": {
+      "title": "Verziók",
+      "current": "megtekintett",
+      "not_latest": "Ez nem a legújabb verzió — a legújabb: {version}. verzió.",
+      "restore": "Visszaállítás új verzióként",
+      "restore_confirm": "Létrehozol egy új piszkozat verziót ennek a leváltott verziónak a tartalmából? A leváltott verzió változatlan marad.",
+      "restore_confirm_approved": "A jelenleg jóváhagyott {version}. verzió leváltottá válik, és az új piszkozat jóváhagyásáig nem lesz érvényes jóváhagyott verzió. Folytatod?",
+      "restore_blocked": "Előbb fejezd be vagy töröld a folyamatban lévő {version}. verziót.",
+      "restored_toast": "Új piszkozat verzió létrehozva.",
+      "archived_hint": "Archivált verzió — előbb vedd ki az archívumból, utána állítható vissza."
     },
     "attachments": {
       "title": "Mellékletek",
@@ -190,14 +344,29 @@
       "remove_confirm": "Eltávolítod ezt a mellékletet?",
       "export_pdf": "PDF exportálása",
       "exported": "A PDF exportálva és csatolva lett.",
-      "download": "Letöltés"
+      "download": "Letöltés",
+      "export_cached": "Ezzel a tartalommal a PDF már ki van exportálva — a mellékletek között találod.",
+      "exported_label": "Exportált PDF"
     },
     "state": {
       "finalize": "Lezárás",
       "finalize_confirm": "Lezárod ezt a piszkozatot és elküldöd hitelesítésre?",
       "finalize_needs_witness": "Adj hozzá legalább egy hitelesítőt a lezárás előtt.",
       "revise": "Új verzió létrehozása",
-      "revise_confirm": "Létrehozol egy új piszkozat verziót ebből a jóváhagyott jegyzőkönyvből?"
+      "revise_confirm": "Létrehozol egy új piszkozat verziót ebből a jóváhagyott jegyzőkönyvből?",
+      "finalized_toast": "A jegyzőkönyv lezárva, a hitelesítők szavazhatnak.",
+      "finalize_needs_minute_taker": "Adj meg jegyzőkönyvvezetőt a lezárás előtt.",
+      "finalize_failed": "A lezárás nem sikerült",
+      "finalize_ineligible_witnesses": "Ezek a hitelesítők nem felelnek meg: {names}. Cseréld le őket a Résztvevők panelen.",
+      "recall": "Lezárás visszavonása",
+      "recall_confirm": "Visszaveszed a jegyzőkönyvet piszkozatba? A hitelesítők eddigi szavazatai elvesznek, és újra végig kell menniük a jóváhagyáson.",
+      "recall_hint": "Ha elakadt a hitelesítés (pl. egy hitelesítő elvesztette a jogosultságát), vedd vissza piszkozatba.",
+      "recalled_toast": "A jegyzőkönyv visszakerült piszkozatba.",
+      "finalize_minute_taker_ineligible": "A jegyzőkönyvvezető már nem szerkeszthet — válassz másikat a lezárás előtt.",
+      "finalize_witness_ineligible": "{count} hitelesítő már nem alkalmas — cseréld le a lezárás előtt.",
+      "recall_notify": "Hitelesítők értesítése",
+      "recalled_toast_notified": "A jegyzőkönyv visszakerült piszkozatba, a hitelesítők értesítést kaptak.",
+      "warnings_toast": "Az új piszkozatban {count} hitelesítő már nem alkalmas — cseréld le őket a lezárás előtt."
     },
     "import": {
       "title": "Jegyzőkönyv importálása",
@@ -209,7 +378,18 @@
       "disabled": "A jegyzőkönyv-import funkció nincs engedélyezve.",
       "confirm": "Jegyzőkönyv létrehozása",
       "back": "Vissza",
-      "confidence_notes": "AI megjegyzések"
+      "confidence_notes": "AI megjegyzések",
+      "no_participants": "Az elemzés nem talált résztvevőt.",
+      "witness_blocked": "{count} hitelesítő nem felel meg: hitelesítő csak hozzárendelt, alkalmas csoporttag lehet. Rendelj hozzá tagot, vagy állítsd át a szerepét résztvevőre.",
+      "witness_downgrade": "Átállítás résztvevőre",
+      "needs_minute_taker": "Válassz jegyzőkönyvvezetőt.",
+      "assign_hint": "Rendeld a neveket csoporttagokhoz. Hitelesítő csak hozzárendelt, alkalmas csoporttag lehet; a hozzá nem rendelt név külsős résztvevőként kerül be.",
+      "assign_member": "Csoporttag hozzárendelése",
+      "not_a_member": "Nem csoporttag (csak név)",
+      "witness_needs_member": "Hitelesítőhöz csoporttagot kell rendelni.",
+      "member_duplicate": "Ez a tag már szerepel egy másik sorban.",
+      "witness_candidates_unavailable": "Az alkalmas hitelesítők listája nem tölthető be (ehhez jegyzőkönyv-szerkesztési jog kell), ezért minden tag fel van kínálva — a szerver dönti el, megfelel-e.",
+      "fix_participants": "Javítsd a résztvevőket ({count})"
     },
     "editor": {
       "toolbar": {
@@ -259,6 +439,32 @@
         "rowOperations": "Sor",
         "columnOperations": "Oszlop",
         "cellOperations": "Cella"
+      },
+      "mentions": {
+        "empty": "Nincs találat"
+      },
+      "commands": {
+        "empty": "Nincs ilyen parancs"
+      },
+      "flow": {
+        "deleted": "Törölve.",
+        "saved": "Mentve.",
+        "confirm_delete_title": "Törlés megerősítése",
+        "confirm_delete": "Biztosan törlöd: {label}?",
+        "yes_delete": "Igen, törlöm",
+        "search": "Keresés…",
+        "no_items": "Nincs találat",
+        "loading": "Betöltés…",
+        "load_more": "Továbbiak betöltése",
+        "not_found": "Az elem már nem létezik.",
+        "open_forbidden": "Nincs jogosultságod az elem megnyitásához.",
+        "open_page": "Megnyitás teljes oldalon"
+      },
+      "entities": {
+        "minutes": {
+          "create_title": "Új jegyzőkönyv",
+          "modify_title": "Jegyzőkönyv módosítása"
+        }
       }
     },
     "errors": {
@@ -270,7 +476,78 @@
         "429": "Túl sok kérés — kérjük, várj egy kicsit, majd próbáld újra.",
         "502": "Az AI szolgáltatás nem tudta feldolgozni ezt a dokumentumot.",
         "503": "A jegyzőkönyv-import funkció nincs engedélyezve."
+      },
+      "code": {
+        "minute_taker_required": "Jegyzőkönyvvezető megadása kötelező.",
+        "minute_taker_not_eligible": "A kiválasztott jegyzőkönyvvezető nem aktív csoporttag, vagy nincs jegyzőkönyv-szerkesztési joga.",
+        "minute_taker_is_witness": "A jegyzőkönyvvezető nem lehet egyben hitelesítő. Előbb távolítsd el a hitelesítők közül.",
+        "witness_required": "Legalább egy hitelesítő szükséges a lezáráshoz.",
+        "witness_requires_registered_user": "Hitelesítő csak regisztrált csoporttag lehet, külsős nem.",
+        "witness_not_eligible": "A hitelesítőnek nincs meg a szükséges joga (megtekintés és jóváhagyás), vagy már nem aktív tag.",
+        "witness_is_minute_taker": "A jegyzőkönyvvezető nem lehet egyben hitelesítő.",
+        "recall_invalid_state": "Csak hitelesítésre váró jegyzőkönyv lezárása vonható vissza.",
+        "restore_not_archived": "Csak leváltott (régi) verzió állítható vissza.",
+        "restore_version_in_progress": "Van folyamatban lévő verzió; előbb fejezd be vagy töröld.",
+        "archive_invalid_state": "A jegyzőkönyv ebben az állapotban nem archiválható (hitelesítésre vár, vagy már archivált).",
+        "not_archived": "Ez a jegyzőkönyv nincs archiválva.",
+        "archived_read_only": "Az archivált jegyzőkönyv írásvédett — előbb vedd ki az archívumból.",
+        "delete_invalid_state": "Hitelesítésre váró jegyzőkönyv nem törölhető — előbb vond vissza a lezárást.",
+        "trash_restore_expired": "A visszaállítási határidő lejárt, a jegyzőkönyv már nem állítható vissza.",
+        "tag_invalid": "Érvénytelen címke: nem lehet üres, és legfeljebb 50 karakter hosszú lehet.",
+        "tag_limit_reached": "Egy jegyzőkönyvhöz legfeljebb 10 címke adható."
       }
+    },
+    "pending_all": {
+      "title": "Rám váró hitelesítések",
+      "empty": "Nincs rád váró jegyzőkönyv-hitelesítés.",
+      "more": "…és még {count} jegyzőkönyv."
+    },
+    "tags": {
+      "title": "Címkék",
+      "empty": "Még nincs címke.",
+      "add_placeholder": "Új címke…",
+      "add": "Hozzáadás",
+      "remove": "„{tag}” címke eltávolítása",
+      "hint": "Vesszővel több címkét is megadhatsz. Legfeljebb {max} címke adható, egyenként legfeljebb {length} karakter.",
+      "limit_reached": "Elérted a {max} címkés korlátot.",
+      "too_many": "Ennyi címke már nem fér a jegyzőkönyvre (legfeljebb {max}).",
+      "invalid": "Érvénytelen címke: nem lehet üres, és legfeljebb {length} karakter hosszú lehet."
+    },
+    "archive": {
+      "action": "Archiválás",
+      "unarchive": "Kivétel az archívumból",
+      "confirm": "Archiválod ezt a jegyzőkönyvet? Kikerül az alap listából és írásvédetté válik; bármikor kiveheted az archívumból.",
+      "unarchive_confirm": "Kiveszed az archívumból? Újra megjelenik a listában, és szerkeszthető lesz.",
+      "archived_toast": "A jegyzőkönyv archiválva.",
+      "unarchived_toast": "A jegyzőkönyv kikerült az archívumból.",
+      "banner": "Ez a jegyzőkönyv archivált ({date}), ezért írásvédett. Ha szerkeszteni szeretnéd, vedd ki az archívumból.",
+      "banner_read_only": "Ez a jegyzőkönyv archivált ({date}), ezért csak olvasható.",
+      "blocked_finalize": "Archivált jegyzőkönyv nem zárható le — előbb vedd ki az archívumból.",
+      "blocked_revise": "Archivált jegyzőkönyvből nem készíthető új verzió — előbb vedd ki az archívumból."
+    },
+    "delete": {
+      "action": "Törlés",
+      "confirm_title": "Jegyzőkönyv törlése",
+      "confirm": "A jegyzőkönyv a kukába kerül, és a törlésétől számított határidőig (alapértelmezés szerint 30 napig) visszaállítható. Utána véglegesen törlődik — a jóváhagyott jegyzőkönyv is.",
+      "confirm_version": "Csak ez a verzió ({version}. verzió) kerül a kukába, a jegyzőkönyv többi verziója megmarad.",
+      "deleted_toast": "A jegyzőkönyv a kukába került."
+    },
+    "trash": {
+      "title": "Jegyzőkönyvek kukája",
+      "back": "Vissza a jegyzőkönyvekhez",
+      "intro": "A törölt jegyzőkönyveket a megadott határidőig visszaállíthatod. Utána véglegesen törlődnek, és a tartalmuk nem állítható helyre.",
+      "empty": "A kuka üres.",
+      "deleted_at": "Törölve: {date}",
+      "deleted_by": "Törölte: {name}",
+      "restorable_until": "Visszaállítható eddig: {date}",
+      "expired": "A visszaállítási határidő lejárt: {date}",
+      "restore": "Visszaállítás",
+      "restored_toast": "A jegyzőkönyv visszaállítva.",
+      "restore_blocked": "A jegyzőkönyv láncában már van élő (piszkozat, hitelesítésre váró vagy jóváhagyott) verzió, ezért ez a verzió most nem állítható vissza.",
+      "load_more": "Továbbiak betöltése"
+    },
+    "lifecycle": {
+      "pending_hint": "Hitelesítésre váró jegyzőkönyv nem archiválható és nem törölhető — előbb vond vissza a lezárást."
     }
   },
   "tasks": {
@@ -777,39 +1054,39 @@
       "message": "A mappa és a benne lévő összes almappa/fájl a Kukába kerül."
     },
     "moveDialog": {
-      "root": "Gy\u00f6k\u00e9r",
+      "root": "Gyökér",
       "currentLabel": "Jelenlegi mappa: {name}",
       "up": "Fel",
-      "noSubfolders": "Nincsenek almapp\u00e1k",
-      "confirm": "Mozgat\u00e1s ide"
+      "noSubfolders": "Nincsenek almappák",
+      "confirm": "Mozgatás ide"
     },
     "toasts": {
       "createSuccess": "Mappa létrehozva.",
       "deleteSuccess": "A mappa a lomtárba került.",
-      "restoreSuccess": "A mappa vissza\u00e1ll\u00edtva.",
-      "permanentDeleteSuccess": "A mappa v\u00e9glegesen t\u00f6r\u00f6lve.",
+      "restoreSuccess": "A mappa visszaállítva.",
+      "permanentDeleteSuccess": "A mappa véglegesen törölve.",
       "shareSuccess": "A mappa megosztva.",
-      "revokeSuccess": "A mappa megoszt\u00e1sa visszavonva."
+      "revokeSuccess": "A mappa megosztása visszavonva."
     },
     "share": {
-      "modalTitle": "Mappa megoszt\u00e1sa"
+      "modalTitle": "Mappa megosztása"
     },
     "detail": {
-      "title": "Mappa r\u00e9szletei",
+      "title": "Mappa részletei",
       "tabs": {
         "metadata": "Metaadatok",
-        "audit": "Napl\u00f3"
+        "audit": "Napló"
       },
       "fields": {
-        "name": "N\u00e9v",
-        "scope": "Hat\u00f3k\u00f6r",
-        "createdAt": "L\u00e9trehozva"
+        "name": "Név",
+        "scope": "Hatókör",
+        "createdAt": "Létrehozva"
       },
-      "delete": "T\u00f6rl\u00e9s"
+      "delete": "Törlés"
     },
-    "trashHelperText": "A t\u00f6r\u00f6lt mapp\u00e1k \u00e9s f\u00e1jlok vissza\u00e1ll\u00edthat\u00f3k, am\u00edg nem t\u00f6rl\u00f6d \u0151ket v\u00e9glegesen.",
+    "trashHelperText": "A törölt mappák és fájlok visszaállíthatók, amíg nem törlöd őket véglegesen.",
     "confirmPermanentDelete": {
-      "message": "Biztosan v\u00e9glegesen t\u00f6rl\u00f6d ezt a mapp\u00e1t \u00e9s a teljes tartalm\u00e1t? Ez a m\u0171velet nem vonhat\u00f3 vissza."
+      "message": "Biztosan véglegesen törlöd ezt a mappát és a teljes tartalmát? Ez a művelet nem vonható vissza."
     },
     "errors": {
       "api": {
@@ -1655,11 +1932,11 @@
     }
   },
   "sharedLink": {
-    "title": "Megosztott f\u00e1jl megnyit\u00e1sa",
-    "description": "Add meg a jelsz\u00f3t, ha ez a link v\u00e9dett.",
-    "passwordPlaceholder": "Jelsz\u00f3",
-    "invalidOrExpired": "A megosztott link \u00e9rv\u00e9nytelen, lej\u00e1rt, vagy hib\u00e1s a jelsz\u00f3.",
-    "open": "Megnyit\u00e1s"
+    "title": "Megosztott fájl megnyitása",
+    "description": "Add meg a jelszót, ha ez a link védett.",
+    "passwordPlaceholder": "Jelszó",
+    "invalidOrExpired": "A megosztott link érvénytelen, lejárt, vagy hibás a jelszó.",
+    "open": "Megnyitás"
   },
   "validation": {
     "email_invalid": "Kérjük, adjon meg egy érvényes e-mail címet.",

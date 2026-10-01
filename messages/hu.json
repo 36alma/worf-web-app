@@ -569,10 +569,11 @@
       "send": "Küldés",
       "edited": "(Módosítva)"
     },
+    "priority_lowest": "Legalacsonyabb",
     "priority_low": "Alacsony",
     "priority_medium": "Közepes",
     "priority_high": "Magas",
-    "priority_critical": "Kritikus",
+    "priority_highest": "Legmagasabb",
     "status_todo": "Elvégzendő",
     "status_in_progress": "Folyamatban",
     "status_done": "Kész",
@@ -618,11 +619,11 @@
       "BLOCKED": "Blokkolt"
     },
     "priority_enum": {
+      "LOWEST": "Legalacsonyabb",
       "LOW": "Alacsony",
       "MEDIUM": "Közepes",
       "HIGH": "Magas",
-      "CRITICAL": "Kritikus",
-      "URGENT": "Kritikus"
+      "HIGHEST": "Legmagasabb"
     },
     "views": {
       "kanban": "Tábla",

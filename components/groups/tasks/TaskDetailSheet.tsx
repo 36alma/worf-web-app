@@ -218,7 +218,7 @@ export default function TaskDetailSheet({open, onClose, task, groupId, permissio
 
   // ── Priority color helper ──
   const priorityColorCls = (p: string | undefined | null) =>
-    p === 'HIGH' || p === 'URGENT' ? 'text-red-500' :
+    p === 'HIGH' || p === 'HIGHEST' ? 'text-red-500' :
     p === 'MEDIUM' ? 'text-yellow-500' : 'text-blue-500';
 
   const metaFieldCls = "flex items-center gap-2 font-medium bg-[var(--bg-elevated)] px-3 py-2 rounded-lg border border-[var(--border-subtle)] transition-all text-sm";

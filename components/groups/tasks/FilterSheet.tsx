@@ -22,7 +22,7 @@ export interface FilterSheetProps {
 }
 
 const STATUS_OPTIONS = ['TODO', 'IN_PROGRESS', 'IN_REVIEW', 'DONE', 'BLOCKED'] as const;
-const PRIORITY_OPTIONS = ['URGENT', 'HIGH', 'MEDIUM', 'LOW'] as const;
+const PRIORITY_OPTIONS = ['HIGHEST', 'HIGH', 'MEDIUM', 'LOW', 'LOWEST'] as const;
 
 const checkboxCls = 'size-4 shrink-0 rounded border border-border accent-[var(--accent)]';
 const rowCls =

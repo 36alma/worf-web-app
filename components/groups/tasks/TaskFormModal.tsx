@@ -42,7 +42,7 @@ type TaskFormValues = {
   description?: string;
   task_type: string;
   status: string;
-  priority?: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
+  priority?: 'LOWEST' | 'LOW' | 'MEDIUM' | 'HIGH' | 'HIGHEST';
   assignee_id?: string | null;
   parent_task_id?: string;
   story_points?: string;
@@ -70,7 +70,7 @@ export default function TaskFormModal({
     description: z.string().optional(),
     task_type: z.string().min(1, t('validation.taskTypeRequired')),
     status: z.string().min(1, t('validation.statusRequired')),
-    priority: z.enum(['LOW', 'MEDIUM', 'HIGH', 'URGENT']).optional(),
+    priority: z.enum(['LOWEST', 'LOW', 'MEDIUM', 'HIGH', 'HIGHEST']).optional(),
     assignee_id: z.string().nullable().optional(),
     parent_task_id: z.string().optional(),
     story_points: z.string().optional(),
@@ -113,7 +113,7 @@ export default function TaskFormModal({
         description: initialData.description || '',
         task_type: initialData.task_type || 'TASK',
         status: initialData.status || 'TODO',
-        priority: (initialData.priority as 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT') || 'MEDIUM',
+        priority: (initialData.priority as 'LOWEST' | 'LOW' | 'MEDIUM' | 'HIGH' | 'HIGHEST') || 'MEDIUM',
         assignee_id: initialData.assigneer_id?.assigneer_email
           ? groupUsers.find((user) => user.email === initialData.assigneer_id?.assigneer_email)?.user_id || null
           : null,

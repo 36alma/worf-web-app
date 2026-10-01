@@ -11,7 +11,7 @@ export function translateTaskType(t: TaskTranslations, taskType: string) {
 }
 
 export function translateTaskPriority(t: TaskTranslations, priority: string) {
-  const normalized = priority.toUpperCase() === 'URGENT' ? 'CRITICAL' : priority.toUpperCase();
+  const normalized = ['URGENT', 'CRITICAL'].includes(priority.toUpperCase()) ? 'HIGHEST' : priority.toUpperCase();
   return t.has(`priority_enum.${normalized}` as any) ? t(`priority_enum.${normalized}` as any) : priority;
 }
 

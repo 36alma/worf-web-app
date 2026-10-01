@@ -215,7 +215,7 @@ export default function TaskDetailModal({
 
   // ── Priority color helper ──
   const priorityColorCls = (p: string | undefined | null) =>
-    p === 'HIGH' || p === 'URGENT' ? 'text-danger' :
+    p === 'HIGH' || p === 'HIGHEST' ? 'text-danger' :
     p === 'MEDIUM' ? 'text-warning' : 'text-info';
 
   // ── Style helpers ──

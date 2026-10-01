@@ -10,11 +10,11 @@ type BadgeVariant = 'neutral' | 'success' | 'warning' | 'danger' | 'info' | 'acc
 
 // Priority → muted tint badge (spec §8/1: solid MEDIUM/LOW badges → tint).
 const PRIORITY_VARIANT: Record<string, BadgeVariant> = {
+  LOWEST: 'success',
   LOW: 'success',
   MEDIUM: 'warning',
   HIGH: 'danger',
-  CRITICAL: 'danger',
-  URGENT: 'danger',
+  HIGHEST: 'danger',
 };
 
 export interface TaskCardProps {

@@ -12,11 +12,11 @@ import {translateTaskPriority, translateTaskStatus} from '@/lib/i18n/tasks';
 export type BadgeVariant = 'neutral' | 'success' | 'warning' | 'danger' | 'info' | 'accent';
 
 export const PRIORITY_VARIANT: Record<string, BadgeVariant> = {
+  LOWEST: 'success',
   LOW: 'success',
   MEDIUM: 'warning',
   HIGH: 'danger',
-  CRITICAL: 'danger',
-  URGENT: 'danger',
+  HIGHEST: 'danger',
 };
 
 export const STATUS_VARIANT: Record<string, BadgeVariant> = {

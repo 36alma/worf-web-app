@@ -17,23 +17,24 @@ export const STATUS_COLORS: Record<TaskStatus, string> = {
   BLOCKED: 'bg-red-50 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-300'
 };
 
-export const PRIORITIES = ['LOW', 'MEDIUM', 'HIGH', 'URGENT'] as const;
+export const PRIORITIES = ['LOWEST', 'LOW', 'MEDIUM', 'HIGH', 'HIGHEST'] as const;
 export type TaskPriority = (typeof PRIORITIES)[number];
 
 export const PRIORITY_LABELS: Record<string, string> = {
+  LOWEST: 'Lowest',
   LOW: 'Low',
   MEDIUM: 'Medium',
   HIGH: 'High',
-  URGENT: 'Critical',
-  NORMAL: 'Medium',
-  CRITICAL: 'Critical'
+  HIGHEST: 'Highest',
+  NORMAL: 'Medium'
 };
 
 export const PRIORITY_COLORS: Record<string, string> = {
   HIGH: 'bg-red-50 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-300',
-  URGENT: 'bg-red-50 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-300',
+  HIGHEST: 'bg-red-50 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-300',
   MEDIUM: 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/30 dark:text-amber-300',
   NORMAL: 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/30 dark:text-amber-300',
+  LOWEST: 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-300',
   LOW: 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-300'
 };
 

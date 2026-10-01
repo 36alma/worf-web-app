@@ -569,10 +569,11 @@
       "send": "Send",
       "edited": "(Edited)"
     },
+    "priority_lowest": "Lowest",
     "priority_low": "Low",
     "priority_medium": "Medium",
     "priority_high": "High",
-    "priority_critical": "Critical",
+    "priority_highest": "Highest",
     "status_todo": "To do",
     "status_in_progress": "In progress",
     "status_done": "Done",
@@ -618,11 +619,11 @@
       "BLOCKED": "Blocked"
     },
     "priority_enum": {
+      "LOWEST": "Lowest",
       "LOW": "Low",
       "MEDIUM": "Medium",
       "HIGH": "High",
-      "CRITICAL": "Critical",
-      "URGENT": "Critical"
+      "HIGHEST": "Highest"
     },
     "views": {
       "kanban": "Board",

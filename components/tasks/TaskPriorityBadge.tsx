@@ -2,10 +2,11 @@ import {useTranslations} from 'next-intl';
 import Badge from '../ui/Badge';
 
 const map: Record<string, {color: 'green' | 'yellow' | 'red'; key: string}> = {
+  LOWEST: {color: 'green', key: 'priority_lowest'},
   LOW: {color: 'green', key: 'priority_low'},
   MEDIUM: {color: 'yellow', key: 'priority_medium'},
   HIGH: {color: 'red', key: 'priority_high'},
-  CRITICAL: {color: 'red', key: 'priority_critical'}
+  HIGHEST: {color: 'red', key: 'priority_highest'}
 };
 
 export default function TaskPriorityBadge({priority}: {priority: string}) {

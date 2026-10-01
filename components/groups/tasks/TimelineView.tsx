@@ -36,10 +36,11 @@ const STATUS_BAR_COLORS: Record<string, string> = {
 };
 
 const PRIORITY_BAR_COLORS: Record<string, string> = {
-  URGENT: 'bg-red-500/80',
+  HIGHEST: 'bg-red-500/80',
   HIGH: 'bg-amber-500/80',
   MEDIUM: 'bg-amber-500/80',
   NORMAL: 'bg-amber-500/80',
+  LOWEST: 'bg-emerald-500/60',
   LOW: 'bg-emerald-500/80'
 };
 

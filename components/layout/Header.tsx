@@ -1,6 +1,6 @@
 'use client';
 
-import {ChevronRight, LogOut, Menu, Sparkles, UserCircle} from 'lucide-react';
+import {ChevronRight, LogOut, Menu, Plug, Sparkles, UserCircle} from 'lucide-react';
 import Avatar from '@/components/ui/Avatar';
 import {
   DropdownMenu,
@@ -72,6 +72,7 @@ export default function Header({className}: HeaderProps) {
     if (current === 'new' && parent === 'posts') currentLabel = postsT('createPost');
     if (current === 'edit') currentLabel = postsT('edit.pageTitle');
     if (parent === 'posts' && current !== 'new' && current !== 'edit') currentLabel = postsT('detail.title');
+    if (current === 'mcp-servers' && parent === 'profile') currentLabel = navT('mcp_servers');
 
     return {parentLabel, currentLabel, parentHref};
   }, [locale, pathname, navT, postsT, selectedGroupName]);
@@ -124,6 +125,12 @@ export default function Header({className}: HeaderProps) {
             <Link href={`/${locale}/profile`}>
               <UserCircle size={16} strokeWidth={1.75} />
               {navT('profile')}
+            </Link>
+          </DropdownMenuItem>
+          <DropdownMenuItem asChild>
+            <Link href={`/${locale}/profile/mcp-servers`}>
+              <Plug size={16} strokeWidth={1.75} />
+              {navT('mcp_servers')}
             </Link>
           </DropdownMenuItem>
           <DropdownMenuSeparator />

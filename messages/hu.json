@@ -21,7 +21,8 @@
     "roles": "Role-ok",
     "permissions": "Jogosultságok",
     "admin": "Admin",
-    "profile": "Profil"
+    "profile": "Profil",
+    "mcp_servers": "MCP szerverek"
   },
   "auth": {
     "login": "Bejelentkezés",
@@ -1955,5 +1956,17 @@
     "required": "Ez a mező kötelező.",
     "too_long": "A megadott érték túl hosszú.",
     "invalid_chars": "A megadott érték érvénytelen karaktert tartalmaz."
+  },
+  "mcpServers": {
+    "title": "MCP szerverek",
+    "subtitle": "Ezekkel az adatokkal kapcsolhatod össze a Worf fiókodat egy AI kliensel (Claude Desktop, Claude Code, ChatGPT stb.).",
+    "back_to_profile": "Vissza a profilhoz",
+    "how_to_title": "Hogyan kapcsolódj?",
+    "how_to_description": "Másold be az alábbi base URL-t a kliensed \"Add custom connector\" / \"Add MCP server\" beállításába. A hitelesítés (OAuth) automatikusan lezajlik, nincs szükség külön API-kulcsra.",
+    "copy": "Másolás",
+    "copied": "Base URL a vágólapon",
+    "copy_error": "Nem sikerült a vágólapra másolni",
+    "empty_state": "Jelenleg nincs elérhető MCP kapcsolódási pont.",
+    "load_error": "Nem sikerült lekérni az MCP kapcsolódási adatokat. Próbáld újra később."
   }
 }

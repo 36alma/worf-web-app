@@ -21,7 +21,8 @@
     "roles": "Roles",
     "permissions": "Permissions",
     "admin": "Admin",
-    "profile": "Profile"
+    "profile": "Profile",
+    "mcp_servers": "MCP servers"
   },
   "auth": {
     "login": "Login",
@@ -1955,5 +1956,17 @@
     "required": "This field is required.",
     "too_long": "This value is too long.",
     "invalid_chars": "This value contains invalid characters."
+  },
+  "mcpServers": {
+    "title": "MCP servers",
+    "subtitle": "Use these details to connect your Worf account to an AI client (Claude Desktop, Claude Code, ChatGPT, etc.).",
+    "back_to_profile": "Back to profile",
+    "how_to_title": "How to connect",
+    "how_to_description": "Paste the base URL below into your client's \"Add custom connector\" / \"Add MCP server\" settings. Authorization (OAuth) happens automatically — no separate API key needed.",
+    "copy": "Copy",
+    "copied": "Base URL copied to clipboard",
+    "copy_error": "Could not copy to clipboard",
+    "empty_state": "No MCP connection is currently available.",
+    "load_error": "Could not load the MCP connection details. Please try again later."
   }
 }

@@ -18,6 +18,7 @@ import {
   findImportParticipantProblems,
   type ImportParticipantProblem
 } from './importParticipants';
+import {buildImportAgendaPayload, proposalAgendaToEditable} from './importAgenda';
 import {fromLocalInput, toLocalInput} from './minutesDates';
 import {useWitnessCandidates} from './useWitnessCandidates';
 import {analyzeMinutesImport, confirmMinutesImport} from '@/lib/api/minutes';
@@ -71,7 +72,11 @@ export default function MinutesImportWizard({groupId}: MinutesImportWizardProps)
       setSourceFileId(fileId);
       const {data} = await analyzeMinutesImport({group_id: groupId, file_id: fileId});
       const analyzed = (data as {proposal: MinutesImportProposal}).proposal;
-      setProposal({...analyzed, meeting_date: toLocalInput(analyzed.meeting_date) || analyzed.meeting_date});
+      setProposal({
+        ...analyzed,
+        meeting_date: toLocalInput(analyzed.meeting_date) || analyzed.meeting_date,
+        agenda_items: proposalAgendaToEditable(analyzed.agenda_items ?? [])
+      });
       setStep('review');
     } catch (error: any) {
       if (error?.response?.status === 503) {
@@ -111,7 +116,7 @@ export default function MinutesImportWizard({groupId}: MinutesImportWizardProps)
         minute_taker_id: minuteTakerId,
         location: proposal.location,
         source_file_id: sourceFileId ?? undefined,
-        agenda_items: proposal.agenda_items,
+        agenda_items: buildImportAgendaPayload(proposal.agenda_items),
         participants: buildImportParticipantsPayload(proposal.participants)
       });
       const minutesId = (data as {minutes_id: string}).minutes_id;

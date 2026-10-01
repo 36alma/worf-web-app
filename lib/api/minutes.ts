@@ -121,7 +121,7 @@ export const listMinutesTrash = (data: {group_id: string; page_number?: number; 
 export const restoreDeletedMinutes = (data: {group_id: string; minutes_id: string}) =>
   apiClient.post('/v1/minutes/trash/restore', data);
 
-/** 1–10 tags, each ≤ 100 chars (the server trims / collapses whitespace and de-duplicates case-insensitively). */
+/** 1–10 tags, each ≤ 50 chars (the server trims / collapses whitespace and de-duplicates case-insensitively). */
 export const addMinutesTags = (data: {group_id: string; minutes_id: string; tags: string[]}) =>
   apiClient.post('/v1/minutes/tag/add', data);
 

@@ -78,6 +78,13 @@ export interface MinutesAttachment {
   file_id: string;
   label?: string | null;
   uploaded_by_user_id?: string | null;
+  /** SHA-256 of the rendered HTML — only on exported PDFs (the export idempotency key), `null` otherwise. */
+  content_hash?: string | null;
+  /** Copied from the linked Files record. */
+  original_name?: string | null;
+  mime_type?: string | null;
+  size_bytes?: number | null;
+  file_uploaded_at?: string | null;
 }
 
 export interface MeetingMinutes {
@@ -157,6 +164,9 @@ export interface MinutesListResponse {
 
 export interface MinutesImportAgendaItemProposal {
   title: string;
+  /** What `import/analyze` returns: plain text, NOT HTML. */
+  content?: string;
+  /** Review-step only: `content` turned into HTML so the rich text editor can edit it. */
   content_html?: string;
 }
 

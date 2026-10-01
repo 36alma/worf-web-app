@@ -119,9 +119,16 @@ export default function EventEntityModals({ctx, request, onDone}: EntityHostProp
       <EventViewModal
         open
         locale={locale}
+        groupId={ctx.groupId}
         copy={copy}
         event={event}
         canManageEvents={hasPermission('group.calendar.event.write')}
+        permissions={{
+          canRsvp: hasPermission('group.calendar.event.rsvp'),
+          canInvite: hasPermission('group.calendar.event.invite'),
+          canReadAttendance: hasPermission('group.calendar.event.attendance.read'),
+          canMarkAttendance: hasPermission('group.calendar.event.attendance.mark')
+        }}
         isDeleting={data.isMutating}
         onClose={() => onDone()}
         onEdit={() => setPhase('edit')}

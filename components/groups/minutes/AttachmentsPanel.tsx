@@ -127,7 +127,12 @@ export default function AttachmentsPanel({
       <ul className="space-y-1 text-sm text-[var(--text-primary)]">
         {attachments.map((a) => (
           <li key={a.id} className="flex items-center justify-between">
-            <span>{a.label ?? a.file_id}</span>
+            <span className="min-w-0 truncate">
+              {a.label ?? a.original_name ?? a.file_id}
+              {a.original_name && a.label && a.label !== a.original_name && (
+                <span className="ml-2 text-xs text-[var(--text-tertiary)]">{a.original_name}</span>
+              )}
+            </span>
             <div className="flex items-center gap-1">
               <Button variant="ghost" size="sm" onClick={() => handleDownload(a.file_id)}>
                 <Download className="h-4 w-4" />

@@ -434,9 +434,11 @@ export default function CalendarClient({groupId, locale}: CalendarClientProps) {
       <EventViewModal
         open={Boolean(eventView)}
         locale={normalizedLocale}
+        groupId={decodedGroupId}
         copy={copy}
         event={eventView}
         canManageEvents={permissions.canManageEvents}
+        permissions={permissions}
         isDeleting={calendarData.isMutating}
         onClose={() => setEventView(null)}
         onEdit={() => {

@@ -55,6 +55,19 @@ export interface CalendarFormValues {
   calendarDescription: string;
 }
 
+export type RsvpStatus = 'GOING' | 'NOT_GOING' | 'MAYBE';
+export type InvitationStatus = 'PENDING' | 'ACCEPTED' | 'DECLINED';
+
+export interface EventParticipant {
+  userId: string;
+  name: string;
+  isMe: boolean;
+  invitation: InvitationStatus | null;
+  rsvp: RsvpStatus | null;
+  /** null = unknown / not readable (no attendance.read right). */
+  attended: boolean | null;
+}
+
 export interface CalendarPermissionsState {
   isLoading: boolean;
   userPermissions: Record<string, boolean>;
@@ -62,6 +75,41 @@ export interface CalendarPermissionsState {
   canRead: boolean;
   canManageEvents: boolean;
   canManageCalendars: boolean;
+  canRsvp: boolean;
+  canInvite: boolean;
+  canReadAttendance: boolean;
+  canMarkAttendance: boolean;
+}
+
+export type EventResponsePermissions = Pick<
+  CalendarPermissionsState,
+  'canRsvp' | 'canInvite' | 'canReadAttendance' | 'canMarkAttendance'
+>;
+
+export interface EventResponsesCopy {
+  tabDetails: string;
+  tabPeople: string;
+  tabsLabel: string;
+  yourAnswer: string;
+  going: string;
+  notGoing: string;
+  maybe: string;
+  invitedBanner: string;
+  accept: string;
+  decline: string;
+  summaryEmpty: string;
+  search: string;
+  inviteMember: string;
+  selectMember: string;
+  noMemberMatch: string;
+  invite: string;
+  noPeople: string;
+  invitedBadge: string;
+  attended: string;
+  rsvpSaved: string;
+  inviteSent: string;
+  attendanceSaved: string;
+  alreadyInvited: string;
 }
 
 export interface CalendarCopy {
@@ -124,6 +172,7 @@ export interface CalendarCopy {
     eventDeleted: string;
     rateLimited: string;
   };
+  responses: EventResponsesCopy;
   kindLabels: Record<EventKind, string>;
   repeatFrequencyLabels: Record<RepeatFrequency, string>;
   emptyValue: string;

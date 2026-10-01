@@ -16,7 +16,11 @@ const initialState: CalendarPermissionsState = {
   groupPermissions: {},
   canRead: false,
   canManageEvents: false,
-  canManageCalendars: false
+  canManageCalendars: false,
+  canRsvp: false,
+  canInvite: false,
+  canReadAttendance: false,
+  canMarkAttendance: false
 };
 
 export function useCalendarPermissions({groupId, locale}: UseCalendarPermissionsOptions) {
@@ -60,7 +64,11 @@ export function useCalendarPermissions({groupId, locale}: UseCalendarPermissions
           groupPermissions,
           canRead: groupPermissions['group.calendar.read'] === true,
           canManageEvents: groupPermissions['group.calendar.event.write'] === true,
-          canManageCalendars: groupPermissions['group.calendar.write'] === true
+          canManageCalendars: groupPermissions['group.calendar.write'] === true,
+          canRsvp: groupPermissions['group.calendar.event.rsvp'] === true,
+          canInvite: groupPermissions['group.calendar.event.invite'] === true,
+          canReadAttendance: groupPermissions['group.calendar.event.attendance.read'] === true,
+          canMarkAttendance: groupPermissions['group.calendar.event.attendance.mark'] === true
         });
       } catch {
         if (!mounted) {

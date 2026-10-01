@@ -159,9 +159,16 @@ export default function UpcomingEventsCard() {
         <EventViewModal
           open={!groupContext.loading}
           locale={calendarLocale}
+          groupId={selected!.group_id}
           copy={copy}
           event={occurrenceItem}
           canManageEvents={groupContext.hasPermission('group.calendar.event.write')}
+          permissions={{
+            canRsvp: groupContext.hasPermission('group.calendar.event.rsvp'),
+            canInvite: groupContext.hasPermission('group.calendar.event.invite'),
+            canReadAttendance: groupContext.hasPermission('group.calendar.event.attendance.read'),
+            canMarkAttendance: groupContext.hasPermission('group.calendar.event.attendance.mark')
+          }}
           isDeleting={calendarData.isMutating}
           onClose={close}
           onEdit={() => setPhase('edit')}

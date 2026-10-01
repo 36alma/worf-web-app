@@ -9,9 +9,11 @@ export interface ModalProps {
   badge?: ReactNode;
   onClose: () => void;
   children: ReactNode;
+  /** Optional fixed bar under the scrolling content (e.g. the action buttons). */
+  footer?: ReactNode;
 }
 
-export default function Modal({open, title, badge, onClose, children}: ModalProps) {
+export default function Modal({open, title, badge, onClose, children, footer}: ModalProps) {
   return (
     <Dialog.Root open={open} onOpenChange={(nextOpen) => !nextOpen && onClose()}>
       <Dialog.Portal>
@@ -41,6 +43,11 @@ export default function Modal({open, title, badge, onClose, children}: ModalProp
           <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4 pb-[max(16px,env(safe-area-inset-bottom))] md:px-6 md:py-6">
             {children}
           </div>
+          {footer != null && (
+            <div className="border-t border-[var(--border-subtle)] px-4 py-3 pb-[max(12px,env(safe-area-inset-bottom))] md:px-6">
+              {footer}
+            </div>
+          )}
         </Dialog.Content>
       </Dialog.Portal>
     </Dialog.Root>

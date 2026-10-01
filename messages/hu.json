@@ -1464,6 +1464,76 @@
     },
     "card_title": "Poszt"
   },
+  "notifications": {
+    "bell_aria_label": "Értesítések",
+    "title": "Beérkezett üzenetek",
+    "filter_all": "Összes",
+    "filter_unread": "Olvasatlan",
+    "filter_actionable": "Teendő",
+    "filter_archived": "Archivált",
+    "category_enum": {
+      "EVENT": "Esemény",
+      "TASK": "Feladat",
+      "MINUTES": "Jegyzőkönyv",
+      "POST": "Poszt",
+      "GROUP": "Csoport",
+      "AUTH": "Biztonság",
+      "SYSTEM": "Rendszer"
+    },
+    "action_status_enum": {
+      "PENDING": "Függőben",
+      "COMPLETED": "Megválaszolva",
+      "EXPIRED": "Lejárt",
+      "FORBIDDEN": "Nincs jogosultság"
+    },
+    "action_accept": "Elfogad",
+    "action_decline": "Elutasít",
+    "action_busy": "Feldolgozás...",
+    "action_accepted": "Elfogadva",
+    "action_declined": "Elutasítva",
+    "mark_read": "Olvasottnak jelöl",
+    "mark_unread": "Olvasatlannak jelöl",
+    "archive": "Archiválás",
+    "unarchive": "Visszaállítás",
+    "delete": "Törlés",
+    "delete_confirm_title": "Értesítés törlése",
+    "delete_confirm_body": "Biztosan törlöd ezt az értesítést? A törölt elemek 30 nap után véglegesen eltűnnek.",
+    "empty_all": "Nincs megjeleníthető értesítésed.",
+    "empty_unread": "Nincs olvasatlan értesítésed.",
+    "empty_actionable": "Nincs teendőd.",
+    "empty_archived": "Nincs archivált értesítésed.",
+    "load_more": "Továbbiak betöltése",
+    "loading_more": "Betöltés...",
+    "retry": "Újra",
+    "error_generic": "Az értesítések betöltése sikertelen.",
+    "action_error_generic": "A művelet nem sikerült.",
+    "errors": {
+      "api": {
+        "404": "Ez az értesítés már nem elérhető.",
+        "409": "Ez a művelet már nem hajtható végre — az elem frissítve lett.",
+        "422": "Ehhez az elemhez nem tartozik ilyen művelet.",
+        "403": "Nincs jogosultságod ehhez a művelethez."
+      }
+    },
+    "preferences": {
+      "page_title": "Értesítési beállítások",
+      "page_subtitle": "Alapból minden értesítés be van kapcsolva minden csatornán — itt állíthatod be a kivételeket.",
+      "channel_mail": "E-mail",
+      "channel_push": "Push",
+      "channel_telegram": "Telegram",
+      "channel_inbox": "Inbox",
+      "not_configurable_hint": "Ez az értesítés biztonsági okokból nem kapcsolható ki.",
+      "group_exceptions_label": "Csoport-kivételek",
+      "group_exception_remove": "Kivétel eltávolítása",
+      "group_exception_add": "Kivétel hozzáadása egy csoportra",
+      "group_exception_pick": "Válassz csoportot",
+      "reset_button": "Alaphelyzet",
+      "reset_confirm_title": "Beállítások alaphelyzetbe állítása",
+      "reset_confirm_body": "Ez törli az összes eddig beállított kivételt, minden értesítés minden csatornán újra bekapcsol. Ez nem vonható vissza.",
+      "load_error": "A beállítások betöltése sikertelen.",
+      "save_error": "A mentés sikertelen."
+    }
+  },
   "profile": {
     "title": "Profil",
     "placeholder": "Itt szerkeszthető a felhasználói profil és 2FA beállítás.",
@@ -1520,6 +1590,10 @@
       "dynamic_registration_title": "Dinamikus kliensregisztráció",
       "dynamic_registration_description": "A szerver támogatja a dinamikus kliensregisztrációt (RFC 7591), így az MCP kliensek külön előzetes regisztráció nélkül, automatikusan tudnak csatlakozni és hitelesíteni.",
       "missing_config": "Az MCP szerver adatai jelenleg nem elérhetők."
+    },
+    "notifications": {
+      "nav_title": "Értesítések",
+      "nav_description": "Állítsd be, mely értesítéseket mely csatornákon szeretnéd megkapni."
     }
   },
   "admin": {

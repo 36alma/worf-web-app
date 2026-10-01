@@ -2,6 +2,7 @@
 
 import {ChevronRight, LogOut, Menu, Plug, Sparkles, UserCircle} from 'lucide-react';
 import Avatar from '@/components/ui/Avatar';
+import NotificationBell from '@/components/layout/NotificationBell';
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -105,6 +106,8 @@ export default function Header({className}: HeaderProps) {
       </nav>
 
       <div className="topbar-spacer" />
+
+      <NotificationBell />
 
       <DropdownMenu>
         <DropdownMenuTrigger asChild>

@@ -3,7 +3,7 @@
 import {useEffect, useMemo, useState} from 'react';
 import {useLocale, useTranslations} from 'next-intl';
 import Link from 'next/link';
-import {ChevronRight, Plug} from 'lucide-react';
+import {Bell, ChevronRight, Plug} from 'lucide-react';
 import toast from 'react-hot-toast';
 import AccountFields from '@/components/profile/AccountFields';
 import LanguageGrid from '@/components/profile/LanguageGrid';
@@ -122,6 +122,10 @@ export default function ProfileClient() {
       mcp: {
         title: t('mcp.nav_title'),
         description: t('mcp.nav_description')
+      },
+      notifications: {
+        title: t('notifications.nav_title'),
+        description: t('notifications.nav_description')
       }
     }),
     [commonT, t]
@@ -177,6 +181,20 @@ export default function ProfileClient() {
             <div className="min-w-0 flex-1">
               <p className="display-font text-lg text-[var(--text-primary)]">{copy.mcp.title}</p>
               <p className="text-sm text-[var(--text-secondary)]">{copy.mcp.description}</p>
+            </div>
+            <ChevronRight className="h-4 w-4 shrink-0 text-[var(--text-tertiary)]" strokeWidth={1.75} />
+          </Link>
+
+          <Link
+            href={`/${locale}/profile/notifications`}
+            className="surface flex items-center gap-3 rounded-[var(--radius-lg)] p-5 transition-colors hover:bg-[var(--bg-hover)]"
+          >
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[var(--bg-surface)]">
+              <Bell className="h-4 w-4 text-[var(--accent)]" strokeWidth={1.75} />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="display-font text-lg text-[var(--text-primary)]">{copy.notifications.title}</p>
+              <p className="text-sm text-[var(--text-secondary)]">{copy.notifications.description}</p>
             </div>
             <ChevronRight className="h-4 w-4 shrink-0 text-[var(--text-tertiary)]" strokeWidth={1.75} />
           </Link>

@@ -235,8 +235,8 @@ export default function TaskDetailModal({
         {/* Bottom sheet mobilon, full screen md+-on */}
         <Dialog.Content aria-describedby={undefined} className={[
           // Mobil: bottom sheet
-          'fixed inset-x-0 bottom-0 z-50 flex flex-col',
-          'max-h-[92dvh] bg-[var(--bg-elevated)]',
+          'task-detail fixed inset-x-0 bottom-0 z-50 flex flex-col',
+          'max-h-[92dvh] bg-[var(--bg-root)]',
           'rounded-t-2xl border border-[var(--border-subtle)]',
           'data-[state=open]:animate-in data-[state=open]:slide-in-from-bottom',
           'data-[state=closed]:animate-out data-[state=closed]:slide-out-to-bottom',

@@ -2829,3 +2829,60 @@ div[style*='position: fixed'][style*='bottom'][style*='right'] {
     box-shadow: none;
   }
 }
+
+/* ── Feladat-részletező nézet ──
+   A meglévő token-neveket írja felül csak a `.task-detail` hatókörön belül, így a
+   Tailwind `surface-*` / `border-*` / `fg-*` osztályok itt automatikusan az élesebb
+   rétegezést kapják, a többi oldal változatlan marad. */
+.task-detail {
+  /* felületszintek: surface-0 oldal, surface-1 panel/sidebar, surface-2 kártya/input */
+  --bg-root: #1a1b20;
+  --bg-surface: #222329;
+  --bg-sidebar: #222329;
+  --bg-elevated: #2a2b32;
+  --bg-input: #2a2b32;
+  --bg-hover: #31323a;
+  --bg-active: #383942;
+
+  /* borderek */
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --border-default: rgba(255, 255, 255, 0.08);
+  --border-strong: rgba(255, 255, 255, 0.16);
+  --border-hover: rgba(255, 255, 255, 0.16);
+  --border-focus: var(--accent);
+  --focus-ring: 0 0 0 3px rgba(255, 90, 20, 0.15);
+  --card-inset: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+
+  /* szöveg: címke ≥ 4.5:1 a surface-2-n is (WCAG AA) */
+  --text-label: #9395a0;
+  --text-value: #e8e8ec;
+  --text-primary: var(--text-value);
+  --text-secondary: #b6b8c2;
+  --text-tertiary: var(--text-label);
+}
+
+/* Szerkeszthető mező-doboz: halvány háttér + border, hoverre erősebb, fókuszra narancs */
+.td-field {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-subtle);
+  box-shadow: var(--card-inset);
+  transition: border-color 150ms ease, box-shadow 150ms ease, background-color 150ms ease;
+}
+.td-field:hover {
+  border-color: var(--border-strong);
+}
+.td-field:focus,
+.td-field:focus-within {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: var(--focus-ring);
+}
+
+/* Csoportosított sidebar-panel */
+.td-group {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-subtle);
+  box-shadow: var(--card-inset);
+  border-radius: 10px;
+  overflow: hidden;
+}

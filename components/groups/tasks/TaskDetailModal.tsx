@@ -51,6 +51,28 @@ export interface TaskDetailModalProps {
 
 const BACKLOG_VALUE = '__backlog__';
 
+// ── Sidebar: közös keretű csoport, hajszálvonalas sorokkal ──
+function FieldGroup({title, children}: {title: string; children: React.ReactNode}) {
+  return (
+    <section>
+      <h3 className="mb-2 px-1 text-[11px] font-medium uppercase tracking-wider text-[var(--text-label)]">{title}</h3>
+      <div className="td-group divide-y divide-[var(--border-subtle)]">{children}</div>
+    </section>
+  );
+}
+
+function FieldRow({label, icon, children}: {label: string; icon?: React.ReactNode; children: React.ReactNode}) {
+  return (
+    <div className="flex flex-col gap-1 px-3 py-2.5">
+      <span className="flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-wider text-[var(--text-label)]">
+        {icon}
+        {label}
+      </span>
+      {children}
+    </div>
+  );
+}
+
 export default function TaskDetailModal({
   open, onClose, task, groupId, permissions, onUpdateTask,
   groupUsers = [], groupUsersLoading = false, sprints = [],
@@ -215,10 +237,11 @@ export default function TaskDetailModal({
   };
 
   // ── Style helpers ──
-  const labelCls = 'text-[11px] uppercase tracking-wider text-[var(--text-tertiary)] font-medium mb-1';
-  const fieldCardCls = 'flex flex-col rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface)] px-3 py-2.5 transition-all';
-  const inlineDateCls = 'bg-transparent text-[var(--text-primary)] outline-none border-none cursor-pointer font-medium text-sm w-full';
-  const inlineNumberCls = 'bg-transparent text-[var(--text-primary)] outline-none border-none font-medium text-sm w-full';
+  const valueCls = 'font-medium text-sm text-[var(--text-value)]';
+  const formatDateTime = (iso?: string | null) =>
+    iso ? new Date(iso).toLocaleString([], {year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'}) : '—';
+  const inlineDateCls = 'bg-transparent text-[var(--text-value)] outline-none border-none cursor-pointer font-medium text-sm w-full';
+  const inlineNumberCls = 'bg-transparent text-[var(--text-value)] outline-none border-none font-medium text-sm w-full';
 
   // Inline select trigger style (borderless, transparent)
   const inlineSelectTriggerCls = 'h-auto border-none bg-transparent px-0 py-0 text-sm font-medium shadow-none ring-0 focus:ring-0 focus:border-none';
@@ -419,12 +442,10 @@ export default function TaskDetailModal({
                   </div>
 
                   {/* Right Column: Meta details Sidebar */}
-                  <div className="flex flex-col gap-5 px-6 py-5 lg:min-h-0 lg:overflow-y-auto lg:border-l-2 lg:border-[var(--border-default)]">
-                    {/* Fields Group */}
-                    <div className="flex flex-col gap-3">
-                      {/* Task Type */}
-                      <div className={fieldCardCls}>
-                        <span className={labelCls}>Típus</span>
+                  <aside className="flex flex-col gap-5 border-t border-[var(--border-subtle)] bg-[var(--bg-sidebar)] px-6 py-5 lg:min-h-0 lg:overflow-y-auto lg:border-l lg:border-t-0">
+                    {/* Besorolás */}
+                    <FieldGroup title="Besorolás">
+                      <FieldRow label="Típus">
                         <div className="flex items-center gap-2">
                           {TASK_TYPE_ICONS[task.task_type] || null}
                           {canEdit ? (
@@ -439,16 +460,14 @@ export default function TaskDetailModal({
                               </SelectContent>
                             </Select>
                           ) : (
-                            <span className="font-medium text-sm text-[var(--text-primary)]">
+                            <span className={valueCls}>
                               {TASK_TYPE_LABELS[task.task_type as keyof typeof TASK_TYPE_LABELS] || task.task_type}
                             </span>
                           )}
                         </div>
-                      </div>
+                      </FieldRow>
 
-                      {/* Status */}
-                      <div className={fieldCardCls}>
-                        <span className={labelCls}>Állapot</span>
+                      <FieldRow label="Állapot">
                         {canEdit ? (
                           <Select value={task.status} onValueChange={(val) => handleUpdate('status', val)}>
                             <SelectTrigger className={inlineSelectTriggerCls}>
@@ -463,11 +482,9 @@ export default function TaskDetailModal({
                         ) : (
                           <StatusPill status={task.status} />
                         )}
-                      </div>
+                      </FieldRow>
 
-                      {/* Priority */}
-                      <div className={fieldCardCls}>
-                        <span className={labelCls}>Prioritás</span>
+                      <FieldRow label="Prioritás">
                         {canEdit ? (
                           <Select value={task.priority || 'MEDIUM'} onValueChange={(val) => handleUpdate('priority', val)}>
                             <SelectTrigger className={inlineSelectTriggerCls}>
@@ -482,11 +499,9 @@ export default function TaskDetailModal({
                         ) : (
                           <PriorityPill priority={task.priority} />
                         )}
-                      </div>
+                      </FieldRow>
 
-                      {/* Story Points */}
-                      <div className={fieldCardCls}>
-                        <span className={labelCls}>Story Points</span>
+                      <FieldRow label="Story Points">
                         {canEdit ? (
                           <input
                             type="number" min="0"
@@ -497,13 +512,14 @@ export default function TaskDetailModal({
                             placeholder="—"
                           />
                         ) : (
-                          <span className="font-medium text-sm text-[var(--text-primary)]">{task.story_points ?? '—'}</span>
+                          <span className={valueCls}>{task.story_points ?? '—'}</span>
                         )}
-                      </div>
+                      </FieldRow>
+                    </FieldGroup>
 
-                      {/* Sprint */}
-                      <div className={fieldCardCls}>
-                        <span className={labelCls}>{t('table.sprint')}</span>
+                    {/* Kiosztás */}
+                    <FieldGroup title="Kiosztás">
+                      <FieldRow label={t('table.sprint')}>
                         {canEdit ? (
                           <Select
                             value={task.sprint_id || BACKLOG_VALUE}
@@ -520,18 +536,13 @@ export default function TaskDetailModal({
                             </SelectContent>
                           </Select>
                         ) : (
-                          <span className="font-medium text-sm text-[var(--text-primary)]">
+                          <span className={valueCls}>
                             {task.sprint_id ? sprints.find((s) => s.id === task.sprint_id)?.sprint_name || task.sprint_id : t('sprint.backlog')}
                           </span>
                         )}
-                      </div>
-                    </div>
+                      </FieldRow>
 
-                    {/* Assignees */}
-                    <div className="flex flex-col gap-3">
-                      {/* Assignee */}
-                      <div className={fieldCardCls}>
-                        <span className={labelCls}>Felelős</span>
+                      <FieldRow label="Felelős">
                         <AssigneeCombobox
                           users={groupUsers}
                           value={currentAssigneeId}
@@ -540,11 +551,9 @@ export default function TaskDetailModal({
                           loading={groupUsersLoading}
                           placeholder={task.assigneer_id?.assigneer_fullname || "Nincs hozzárendelve"}
                         />
-                      </div>
+                      </FieldRow>
 
-                      {/* Reporter */}
-                      <div className={fieldCardCls}>
-                        <span className={labelCls}>Bejelentő</span>
+                      <FieldRow label="Bejelentő">
                         <AssigneeCombobox
                           users={groupUsers}
                           value={currentReporterId}
@@ -553,71 +562,49 @@ export default function TaskDetailModal({
                           loading={groupUsersLoading}
                           placeholder={task.reporter_id?.reporter_fullname || "Ismeretlen"}
                         />
-                      </div>
-                    </div>
+                      </FieldRow>
+                    </FieldGroup>
 
-                    {/* Dates */}
-                    <div className="flex flex-col gap-3">
-                      {/* Started At */}
-                      <div className={fieldCardCls}>
-                        <div className="flex items-center gap-1.5 mb-1">
-                          <Clock size={12} className="text-info" />
-                          <span className={labelCls + ' !mb-0'}>Elkezdve</span>
-                        </div>
+                    {/* Ütemezés */}
+                    <FieldGroup title="Ütemezés">
+                      <FieldRow label="Elkezdve" icon={<Clock size={12} className="text-info" />}>
                         {canEdit ? (
                           <input type="datetime-local" defaultValue={toLocalDatetime(task.started_at)}
                             onBlur={(e) => handleDateUpdate('started_at', e.target.value)}
                             style={{fontSize: '16px'}}
                             className={inlineDateCls} />
                         ) : (
-                          <span className="font-medium text-sm text-[var(--text-primary)]">
-                            {task.started_at ? new Date(task.started_at).toLocaleString([], {year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'}) : '—'}
-                          </span>
+                          <span className={valueCls}>{formatDateTime(task.started_at)}</span>
                         )}
-                      </div>
+                      </FieldRow>
 
-                      {/* Due At */}
-                      <div className={fieldCardCls}>
-                        <div className="flex items-center gap-1.5 mb-1">
-                          <Calendar size={12} className="text-warning" />
-                          <span className={labelCls + ' !mb-0'}>Határidő</span>
-                        </div>
+                      <FieldRow label="Határidő" icon={<Calendar size={12} className="text-warning" />}>
                         {canEdit ? (
                           <input type="datetime-local" defaultValue={toLocalDatetime(task.due_at)}
                             onBlur={(e) => handleDateUpdate('due_at', e.target.value)}
                             style={{fontSize: '16px'}}
                             className={inlineDateCls} />
                         ) : (
-                          <span className="font-medium text-sm text-[var(--text-primary)]">
-                            {task.due_at ? new Date(task.due_at).toLocaleString([], {year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'}) : '—'}
-                          </span>
+                          <span className={valueCls}>{formatDateTime(task.due_at)}</span>
                         )}
-                      </div>
+                      </FieldRow>
 
-                      {/* Completed At */}
-                      <div className={fieldCardCls}>
-                        <div className="flex items-center gap-1.5 mb-1">
-                          <CalendarCheck size={12} className="text-success" />
-                          <span className={labelCls + ' !mb-0'}>Befejezve</span>
-                        </div>
+                      <FieldRow label="Befejezve" icon={<CalendarCheck size={12} className="text-success" />}>
                         {canEdit ? (
                           <input type="datetime-local" defaultValue={toLocalDatetime(task.completed_at)}
                             onBlur={(e) => handleDateUpdate('completed_at', e.target.value)}
                             style={{fontSize: '16px'}}
                             className={inlineDateCls} />
                         ) : (
-                          <span className="font-medium text-sm text-[var(--text-primary)]">
-                            {task.completed_at ? new Date(task.completed_at).toLocaleString([], {year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'}) : '—'}
-                          </span>
+                          <span className={valueCls}>{formatDateTime(task.completed_at)}</span>
                         )}
-                      </div>
-                    </div>
+                      </FieldRow>
+                    </FieldGroup>
 
-                    {/* Categories */}
+                    {/* Címkék */}
                     {task.categories && task.categories.length > 0 && (
-                      <div className={fieldCardCls}>
-                        <span className={labelCls}>Címkék</span>
-                        <div className="flex flex-wrap gap-1.5 mt-1">
+                      <FieldGroup title="Címkék">
+                        <div className="flex flex-wrap gap-1.5 px-3 py-2.5">
                           {task.categories.map((c) => (
                             <span key={c.task_category_id}
                               style={{backgroundColor: c.color + '15', color: c.color, borderColor: c.color + '30'}}
@@ -627,7 +614,7 @@ export default function TaskDetailModal({
                             </span>
                           ))}
                         </div>
-                      </div>
+                      </FieldGroup>
                     )}
 
                     {/* Archive Toggle */}
@@ -636,18 +623,17 @@ export default function TaskDetailModal({
                         type="button"
                         onClick={() => handleUpdate('is_archived', !task.is_archived)}
                         className={clsx(
-                          fieldCardCls,
-                          'flex-row items-center gap-2 cursor-pointer select-none hover:bg-[var(--bg-hover)]',
-                          task.is_archived && 'bg-warning-bg border-transparent'
+                          'td-group flex items-center gap-2 px-3 py-2.5 cursor-pointer select-none hover:border-[var(--border-strong)]',
+                          task.is_archived && '!bg-warning-bg !border-transparent'
                         )}
                       >
-                        <Archive size={14} className={task.is_archived ? 'text-warning' : 'text-[var(--text-tertiary)]'} />
-                        <span className={clsx('font-medium text-sm', task.is_archived ? 'text-warning' : 'text-[var(--text-primary)]')}>
+                        <Archive size={14} className={task.is_archived ? 'text-warning' : 'text-[var(--text-label)]'} />
+                        <span className={clsx('font-medium text-sm', task.is_archived ? 'text-warning' : 'text-[var(--text-value)]')}>
                           {task.is_archived ? 'Archiválva ✓' : 'Archiválás'}
                         </span>
                       </button>
                     )}
-                  </div>
+                  </aside>
 
               </div>
             </Tabs.Content>

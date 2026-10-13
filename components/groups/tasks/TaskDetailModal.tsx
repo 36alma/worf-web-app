@@ -277,7 +277,7 @@ export default function TaskDetailModal({
           </div>
 
           {/* ── Header ── */}
-          <div className="flex items-center justify-between border-b border-[var(--border-subtle)] px-6 py-4 shrink-0">
+          <div className="sticky top-0 z-10 flex shrink-0 items-center justify-between border-b border-[var(--border-subtle)] bg-[var(--bg-surface)] px-6 py-4">
             <div className="flex items-center gap-3 min-w-0">
               <Dialog.Title className="flex items-center m-0" asChild>
                 <div className="flex flex-row items-center gap-3">
@@ -299,14 +299,14 @@ export default function TaskDetailModal({
 
           {/* ── Tabs ── */}
           <Tabs.Root value={activeTab} onValueChange={setActiveTab} className="flex flex-col flex-1 min-h-0">
-            <Tabs.List className="flex border-b border-[var(--border-subtle)] px-6 shrink-0">
+            <Tabs.List className="flex w-full shrink-0 border-b border-[var(--border-subtle)] bg-[var(--bg-surface)] px-6">
               <Tabs.Trigger
                 value="details"
                 className={clsx(
                   'flex items-center gap-2 px-4 py-2.5 font-medium text-sm transition-all border-b-2 outline-none -mb-px',
                   activeTab === 'details'
-                    ? 'border-accent text-accent'
-                    : 'border-transparent text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] rounded-t-lg'
+                    ? 'border-accent text-[var(--text-value)]'
+                    : 'border-transparent text-[var(--text-label)] hover:text-[var(--text-value)] hover:bg-[var(--bg-hover)] rounded-t-lg'
                 )}
               >
                 <FileText size={15} /> Részletek
@@ -316,8 +316,8 @@ export default function TaskDetailModal({
                 className={clsx(
                   'flex items-center gap-2 px-4 py-2.5 font-medium text-sm transition-all border-b-2 outline-none -mb-px',
                   activeTab === 'history'
-                    ? 'border-accent text-accent'
-                    : 'border-transparent text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] rounded-t-lg'
+                    ? 'border-accent text-[var(--text-value)]'
+                    : 'border-transparent text-[var(--text-label)] hover:text-[var(--text-value)] hover:bg-[var(--bg-hover)] rounded-t-lg'
                 )}
               >
                 <History size={15} /> Aktivitás napló
@@ -331,7 +331,7 @@ export default function TaskDetailModal({
               <div ref={detailsScrollRef} className="min-h-0 flex-1 overflow-y-auto pb-[max(20px,env(safe-area-inset-bottom))] lg:grid lg:grid-cols-[minmax(0,1fr)_380px] lg:grid-rows-[minmax(0,1fr)] lg:overflow-hidden lg:pb-0">
 
                   {/* Left Column: Summary, Description, Subtasks, Comments */}
-                  <div className="flex min-w-0 flex-col gap-6 px-6 py-5 lg:min-h-0 lg:overflow-y-auto">
+                  <div className="flex min-w-0 flex-col gap-7 bg-[var(--bg-root)] px-6 py-6 lg:min-h-0 lg:overflow-y-auto">
                     {/* ── Summary (Inline Edit) ── */}
                     <div>
                       <h3 className="flex items-center gap-2 text-xs font-medium text-[var(--text-tertiary)] uppercase tracking-wider mb-2">

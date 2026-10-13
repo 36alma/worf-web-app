@@ -9,10 +9,11 @@ import {
   Hash, Archive, User, Sparkles, Type
 } from 'lucide-react';
 import clsx from 'clsx';
-import {Task, TaskHistoryItem, GroupUser, Sprint, STATUSES, STATUS_LABELS, TASK_TYPES, TASK_TYPE_LABELS, PRIORITIES, PRIORITY_LABELS} from './types';
+import {Task, TaskHistoryItem, GroupUser, Sprint, STATUSES, TASK_TYPES, TASK_TYPE_LABELS, PRIORITIES} from './types';
 import AssigneeCombobox from './AssigneeCombobox';
 import TaskComments from './TaskComments';
 import TaskTypeBadge from './TaskTypeBadge';
+import {StatusPill, PriorityPill} from './TaskBadges';
 import {modifyTask, getTaskHistory} from '@/lib/api/tasks';
 import {translateTaskEvent, translateTaskValue} from '@/lib/i18n/taskHistory';
 import {useTranslations} from 'next-intl';
@@ -212,11 +213,6 @@ export default function TaskDetailModal({
     try { return new Date(iso).toISOString().slice(0, 16); }
     catch { return ''; }
   };
-
-  // ── Priority color helper ──
-  const priorityColorCls = (p: string | undefined | null) =>
-    p === 'HIGH' || p === 'HIGHEST' ? 'text-danger' :
-    p === 'MEDIUM' ? 'text-warning' : 'text-info';
 
   // ── Style helpers ──
   const labelCls = 'text-[11px] uppercase tracking-wider text-[var(--text-tertiary)] font-medium mb-1';
@@ -456,18 +452,16 @@ export default function TaskDetailModal({
                         {canEdit ? (
                           <Select value={task.status} onValueChange={(val) => handleUpdate('status', val)}>
                             <SelectTrigger className={inlineSelectTriggerCls}>
-                              <SelectValue />
+                              <SelectValue><StatusPill status={task.status} /></SelectValue>
                             </SelectTrigger>
                             <SelectContent>
                               {STATUSES.map(s => (
-                                <SelectItem key={s} value={s}>{STATUS_LABELS[s]}</SelectItem>
+                                <SelectItem key={s} value={s}><StatusPill status={s} className="!bg-transparent !px-0" /></SelectItem>
                               ))}
                             </SelectContent>
                           </Select>
                         ) : (
-                          <span className="font-medium text-sm text-[var(--text-primary)]">
-                            {STATUS_LABELS[task.status as keyof typeof STATUS_LABELS] || task.status}
-                          </span>
+                          <StatusPill status={task.status} />
                         )}
                       </div>
 
@@ -476,19 +470,17 @@ export default function TaskDetailModal({
                         <span className={labelCls}>Prioritás</span>
                         {canEdit ? (
                           <Select value={task.priority || 'MEDIUM'} onValueChange={(val) => handleUpdate('priority', val)}>
-                            <SelectTrigger className={clsx(inlineSelectTriggerCls, priorityColorCls(task.priority))}>
-                              <SelectValue />
+                            <SelectTrigger className={inlineSelectTriggerCls}>
+                              <SelectValue><PriorityPill priority={task.priority} /></SelectValue>
                             </SelectTrigger>
                             <SelectContent>
                               {PRIORITIES.map(p => (
-                                <SelectItem key={p} value={p}>{PRIORITY_LABELS[p]}</SelectItem>
+                                <SelectItem key={p} value={p}><PriorityPill priority={p} className="!bg-transparent !px-0" /></SelectItem>
                               ))}
                             </SelectContent>
                           </Select>
                         ) : (
-                          <span className={clsx('font-medium text-sm', priorityColorCls(task.priority))}>
-                            {PRIORITY_LABELS[task.priority] || task.priority}
-                          </span>
+                          <PriorityPill priority={task.priority} />
                         )}
                       </div>
 

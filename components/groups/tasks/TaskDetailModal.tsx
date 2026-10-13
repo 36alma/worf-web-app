@@ -334,14 +334,14 @@ export default function TaskDetailModal({
                   <div className="flex min-w-0 flex-col gap-7 bg-[var(--bg-root)] px-6 py-6 lg:min-h-0 lg:overflow-y-auto">
                     {/* ── Summary (Inline Edit) ── */}
                     <div>
-                      <h3 className="flex items-center gap-2 text-xs font-medium text-[var(--text-tertiary)] uppercase tracking-wider mb-2">
+                      <h3 className="flex items-center gap-2 text-[11px] font-medium text-[var(--text-label)] uppercase tracking-wider mb-2">
                         <Type size={14} /> Feladat cím
                       </h3>
                       {isEditingSummary ? (
                         <input
                           autoFocus
                           style={{fontSize: '16px'}}
-                          className="w-full text-xl font-medium bg-[var(--bg-surface)] text-[var(--text-primary)] border border-border-focus rounded-lg px-3 py-2 outline-none ring-2 ring-accent/50"
+                          className="td-field w-full text-xl font-medium text-[var(--text-value)] rounded-lg px-3 py-2"
                           value={summary}
                           onChange={(e) => setSummary(e.target.value)}
                           onBlur={submitSummary}
@@ -354,8 +354,8 @@ export default function TaskDetailModal({
                         <h2
                           onClick={() => canEdit && setIsEditingSummary(true)}
                           className={clsx(
-                            'text-xl font-medium text-[var(--text-primary)] rounded-lg px-3 py-2 -mx-3 transition-all',
-                            canEdit && 'cursor-text hover:bg-[var(--bg-hover)] border border-transparent hover:border-[var(--border-subtle)]'
+                            'td-field text-xl font-medium text-[var(--text-value)] rounded-lg px-3 py-2',
+                            canEdit && 'cursor-text'
                           )}
                         >
                           {task.summary}
@@ -365,14 +365,14 @@ export default function TaskDetailModal({
 
                     {/* ── Description ── */}
                     <div>
-                      <h3 className="flex items-center gap-2 text-xs font-medium text-[var(--text-tertiary)] uppercase tracking-wider mb-2">
+                      <h3 className="flex items-center gap-2 text-[11px] font-medium text-[var(--text-label)] uppercase tracking-wider mb-2">
                         <AlignLeft size={14} /> Leírás
                       </h3>
                       {isEditingDesc ? (
                         <div className="flex flex-col gap-2.5">
                           <textarea
                             autoFocus
-                            className="w-full min-h-[120px] rounded-lg border border-border-focus ring-2 ring-accent/50 bg-[var(--bg-surface)] px-4 py-3 text-sm text-[var(--text-primary)] outline-none resize-y"
+                            className="td-field w-full min-h-[120px] rounded-lg px-4 py-3 text-sm text-[var(--text-value)] resize-y"
                             value={description}
                             onChange={(e) => setDescription(e.target.value)}
                           />
@@ -395,8 +395,8 @@ export default function TaskDetailModal({
                         <div
                           onClick={() => canEdit && setIsEditingDesc(true)}
                           className={clsx(
-                            'rounded-lg border border-transparent p-3 text-sm text-[var(--text-primary)] whitespace-pre-wrap min-h-[80px] transition-all',
-                            canEdit ? 'cursor-text hover:bg-[var(--bg-hover)] hover:border-[var(--border-subtle)]' : ''
+                            'td-field rounded-lg p-3 text-sm text-[var(--text-value)] whitespace-pre-wrap min-h-[120px]',
+                            canEdit ? 'cursor-text' : ''
                           )}
                         >
                           {task.description ? (
@@ -431,7 +431,7 @@ export default function TaskDetailModal({
                     )}
 
                     {/* ── Separator ── */}
-                    <div className="h-px w-full bg-[var(--border-subtle)]" />
+                    <hr className="m-0 h-px w-full border-0 bg-[var(--border-subtle)]" />
 
                     {/* ── Comments ── */}
                     <TaskComments

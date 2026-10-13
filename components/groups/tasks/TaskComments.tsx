@@ -145,7 +145,7 @@ export default function TaskComments({groupId, taskId, permissions}: TaskComment
 
   return (
     <TooltipProvider delayDuration={200}>
-      <div className="mt-8 flex flex-col gap-5">
+      <div className="flex flex-col gap-5">
         {/* Section Header */}
         <div className="flex items-center gap-2.5">
           <div className="flex items-center justify-center h-7 w-7 rounded-lg bg-accent/10">
@@ -298,7 +298,7 @@ export default function TaskComments({groupId, taskId, permissions}: TaskComment
             <div className="flex shrink-0 h-9 w-9 items-center justify-center rounded-full bg-surface-2 text-fg-secondary font-medium text-xs select-none ring-2 ring-border ring-offset-1 ring-offset-[var(--bg-surface)] mt-0.5">
               ÉN
             </div>
-            <div className="flex-1 flex flex-col gap-2">
+            <div className="td-field flex-1 min-w-0 rounded-lg">
               <textarea
                 value={newComment}
                 onChange={(e) => {
@@ -307,8 +307,8 @@ export default function TaskComments({groupId, taskId, permissions}: TaskComment
                 }}
                 onBlur={(e) => validateComment('comment', e.target.value)}
                 placeholder="Írj egy kommentet..."
-                rows={2}
-                className="w-full rounded-lg border border-[var(--border-default)] bg-[var(--bg-input)] px-4 py-2.5 text-sm text-[var(--text-primary)] placeholder-[var(--text-tertiary)] outline-none focus-visible:border-border-focus focus-visible:ring-2 focus-visible:ring-accent/50 resize-y transition-all"
+                rows={3}
+                className="block w-full resize-y rounded-t-lg border-0 bg-transparent px-4 pt-3 pb-1 text-sm text-[var(--text-value)] placeholder-[var(--text-label)] outline-none"
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
                     e.preventDefault();
@@ -317,14 +317,14 @@ export default function TaskComments({groupId, taskId, permissions}: TaskComment
                 }}
               />
               <FieldError messages={commentErrors.comment} />
-              <div className="flex items-center justify-between">
-                <span className="text-[11px] text-[var(--text-tertiary)] opacity-60">
+              <div className="flex items-center justify-between gap-3 px-3 pb-2.5 pt-1">
+                <span className="text-[11px] text-[var(--text-label)]">
                   Ctrl+Enter a küldéshez
                 </span>
                 <button
                   type="submit"
                   disabled={!newComment.trim()}
-                  className="flex items-center gap-2 rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white transition-all hover:bg-accent-hover disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:shadow-none active:scale-[0.97]"
+                  className="flex items-center gap-2 rounded-lg bg-accent px-4 py-1.5 text-sm font-medium text-white transition-all hover:bg-accent-hover disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:shadow-none active:scale-[0.97]"
                 >
                   <Send size={14} /> Küldés
                 </button>

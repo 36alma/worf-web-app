@@ -11,6 +11,7 @@ import {
 import clsx from 'clsx';
 import {Task, TaskHistoryItem, GroupUser, Sprint, STATUSES, TASK_TYPES, TASK_TYPE_LABELS, PRIORITIES} from './types';
 import AssigneeCombobox from './AssigneeCombobox';
+import ParentTaskCombobox from './ParentTaskCombobox';
 import TaskComments from './TaskComments';
 import TaskTypeBadge from './TaskTypeBadge';
 import {StatusPill, PriorityPill} from './TaskBadges';
@@ -282,11 +283,6 @@ export default function TaskDetailModal({
               <Dialog.Title className="flex items-center m-0" asChild>
                 <div className="flex flex-row items-center gap-3">
                   <TaskTypeBadge task_type={task.task_type} issue_key={task.issue_key} size="lg" />
-                  {task.parent_task_id && (
-                    <span className="text-[11px] text-[var(--text-tertiary)] font-medium bg-[var(--bg-hover)] px-2 py-1 rounded border border-[var(--border-subtle)] mt-0.5">
-                      Szülő: {task.parent_task_id}
-                    </span>
-                  )}
                 </div>
               </Dialog.Title>
             </div>
@@ -466,6 +462,18 @@ export default function TaskDetailModal({
                           )}
                         </div>
                       </FieldRow>
+
+                      {task.task_type === 'SUBTASK' && (
+                        <FieldRow label={t('form.parentTask')}>
+                          <ParentTaskCombobox
+                            groupId={groupId}
+                            value={task.parent_task_id}
+                            onChange={(taskId) => handleUpdate('parent_task_id', taskId)}
+                            excludeTaskId={task.id}
+                            disabled={!canEdit}
+                          />
+                        </FieldRow>
+                      )}
 
                       <FieldRow label="Állapot">
                         {canEdit ? (

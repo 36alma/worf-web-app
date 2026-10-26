@@ -2,7 +2,7 @@
 
 import {useEffect, useMemo} from 'react';
 import {useTranslations} from 'next-intl';
-import {useForm, Controller} from 'react-hook-form';
+import {useForm, Controller, useWatch} from 'react-hook-form';
 import {zodResolver} from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import * as Dialog from '@radix-ui/react-dialog';
@@ -11,6 +11,7 @@ import clsx from 'clsx';
 import toast from 'react-hot-toast';
 import {Task, GroupUser, Sprint, STATUSES, TASK_TYPES, PRIORITIES} from './types';
 import AssigneeCombobox from './AssigneeCombobox';
+import ParentTaskCombobox from './ParentTaskCombobox';
 import {createTask, modifyTask} from '@/lib/api/tasks';
 import {translateTaskApiError, translateTaskPriority, translateTaskStatus, translateTaskType} from '@/lib/i18n/tasks';
 import {
@@ -84,6 +85,7 @@ export default function TaskFormModal({
     handleSubmit,
     reset,
     control,
+    setValue,
     formState: {errors, isSubmitting}
   } = useForm<TaskFormValues>({
     resolver: zodResolver(taskSchema),
@@ -102,6 +104,14 @@ export default function TaskFormModal({
       sprint_id: BACKLOG_VALUE
     }
   });
+
+  const watchedTaskType = useWatch({control, name: 'task_type'});
+  const isSubtask = watchedTaskType === 'SUBTASK';
+
+  // Ha a típus már nem részfeladat, a szülő hivatkozás is törlődik.
+  useEffect(() => {
+    if (!isSubtask) setValue('parent_task_id', '');
+  }, [isSubtask, setValue]);
 
   useEffect(() => {
     if (!open) return;
@@ -367,7 +377,7 @@ export default function TaskFormModal({
               </div>
             </div>
 
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className={labelClassName}>{t('form.assignee')}</label>
                 <Controller
@@ -384,14 +394,6 @@ export default function TaskFormModal({
                 />
               </div>
               <div>
-                <label className={labelClassName}>{t('form.parentTask')}</label>
-                <input
-                  {...register('parent_task_id')}
-                  className={inputClassName}
-                  placeholder={t('form.parentTaskPlaceholder')}
-                />
-              </div>
-              <div>
                 <label className={labelClassName}>{t('form.storyPoints')}</label>
                 <input
                   type="number"
@@ -402,6 +404,24 @@ export default function TaskFormModal({
                 />
               </div>
             </div>
+
+            {isSubtask && (
+              <div>
+                <label className={labelClassName}>{t('form.parentTask')}</label>
+                <Controller
+                  name="parent_task_id"
+                  control={control}
+                  render={({field}) => (
+                    <ParentTaskCombobox
+                      groupId={groupId}
+                      value={field.value || null}
+                      onChange={(taskId) => field.onChange(taskId ?? '')}
+                      excludeTaskId={initialData?.id}
+                    />
+                  )}
+                />
+              </div>
+            )}
 
             <div className="grid grid-cols-1 gap-4">
               <div>

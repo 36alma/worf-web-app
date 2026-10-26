@@ -670,6 +670,7 @@
       "unassigned": "Unassigned",
       "parentTask": "Parent task",
       "parentTaskPlaceholder": "If this is a subtask...",
+      "parentTaskSearchPlaceholder": "Search by key or name (e.g. TASK-12)...",
       "startedAt": "Start date",
       "createLabel": "Create",
       "editLabel": "Save",

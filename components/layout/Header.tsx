@@ -34,7 +34,7 @@ export default function Header({className}: HeaderProps) {
   const commonT = useTranslations('common');
   const authT = useTranslations('auth');
   const postsT = useTranslations('posts');
-  const {user} = useAuthStore();
+  const {user, logout: resetAuth} = useAuthStore();
   const {clearPermissions} = usePermissionStore();
   const {toggleSidebar, selectedGroupName} = useUiStore();
 
@@ -45,9 +45,10 @@ export default function Header({className}: HeaderProps) {
       // Best-effort logout: continue local cleanup and redirect even if upstream logout fails.
     }
     clearPermissions();
+    resetAuth();
     router.push(`/${locale}/auth/login`);
     router.refresh();
-  }, [clearPermissions, locale, router]);
+  }, [clearPermissions, resetAuth, locale, router]);
 
   const breadcrumb = useMemo(() => {
     const segments = pathname.split('/').filter(Boolean).slice(1);

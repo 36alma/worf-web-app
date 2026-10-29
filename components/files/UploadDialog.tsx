@@ -1,6 +1,5 @@
 'use client';
 
-import { ChangeEvent, useRef } from 'react';
 import { useTranslations } from 'next-intl';
 import toast from 'react-hot-toast';
 import Modal from '@/components/ui/Modal';
@@ -67,7 +66,6 @@ export function validateAndEnqueueFiles(
 export default function UploadDialog({ open, onClose, enqueue, items, onRetry, onRemove }: UploadDialogProps) {
   const t = useTranslations('files');
   const tv = useTranslations('validation');
-  const multiInputRef = useRef<HTMLInputElement>(null);
 
   const handleFilesSelected = (files: File[]) =>
     validateAndEnqueueFiles(
@@ -77,31 +75,15 @@ export default function UploadDialog({ open, onClose, enqueue, items, onRetry, o
       (issueMessage) => toast.error(tv(issueMessage as never))
     );
 
-  const handleMultiInputChange = (event: ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(event.target.files ?? []);
-    handleFilesSelected(files);
-    // Reset so selecting the same file(s) again still fires a change event.
-    event.target.value = '';
-  };
-
   return (
     <Modal open={open} title={t('upload.title')} onClose={onClose}>
       <div className="space-y-4">
-        <FileDropzone accept={ALLOWED_MIME_TYPES.join(',')} onFileSelect={(file) => handleFilesSelected([file])}>
-          <span>{t('upload.dropzoneLabel')}</span>
+        <FileDropzone accept={ALLOWED_MIME_TYPES.join(',')} onFilesSelect={handleFilesSelected} dragLabel={t('upload.dropActive')}>
+          <span className="font-medium">{t('upload.dropzoneLabel')}</span>
+          <span className="text-xs text-[var(--text-tertiary)]">{t('upload.dropzoneHint')}</span>
         </FileDropzone>
 
-        <input
-          ref={multiInputRef}
-          type="file"
-          multiple
-          accept={ALLOWED_MIME_TYPES.join(',')}
-          onChange={handleMultiInputChange}
-          className="hidden"
-        />
-        <Button type="button" variant="secondary" onClick={() => multiInputRef.current?.click()}>
-          {t('upload.selectFile')}
-        </Button>
+        {items.length === 0 && <p className="text-center text-xs text-[var(--text-tertiary)]">{t('upload.empty')}</p>}
 
         {items.length > 0 && (
           <div className="space-y-2 border-t border-[var(--border-subtle)] pt-3">

@@ -912,9 +912,27 @@
     "sharedWithMe": {
       "emptyText": "Senki nem osztott meg veled fájlt vagy mappát."
     },
+    "newMenu": {
+      "trigger": "Új",
+      "newFolder": "Új mappa",
+      "uploadFile": "Fájl feltöltése",
+      "uploadFolder": "Mappa feltöltése",
+      "folderUploadFailed": "A mappa feltöltése sikertelen.",
+      "dropHint": "Engedd el a feltöltéshez",
+      "previewTitle": "Feltöltés megerősítése",
+      "previewMessage": "{files} fájl, {folders} mappa, összesen {size}.",
+      "previewQuota": " Szabad hely: {free}.",
+      "previewOverQuota": " Nincs elég szabad hely (szabad: {free}), a feltöltés valószínűleg sikertelen lesz.",
+      "previewConfirm": "Feltöltés",
+      "groupCount": "{done}/{total}",
+      "groupErrors": "{count} hiba"
+    },
     "upload": {
       "title": "Fájl feltöltése",
-      "dropzoneLabel": "Húzd ide a fájlt, vagy kattints a tallózáshoz",
+      "dropzoneLabel": "Húzd ide a fájlokat, vagy kattints a tallózáshoz",
+      "dropzoneHint": "Több fájlt is kiválaszthatsz egyszerre",
+      "dropActive": "Engedd el a feltöltéshez",
+      "empty": "Még nincs feltöltött fájl.",
       "selectFile": "Fájl kiválasztása",
       "filenameLabel": "Fájlnév",
       "uploading": "Feltöltés...",
@@ -1311,12 +1329,19 @@
       "teamFeed": "Csapat feed",
       "category": "Kategória",
       "allCategories": "Minden kategória",
-      "manageCategories": "Kategóriák"
+      "manageCategories": "Kategóriák",
+      "status": "Állapot",
+      "allStatuses": "Alapnézet",
+      "tag": "Címke",
+      "allTags": "Minden címke",
+      "manageTags": "Címkék"
     },
     "status": {
       "published": "Publikálva",
       "draft": "Piszkozat",
-      "scheduled": "Ütemezve"
+      "scheduled": "Ütemezve",
+      "pending_review": "Jóváhagyásra vár",
+      "archived": "Archivált"
     },
     "actions": {
       "back": "Vissza",
@@ -1328,7 +1353,9 @@
       "unpin": "Kitűzés levétele",
       "delete": "Törlés",
       "deleteSuccess": "Poszt törölve",
-      "deleteError": "Hiba a poszt törlésekor"
+      "deleteError": "Hiba a poszt törlésekor",
+      "readers": "Kik olvasták",
+      "revisions": "Verziótörténet"
     },
     "empty": {
       "title": "Még nincsenek posztok",
@@ -1341,7 +1368,8 @@
     "stats": {
       "likes": "{count} kedvelés",
       "comments": "{count} hozzászólás",
-      "postCount": "{count} poszt"
+      "postCount": "{count} poszt",
+      "unread": "{count} olvasatlan"
     },
     "contentHints": {
       "hasCode": "Tartalmaz kódot",
@@ -1375,11 +1403,16 @@
       "linkCopyError": "A link másolása sikertelen",
       "noPostDeletePermission": "Nincs jogosultságod a poszt törléséhez",
       "postDeleted": "Poszt törölve",
-      "postDeleteError": "A poszt törlése sikertelen"
+      "postDeleteError": "A poszt törlése sikertelen",
+      "postTrashed": "A poszt a kukába került",
+      "pinned": "Poszt kitűzve",
+      "unpinned": "Kitűzés levéve",
+      "pinLimit": "Itt legfeljebb 3 poszt lehet kitűzve. Előbb vegyél le egyet.",
+      "pinError": "Nem sikerült módosítani a kitűzést"
     },
     "pinned": "Kitűzött poszt",
     "deletePostTitle": "Poszt törlése",
-    "deletePostMessage": "Biztosan törlöd ezt a posztot?",
+    "deletePostMessage": "A poszt a kukába kerül, ahonnan 30 napig visszaállítható.",
     "detail": {
       "title": "Poszt részletei",
       "subtitle": "Olvasd el a poszt teljes tartalmát.",
@@ -1389,7 +1422,8 @@
       "updated": "Frissítve",
       "notFound": "A poszt nem található",
       "loading": "Betöltés...",
-      "loadError": "Nem sikerült betölteni a posztot"
+      "loadError": "Nem sikerült betölteni a posztot",
+      "readPrivacyNote": "Ha megnyitsz egy posztot, a szerzője látja, hogy elolvastad."
     },
     "edit": {
       "pageTitle": "Poszt szerkesztése",
@@ -1401,16 +1435,23 @@
       "saveSuccess": "Poszt sikeresen mentve",
       "saveError": "Mentés sikertelen",
       "preview": "Előnézet",
-      "saveDraft": "Piszkozat mentése",
+      "saveDraft": "Mentés ezen az eszközön",
       "draftSavedLocal": "A piszkozat ezen az eszközön lett elmentve",
       "draftRestored": "A helyi piszkozat vissza lett töltve",
-      "draftNotice": "A Piszkozat mentése csak helyben, ezen az eszközön tárolja a tartalmat. Csak a Publikálás küld adatot a WORF API felé.",
+      "draftNotice": "A „Mentés ezen az eszközön” csak ebben a böngészőben tárolja a tartalmat. A fő gombbal mentesz a WORF-be: vázlatként, ütemezve vagy publikálva.",
       "updatePost": "Frissítés",
       "publishPost": "Publikálás",
       "unsavedTitle": "Elmentetlen változások",
       "unsavedDescription": "Vannak elmentetlen módosításaid. Ha most elhagyod az oldalt, ezek elvesznek.",
       "stayHere": "Maradok",
-      "leaveWithout": "Elmegyek mentés nélkül"
+      "leaveWithout": "Elmegyek mentés nélkül",
+      "saved_draft": "Vázlat mentve",
+      "saved_scheduled": "Poszt ütemezve",
+      "saved_published": "Poszt publikálva",
+      "saved_archived": "Poszt archiválva",
+      "submit_draft": "Mentés vázlatként",
+      "submit_scheduled": "Ütemezés",
+      "submit_archived": "Mentés archiváltként"
     },
     "form": {
       "basics": "Alapadatok",
@@ -1463,7 +1504,174 @@
       "toast_group_created": "Csoportposzt létrehozva",
       "toast_global_created": "Globális poszt létrehozva"
     },
-    "card_title": "Poszt"
+    "card_title": "Poszt",
+    "unreadPost": "Olvasatlan",
+    "views": {
+      "feed": "Posztok",
+      "review": "Jóváhagyásra vár",
+      "trash": "Kuka"
+    },
+    "publish": {
+      "section": "Publikálás",
+      "status": "Állapot",
+      "statusHint": {
+        "published": "A hatókörben mindenki látja, az értesítések most mennek ki.",
+        "draft": "Csak te látod.",
+        "scheduled": "A megadott időpontban automatikusan megjelenik, az értesítések akkor mennek ki.",
+        "archived": "Az alapnézetben nem jelenik meg, az Archivált szűrővel érhető el."
+      },
+      "timeZone": "Időzóna",
+      "publishAt": "Megjelenés ideje",
+      "expiresAt": "Lejárat",
+      "clear": "Törlés",
+      "expiresHint": "Nem kötelező. Lejáratkor a poszt archiválódik.",
+      "commentsEnabled": "Hozzászólások engedélyezése",
+      "errors": {
+        "publishAtFuture": "Jövőbeli megjelenési időpontot adj meg.",
+        "expiresAtFuture": "A lejárat csak jövőbeli időpont lehet.",
+        "expiresAfterPublish": "A lejáratnak a megjelenés után kell lennie."
+      }
+    },
+    "review": {
+      "submit": "Beküldés jóváhagyásra",
+      "submitted": "Beküldve jóváhagyásra",
+      "submitError": "Nem sikerült beküldeni jóváhagyásra",
+      "withdraw": "Visszavonás",
+      "withdrawn": "Visszavonva, a poszt újra vázlat",
+      "withdrawError": "Nem sikerült visszavonni",
+      "pendingLocked": "A poszt jóváhagyásra vár. A döntésig a címe és a tartalma nem szerkeszthető; szerkesztéshez vond vissza.",
+      "pendingBanner": "Jóváhagyásra vár.",
+      "rejectedBanner": "A bíráló visszaküldte a posztot",
+      "requiredNotice": "Ebben a csoportban a posztokat publikálás előtt jóvá kell hagyni.",
+      "requiredTitle": "Jóváhagyás szükséges",
+      "requiredPrompt": "Ebben a csoportban publikálás előtt jóváhagyás kell. Elmented vázlatként és beküldöd jóváhagyásra?",
+      "rejectTitle": "Poszt elutasítása",
+      "rejectDescription": "Írd meg a szerzőnek, miért küldöd vissza a(z) „{title}” posztot. Ezt az üzenetet látni fogja.",
+      "rejectPlaceholder": "Indoklás (kötelező)",
+      "reject": "Elutasítás",
+      "cancel": "Mégse",
+      "approve": "Jóváhagyás",
+      "approved": "Poszt jóváhagyva és publikálva",
+      "rejected": "Poszt visszaküldve a szerzőnek",
+      "ownPostForbidden": "A saját posztodat nem bírálhatod.",
+      "decisionError": "Nem sikerült menteni a döntést",
+      "loadError": "Nem sikerült betölteni a függő posztokat",
+      "queueNote": "{count} poszt vár jóváhagyásra.",
+      "queueEmpty": "Nincs jóváhagyásra váró poszt",
+      "submittedAt": "beküldve: {value}"
+    },
+    "tags": {
+      "label": "Címkék",
+      "add": "Címke hozzáadása",
+      "remove": "Címke eltávolítása",
+      "noneDefined": "Még nincs címke.",
+      "limit": "Posztonként legfeljebb {max} címke.",
+      "modalTitle": "Posztcímkék",
+      "namePlaceholder": "Új címke neve",
+      "create": "Hozzáadás",
+      "created": "Címke létrehozva",
+      "duplicate": "Ilyen nevű címke már létezik",
+      "saveError": "Nem sikerült létrehozni a címkét",
+      "deleted": "Címke törölve",
+      "deleteError": "Nem sikerült törölni a címkét",
+      "delete": "Címke törlése",
+      "empty": "Még nincs címke.",
+      "deleteTitle": "Címke törlése",
+      "deleteMessage": "Törlöd a(z) „{name}” címkét? Minden posztról lekerül."
+    },
+    "links": {
+      "section": "Kapcsolódó elemek",
+      "add": "Elem csatolása",
+      "remove": "Hivatkozás eltávolítása",
+      "pickerTitle": "Elemek csatolása",
+      "done": "Kész",
+      "types": {
+        "task": "Feladat",
+        "sprint": "Sprint",
+        "minutes": "Jegyzőkönyv",
+        "file": "Fájl"
+      },
+      "search": "Keresés…",
+      "limit": "Posztonként legfeljebb {max} hivatkozás.",
+      "loading": "Betöltés…",
+      "loadError": "Nem sikerült betölteni az elemeket",
+      "empty": "Nincs találat"
+    },
+    "reactions": {
+      "like": "Tetszik",
+      "love": "Imádom",
+      "laugh": "Haha",
+      "celebrate": "Ünneplés",
+      "wow": "Hűha",
+      "sad": "Szomorú",
+      "add": "Reakció hozzáadása",
+      "error": "Nem sikerült menteni a reakciót"
+    },
+    "comments": {
+      "title": "Hozzászólások ({count})",
+      "placeholder": "Írj hozzászólást…",
+      "replyPlaceholder": "Írj választ…",
+      "submit": "Hozzászólás",
+      "reply": "Válasz",
+      "edit": "Szerkesztés",
+      "save": "Mentés",
+      "cancel": "Mégse",
+      "delete": "Törlés",
+      "deleteTitle": "Hozzászólás törlése",
+      "deleteMessage": "Biztosan törlöd ezt a hozzászólást?",
+      "deletedComment": "Törölt hozzászólás",
+      "deletedUser": "Törölt felhasználó",
+      "edited": "szerkesztve",
+      "loading": "Hozzászólások betöltése…",
+      "empty": "Még nincs hozzászólás.",
+      "loadMore": "Továbbiak betöltése",
+      "loadError": "Nem sikerült betölteni a hozzászólásokat",
+      "saveError": "Nem sikerült menteni a hozzászólást",
+      "deleteError": "Nem sikerült törölni a hozzászólást",
+      "reactionError": "Nem sikerült menteni a reakciót",
+      "forbidden": "Ehhez nincs jogosultságod.",
+      "disabled": "Ennél a posztnál a hozzászólások ki vannak kapcsolva."
+    },
+    "readers": {
+      "title": "Kik olvasták",
+      "privacyNote": "Az olvasottságot a szerző és a moderátorok látják.",
+      "loadError": "Nem sikerült betölteni az olvasókat",
+      "empty": "Még senki nem olvasta.",
+      "deletedUser": "Törölt felhasználó",
+      "loading": "Betöltés…",
+      "loadMore": "Továbbiak betöltése"
+    },
+    "revisions": {
+      "title": "Verziótörténet",
+      "backToList": "Verziók",
+      "restore": "Verzió visszaállítása",
+      "diffLegend": "Eltérések a(z) {version}. verzió (piros) és a jelenlegi poszt (zöld) között.",
+      "loading": "Betöltés…",
+      "empty": "Még nincs korábbi verzió.",
+      "untitled": "Cím nélkül",
+      "compare": "Összehasonlítás",
+      "restoreTitle": "Verzió visszaállítása",
+      "restoreMessage": "Visszaállítod a(z) {version}. verziót? A jelenlegi tartalom új verzióként megmarad.",
+      "restored": "A(z) {version}. verzió visszaállítva",
+      "restoreError": "Nem sikerült visszaállítani a verziót",
+      "loadError": "Nem sikerült betölteni a verziókat"
+    },
+    "trash": {
+      "retentionNote": "A törölt posztok 30 nap után véglegesen törlődnek.",
+      "empty": "A kuka üres",
+      "deletedAt": "Törölve: {value}",
+      "purgeSoon": "hamarosan törlődik",
+      "daysLeft": "még {count} nap",
+      "restore": "Visszaállítás",
+      "purge": "Végleges törlés",
+      "purgeTitle": "Végleges törlés",
+      "purgeMessage": "A poszt véglegesen törlődik. Ez nem vonható vissza.",
+      "restored": "Poszt visszaállítva",
+      "restoreError": "Nem sikerült visszaállítani a posztot",
+      "purged": "Poszt véglegesen törölve",
+      "purgeError": "Nem sikerült törölni a posztot",
+      "loadError": "Nem sikerült betölteni a kukát"
+    }
   },
   "notifications": {
     "bell_aria_label": "Értesítések",
@@ -1510,10 +1718,10 @@
     "action_error_generic": "A művelet nem sikerült.",
     "errors": {
       "api": {
+        "403": "Nincs jogosultságod ehhez a művelethez.",
         "404": "Ez az értesítés már nem elérhető.",
         "409": "Ez a művelet már nem hajtható végre — az elem frissítve lett.",
-        "422": "Ehhez az elemhez nem tartozik ilyen művelet.",
-        "403": "Nincs jogosultságod ehhez a művelethez."
+        "422": "Ehhez az elemhez nem tartozik ilyen művelet."
       }
     },
     "preferences": {
@@ -1932,7 +2140,11 @@
       "delete_modal_deleting": "Törlés...",
       "delete_success": "Csoport törölve",
       "save_success": "Csoport adatai frissítve",
-      "error": "Hiba történt a művelet során"
+      "error": "Hiba történt a művelet során",
+      "post_review_title": "Posztok jóváhagyása",
+      "post_review_description": "Bekapcsolva a bírálói jog nélküli tagok nem publikálhatnak közvetlenül, csak jóváhagyásra küldhetik be a posztjaikat.",
+      "post_review_saved": "Jóváhagyási beállítás mentve",
+      "post_review_error": "Nem sikerült menteni a jóváhagyási beállítást"
     },
     "members": {
       "tab_title": "Tagok",

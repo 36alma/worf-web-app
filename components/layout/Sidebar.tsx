@@ -7,7 +7,7 @@ import * as ScrollArea from '@radix-ui/react-scroll-area';
 import * as Select from '@radix-ui/react-select';
 import * as Separator from '@radix-ui/react-separator';
 import * as Tooltip from '@radix-ui/react-tooltip';
-import { CalendarDays, Check, ChevronDown, ClipboardList, FolderOpen, HelpCircle, Home, ScrollText, Shield, Sparkles, StickyNote, Users, X } from 'lucide-react';
+import { CalendarDays, Check, ChevronDown, ClipboardList, FolderOpen, Home, ScrollText, Shield, Sparkles, StickyNote, Users, X } from 'lucide-react';
 import Link from 'next/link';
 import { useLocale, useTranslations } from 'next-intl';
 import { useParams, usePathname, useRouter } from 'next/navigation';
@@ -335,7 +335,7 @@ function SidebarContent({ isMobile }: { isMobile?: boolean }) {
     <Tooltip.Provider delayDuration={180}>
       <div className="flex h-full flex-col">
         {isMobile && (
-          <div className="sidebar-sheet-header">
+          <div className="sidebar-sheet-header shrink-0">
             <Link href={`/${locale}/dashboard`} className="sidebar-sheet-logo" onClick={() => setSidebarOpen(false)}>
               <Sparkles size={20} strokeWidth={1.75} />
               <span>{commonT('app_name')}</span>
@@ -347,7 +347,7 @@ function SidebarContent({ isMobile }: { isMobile?: boolean }) {
             </Dialog.Close>
           </div>
         )}
-        <ScrollArea.Root className="flex-1">
+        <ScrollArea.Root className="min-h-0 flex-1 overflow-hidden">
           <ScrollArea.Viewport className={`h-full p-[var(--sidebar-padding)] ${isMobile ? 'pb-2' : ''}`}>
             <div className="space-y-6">
               {canOpenGroups && isGroupsLoaded && groups.length > 0 && (
@@ -442,18 +442,6 @@ function SidebarContent({ isMobile }: { isMobile?: boolean }) {
           </ScrollArea.Scrollbar>
         </ScrollArea.Root>
       </div>
-      {isMobile && (
-        <div className="sidebar-sheet-footer">
-          <Link
-            href={`/${locale}/profile`}
-            className="sidebar-item flex h-[var(--sidebar-item-height)] items-center gap-[10px] rounded-[8px] px-3 text-[13px] text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]"
-            onClick={() => setSidebarOpen(false)}
-          >
-            <HelpCircle size={18} strokeWidth={1.75} />
-            {t('profile')}
-          </Link>
-        </div>
-      )}
     </Tooltip.Provider>
   );
 }
@@ -470,7 +458,7 @@ export default function Sidebar() {
       <Dialog.Root open={mobileSidebarOpen} onOpenChange={setSidebarOpen}>
         <Dialog.Portal>
           <Dialog.Overlay className="sidebar-overlay fixed inset-0 z-40 bg-black/55 lg:hidden" />
-          <Dialog.Content className="sidebar-sheet dialog-content fixed bottom-0 left-0 top-0 z-50 w-[min(88vw,var(--sidebar-width))] border-r border-[var(--border-subtle)] bg-[var(--bg-sidebar)] lg:hidden">
+          <Dialog.Content className="sidebar-sheet dialog-content fixed left-0 top-0 z-50 h-[100dvh] w-[min(88vw,var(--sidebar-width))] border-r border-[var(--border-subtle)] bg-[var(--bg-sidebar)] lg:hidden">
             <Dialog.Title className="sr-only">Sidebar navigation</Dialog.Title>
             <SidebarContent isMobile />
           </Dialog.Content>

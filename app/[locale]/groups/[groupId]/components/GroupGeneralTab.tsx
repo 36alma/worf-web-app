@@ -9,6 +9,7 @@ import { modifyGroupBase, deleteGroup } from '@/lib/api/groups';
 import { Copy, AlertTriangle, Trash2, Loader2, Check } from 'lucide-react';
 import toast from 'react-hot-toast';
 import Button from '@/components/ui/Button';
+import GroupPostReviewSetting from '@/components/posts/GroupPostReviewSetting';
 import Modal from '@/components/ui/Modal';
 import FieldError from '@/components/ui/FieldError';
 import { requiredText, optionalText } from '@/lib/validation';
@@ -204,6 +205,8 @@ export function GroupGeneralTab({ groupData }: GroupGeneralTabProps) {
           </Button>
         </div>
       </section>
+
+      {hasPermission('group.post.review.manage') && <GroupPostReviewSetting groupId={groupId} />}
 
       {/* Veszélyzóna */}
       {canDelete && (

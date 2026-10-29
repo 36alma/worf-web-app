@@ -271,8 +271,16 @@ async function handleProxy(request: NextRequest, params: {path: string[]}) {
     responseContentType = 'application/json';
   }
 
+  // No access token (expired cookie) means the body goes out without `Bearer`, and
+  // the backend answers 422 "body.Bearer missing" instead of 401. Report it as 401
+  // so the client's refresh-and-retry interceptor kicks in.
+  let status = response.status;
+  if (status === 422 && !token && /"loc"\s*:\s*\[\s*"body"\s*,\s*"Bearer"\s*\]/.test(responseText)) {
+    status = 401;
+  }
+
   return new NextResponse(responseText, {
-    status: response.status,
+    status,
     headers: {
       'Content-Type': responseContentType,
       ...(response.wwwAuthenticate ? {'WWW-Authenticate': response.wwwAuthenticate} : {})

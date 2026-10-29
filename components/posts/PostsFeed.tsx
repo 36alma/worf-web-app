@@ -13,40 +13,58 @@ import {
   Calendar,
   Check,
   ChevronDown,
+  CircleDot,
+  ClipboardCheck,
   Clock,
   Code,
   Copy,
   Eye,
   FileText,
   Globe,
+  Hash,
   ImageIcon,
   Layers,
-  MessageSquare,
   MoreHorizontal,
   Pencil,
   Pin,
+  PinOff,
   Plus,
   Settings,
   Sparkles,
   Tag,
-  ThumbsUp,
   Trash2
 } from 'lucide-react';
 import { getUserGroups } from '@/lib/api/groups';
 import {
   createGlobalPostCategory,
   createGroupPostCategory,
-  deleteGlobalPost,
   deleteGlobalPostCategory,
-  deleteGroupPost,
   deleteGroupPostCategory,
+  deletePost,
   getGlobalPostCategories,
-  getGlobalPosts,
   getGroupPostCategories,
-  getGroupPosts,
+  getPostPanel,
+  getPostTags,
+  getPostUnreadCount,
   modifyGlobalPostCategory,
-  modifyGroupPostCategory
+  modifyGroupPostCategory,
+  pinPost
 } from '@/lib/api/posts';
+import {
+  hasPostPermission,
+  httpStatus,
+  MAX_PINNED_PER_SCOPE,
+  normalizePostList,
+  normalizeTagList,
+  numberField,
+  POST_STATUSES,
+  type PostModel,
+  type PostStatus,
+  type PostTag
+} from '@/lib/posts/model';
+import PostReviewQueue from '@/components/posts/PostReviewQueue';
+import PostTagManagerModal from '@/components/posts/PostTagManagerModal';
+import PostTrashView from '@/components/posts/PostTrashView';
 import { getGroupPermissions } from '@/lib/api/permissions';
 import { hasPermissionRequirement } from '@/lib/permissions/access';
 import {
@@ -63,7 +81,6 @@ import ConfirmDialog from '@/components/ui/ConfirmDialog';
 import Modal from '@/components/ui/Modal';
 
 type RawObject = Record<string, unknown>;
-type PostStatus = 'draft' | 'published' | 'scheduled';
 
 interface GroupItem {
   id: string;
@@ -76,17 +93,7 @@ interface PostCategory {
   description: string;
 }
 
-interface PostItem {
-  id: string;
-  title: string;
-  body: string;
-  author: string;
-  author_id?: string;
-  createdAt: string;
-  categoryId: string;
-  categoryName: string;
-  status: PostStatus;
-}
+type FeedView = 'feed' | 'review' | 'trash';
 
 const readData = (payload: unknown): unknown => {
   if (!payload || typeof payload !== 'object') {
@@ -174,96 +181,6 @@ const normalizeCategories = (payload: unknown): PostCategory[] => {
     .filter((row): row is PostCategory => Boolean(row));
 };
 
-const normalizePosts = (payload: unknown): PostItem[] => {
-  const source = readData(payload);
-  const arrayValue = findArrayValue(source);
-
-  return arrayValue
-    .map((item) => {
-      if (!item || typeof item !== 'object') {
-        return null;
-      }
-
-      const row = item as RawObject;
-      const nestedPost =
-        row.post && typeof row.post === 'object' ? (row.post as RawObject) : null;
-      const nestedCategory =
-        row.category && typeof row.category === 'object' ? (row.category as RawObject) : null;
-      const nestedAuthor =
-        row.author && typeof row.author === 'object' ? (row.author as RawObject) : null;
-
-      const titleValue = nestedPost?.title ?? row.title ?? '';
-      const bodyValue = nestedPost?.content ?? nestedPost?.body ?? row.body ?? row.content ?? '';
-      const authorValue =
-        nestedAuthor?.name ??
-        nestedAuthor?.username ??
-        (nestedPost?.author && typeof nestedPost.author === 'object'
-          ? (nestedPost.author as RawObject).name
-          : nestedPost?.author) ??
-        row.author_name ??
-        (row.author && typeof row.author === 'object' ? (row.author as RawObject).name : row.author) ??
-        nestedPost?.author_name ??
-        nestedPost?.username ??
-        row.username ??
-        nestedPost?.author_id ??
-        '';
-      const createdAtValue =
-        nestedPost?.created_at ??
-        nestedPost?.updated_at ??
-        nestedPost?.create_time ??
-        nestedPost?.date ??
-        row.created_at ??
-        row.updated_at ??
-        row.create_time ??
-        row.date ??
-        '';
-      const categoryIdValue =
-        nestedCategory?.category_id ??
-        (nestedPost?.category && typeof nestedPost.category === 'object'
-          ? (nestedPost.category as RawObject).category_id
-          : undefined) ??
-        row.post_category_id ??
-        row.category_id ??
-        '';
-      const categoryNameValue =
-        nestedCategory?.category_name ??
-        nestedCategory?.name ??
-        (nestedPost?.category && typeof nestedPost.category === 'object'
-          ? ((nestedPost.category as RawObject).category_name ?? (nestedPost.category as RawObject).name)
-          : undefined) ??
-        row.post_category_name ??
-        row.category_name ??
-        '';
-      const statusValue = String(nestedPost?.status ?? row.status ?? row.post_status ?? 'published').toLowerCase();
-
-      const id = String(row.post_id ?? row.id ?? nestedPost?.post_id ?? nestedPost?.id ?? '');
-      if (!id) {
-        return null;
-      }
-
-      const authorId = String(
-        nestedPost?.author_id ??
-        row.author_id ??
-        (nestedAuthor?.id) ??
-        (row.author && typeof row.author === 'object' ? (row.author as RawObject).id : undefined) ??
-        ''
-      );
-
-      return {
-        id,
-        title: String(titleValue),
-        body: String(bodyValue),
-        author: String(authorValue),
-        author_id: authorId === '' ? undefined : authorId,
-        createdAt: String(createdAtValue),
-        categoryId: String(categoryIdValue),
-        categoryName: String(categoryNameValue),
-        status: statusValue === 'draft' || statusValue === 'scheduled' ? statusValue : 'published'
-      } as PostItem;
-    })
-    .filter((row): row is PostItem => Boolean(row));
-};
-
 const looksLikeTechnicalId = (value: string): boolean => {
   const trimmed = value.trim();
   if (!trimmed) {
@@ -341,7 +258,7 @@ export default function PostsFeed({ mode, groupId = '' }: PostsFeedProps) {
 
   const [groups, setGroups] = useState<GroupItem[]>([]);
   const [selectedFilterGroupId, setSelectedFilterGroupId] = useState('');
-  const [posts, setPosts] = useState<PostItem[]>([]);
+  const [posts, setPosts] = useState<PostModel[]>([]);
   const [loading, setLoading] = useState(true);
 
   const [categories, setCategories] = useState<PostCategory[]>([]);
@@ -355,7 +272,13 @@ export default function PostsFeed({ mode, groupId = '' }: PostsFeedProps) {
   const [categoryDescription, setCategoryDescription] = useState('');
   const [deletingCategoryId, setDeletingCategoryId] = useState('');
   const [deletingPostId, setDeletingPostId] = useState('');
-  const [pinnedPostIds, setPinnedPostIds] = useState<Record<string, boolean>>({});
+  const [view, setView] = useState<FeedView>('feed');
+  const [statusFilter, setStatusFilter] = useState<PostStatus | ''>('');
+  const [tagFilterId, setTagFilterId] = useState('');
+  const [tags, setTags] = useState<PostTag[]>([]);
+  const [tagModalOpen, setTagModalOpen] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [pinBusyId, setPinBusyId] = useState('');
 
   const activeGroupId = mode === 'group' ? groupId : selectedFilterGroupId;
   const isGroupScope = Boolean(activeGroupId);
@@ -480,24 +403,79 @@ export default function PostsFeed({ mode, groupId = '' }: PostsFeedProps) {
     return hasPermissionRequirement(systemPermissions, { anyOf: ['post.category.delete.global'] });
   }, [activeGroupPermissions, isGroupScope, isSystemPermissionsLoaded, systemPermissions]);
 
+  const scopePermissions = isGroupScope ? activeGroupPermissions ?? {} : systemPermissions;
+  const scopeGroup = isGroupScope && activeGroupId ? activeGroupId : undefined;
+  const canPostPermission = useCallback(
+    (key: Parameters<typeof hasPostPermission>[1]) => hasPostPermission(scopePermissions, key, isGroupScope),
+    [isGroupScope, scopePermissions]
+  );
+  const canPin = canPostPermission('pin');
+  const canReview = canPostPermission('review');
+  const canManageTags = canPostPermission('tagManage');
+  const canSeeTrash = canPostPermission('restore') || canPostPermission('purge');
+  const pinnedCount = useMemo(() => posts.filter((post) => post.isPinned).length, [posts]);
+
+  useEffect(() => {
+    if ((view === 'review' && !canReview) || (view === 'trash' && !canSeeTrash)) {
+      // Wait for permissions before falling back, so a deep link (?view=review) survives the first render.
+      const loaded = isGroupScope ? Boolean(activeGroupPermissions) : isSystemPermissionsLoaded;
+      if (loaded) setView('feed');
+    }
+  }, [activeGroupPermissions, canReview, canSeeTrash, isGroupScope, isSystemPermissionsLoaded, view]);
+
+  // Deep link from the inbox: `?view=review` (review requests) or `?view=trash`.
+  useEffect(() => {
+    const requested = new URLSearchParams(window.location.search).get('view');
+    if (requested === 'review' || requested === 'trash') setView(requested);
+  }, []);
+
+  const loadUnread = useCallback(async () => {
+    try {
+      const response = await getPostUnreadCount(scopeGroup);
+      setUnreadCount(numberField(response.data, ['unread'], 0));
+    } catch {
+      setUnreadCount(0);
+    }
+  }, [scopeGroup]);
+
+  const loadTags = useCallback(async () => {
+    try {
+      const response = await getPostTags(scopeGroup);
+      setTags(normalizeTagList(response.data));
+    } catch {
+      setTags([]);
+    }
+  }, [scopeGroup]);
+
   const loadPosts = useCallback(async () => {
     setLoading(true);
     try {
       if (isGroupScope && activeGroupId) {
         await ensureGroupPermissions(activeGroupId);
-        const response = await getGroupPosts({ group_id: activeGroupId, page_number: 1, load_post_number: 50 });
-        setPosts(normalizePosts(response.data));
-      } else {
-        const response = await getGlobalPosts({ page_number: 1, load_post_number: 50 });
-        setPosts(normalizePosts(response.data));
       }
+      const response = await getPostPanel(scopeGroup, {
+        page_number: 1,
+        load_post_number: 50,
+        status: statusFilter || undefined,
+        tag_id: tagFilterId || undefined
+      });
+      setPosts(normalizePostList(response.data));
+      void loadUnread();
     } catch {
       setPosts([]);
       toast.error(t('toasts.loadPostsError'));
     } finally {
       setLoading(false);
     }
-  }, [activeGroupId, ensureGroupPermissions, isGroupScope, t]);
+  }, [activeGroupId, ensureGroupPermissions, isGroupScope, loadUnread, scopeGroup, statusFilter, t, tagFilterId]);
+
+  useEffect(() => {
+    void loadTags();
+  }, [loadTags]);
+
+  useEffect(() => {
+    if (tagFilterId && !tags.some((tag) => tag.id === tagFilterId)) setTagFilterId('');
+  }, [tagFilterId, tags]);
 
   const loadCategories = useCallback(async () => {
     if (!canReadCategories) {
@@ -712,23 +690,19 @@ export default function PostsFeed({ mode, groupId = '' }: PostsFeedProps) {
     }
 
     const canDelete = isGroupScope
-      ? canDeleteGroupPost(user?.id, postToDelete.author_id || '', activeGroupPermissions || {})
-      : canDeleteGlobalPost(user?.id, postToDelete.author_id || '', systemPermissions);
+      ? canDeleteGroupPost(user?.id, postToDelete.authorId, activeGroupPermissions || {})
+      : canDeleteGlobalPost(user?.id, postToDelete.authorId, systemPermissions);
 
     if (!canDelete) {
       return;
     }
 
     try {
-      if (isGroupScope && activeGroupId) {
-        await deleteGroupPost(activeGroupId, deletingPostId);
-      } else {
-        await deleteGlobalPost(deletingPostId);
-      }
+      await deletePost(scopeGroup, deletingPostId);
 
       setDeletingPostId('');
       await loadPosts();
-      toast.success(t('toasts.postDeleted'));
+      toast.success(t('toasts.postTrashed'));
     } catch {
       toast.error(t('toasts.postDeleteError'));
     }
@@ -751,6 +725,23 @@ export default function PostsFeed({ mode, groupId = '' }: PostsFeedProps) {
     const selectedGroup = groups.find((group) => group.id === activeGroupId);
     return selectedGroup?.name ?? t('filters.globalFeed');
   }, [groups, activeGroupId, t]);
+
+  const statusOptions = useMemo(() => POST_STATUSES.map((status) => ({ id: status, name: t(`status.${status}`) })), [t]);
+
+  const selectedTagName = useMemo(() => {
+    const tag = tags.find((item) => item.id === tagFilterId);
+    return tag ? `#${tag.name}` : t('filters.allTags');
+  }, [t, tagFilterId, tags]);
+
+  const feedTabs = useMemo(
+    () =>
+      [
+        { key: 'feed' as FeedView, label: t('views.feed'), icon: <FileText size={14} /> },
+        ...(canReview ? [{ key: 'review' as FeedView, label: t('views.review'), icon: <ClipboardCheck size={14} /> }] : []),
+        ...(canSeeTrash ? [{ key: 'trash' as FeedView, label: t('views.trash'), icon: <Trash2 size={14} /> }] : [])
+      ],
+    [canReview, canSeeTrash, t]
+  );
 
   const selectedCategoryName = useMemo(() => {
     if (selectedCategoryFilterId === 'all') {
@@ -796,11 +787,24 @@ export default function PostsFeed({ mode, groupId = '' }: PostsFeedProps) {
     }
   };
 
-  const togglePin = (postId: string) => {
-    setPinnedPostIds((prev) => ({
-      ...prev,
-      [postId]: !prev[postId]
-    }));
+  const togglePin = async (post: PostModel) => {
+    const next = !post.isPinned;
+    if (next && pinnedCount >= MAX_PINNED_PER_SCOPE) {
+      toast.error(t('toasts.pinLimit'));
+      return;
+    }
+
+    setPinBusyId(post.uuid);
+    try {
+      await pinPost(scopeGroup, post.id, next);
+      toast.success(next ? t('toasts.pinned') : t('toasts.unpinned'));
+      await loadPosts();
+    } catch (error) {
+      const status = httpStatus(error);
+      toast.error(status === 400 || status === 422 ? t('toasts.pinLimit') : t('toasts.pinError'));
+    } finally {
+      setPinBusyId('');
+    }
   };
 
   // ── group.post.read gate (Silent Policy) ─────────────────────────
@@ -829,6 +833,12 @@ export default function PostsFeed({ mode, groupId = '' }: PostsFeedProps) {
               )}
             </h1>
             <span className="page-count-badge">{t('stats.postCount', { count: filteredPosts.length })}</span>
+            {unreadCount > 0 && (
+              <span className="page-count-badge inline-flex items-center gap-1 text-[var(--accent)]">
+                <CircleDot size={11} />
+                {t('stats.unread', { count: unreadCount })}
+              </span>
+            )}
           </div>
 
           <div className="posts-actions">
@@ -908,6 +918,81 @@ export default function PostsFeed({ mode, groupId = '' }: PostsFeedProps) {
                     <span>{t('filters.manageCategories')}</span>
                   </button>
                 )}
+
+                {view === 'feed' && (
+                  <div className="filter-group">
+                    <Select.Root value={statusFilter || 'all'} onValueChange={(value) => setStatusFilter(value === 'all' ? '' : (value as PostStatus))}>
+                      <Select.Trigger className="filter-select filter-chip" aria-label={t('filters.status')}>
+                        <CircleDot size={14} className="filter-icon" />
+                        <Select.Value>{statusFilter ? t(`status.${statusFilter}`) : t('filters.allStatuses')}</Select.Value>
+                        <Select.Icon>
+                          <ChevronDown size={14} />
+                        </Select.Icon>
+                      </Select.Trigger>
+                      <Select.Portal>
+                        <Select.Content className="posts-select-content" position="popper" sideOffset={4}>
+                          <Select.Viewport className="select-viewport">
+                            <Select.Item value="all" className="posts-select-item">
+                              <Select.ItemIndicator className="select-indicator">
+                                <Check size={14} />
+                              </Select.ItemIndicator>
+                              <Select.ItemText>{t('filters.allStatuses')}</Select.ItemText>
+                            </Select.Item>
+                            {statusOptions.map((item) => (
+                              <Select.Item key={item.id} value={item.id} className="posts-select-item">
+                                <Select.ItemIndicator className="select-indicator">
+                                  <Check size={14} />
+                                </Select.ItemIndicator>
+                                <Select.ItemText>{item.name}</Select.ItemText>
+                              </Select.Item>
+                            ))}
+                          </Select.Viewport>
+                        </Select.Content>
+                      </Select.Portal>
+                    </Select.Root>
+                  </div>
+                )}
+
+                {view === 'feed' && tags.length > 0 && (
+                  <div className="filter-group">
+                    <Select.Root value={tagFilterId || 'all'} onValueChange={(value) => setTagFilterId(value === 'all' ? '' : value)}>
+                      <Select.Trigger className="filter-select filter-chip" aria-label={t('filters.tag')}>
+                        <Hash size={14} className="filter-icon" />
+                        <Select.Value>{selectedTagName}</Select.Value>
+                        <Select.Icon>
+                          <ChevronDown size={14} />
+                        </Select.Icon>
+                      </Select.Trigger>
+                      <Select.Portal>
+                        <Select.Content className="posts-select-content" position="popper" sideOffset={4}>
+                          <Select.Viewport className="select-viewport">
+                            <Select.Item value="all" className="posts-select-item">
+                              <Select.ItemIndicator className="select-indicator">
+                                <Check size={14} />
+                              </Select.ItemIndicator>
+                              <Select.ItemText>{t('filters.allTags')}</Select.ItemText>
+                            </Select.Item>
+                            {tags.map((item) => (
+                              <Select.Item key={item.id} value={item.id} className="posts-select-item">
+                                <Select.ItemIndicator className="select-indicator">
+                                  <Check size={14} />
+                                </Select.ItemIndicator>
+                                <Select.ItemText>{item.name}</Select.ItemText>
+                              </Select.Item>
+                            ))}
+                          </Select.Viewport>
+                        </Select.Content>
+                      </Select.Portal>
+                    </Select.Root>
+                  </div>
+                )}
+
+                {canManageTags && (
+                  <button className="btn-secondary filter-chip" type="button" onClick={() => setTagModalOpen(true)}>
+                    <Hash size={14} />
+                    <span>{t('filters.manageTags')}</span>
+                  </button>
+                )}
               </div>
             </div>
 
@@ -920,7 +1005,38 @@ export default function PostsFeed({ mode, groupId = '' }: PostsFeedProps) {
           </div>
         </div>
 
-        {loading ? (
+        {(canReview || canSeeTrash) && (
+          <div className="mb-4 flex flex-wrap gap-1 border-b border-[var(--border-subtle)]" role="tablist">
+            {feedTabs.map(({ key, label, icon }) => (
+              <button
+                key={key}
+                type="button"
+                role="tab"
+                aria-selected={view === key}
+                onClick={() => setView(key)}
+                className={`-mb-px inline-flex items-center gap-1.5 border-b-2 px-3 py-2 text-[13px] ${
+                  view === key
+                    ? 'border-[var(--accent)] text-[var(--text-primary)]'
+                    : 'border-transparent text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+                }`}
+              >
+                {icon}
+                {label}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {view === 'review' ? (
+          <PostReviewQueue groupId={scopeGroup} onChanged={() => void loadPosts()} />
+        ) : view === 'trash' ? (
+          <PostTrashView
+            groupId={scopeGroup}
+            canRestore={canPostPermission('restore')}
+            canPurge={canPostPermission('purge')}
+            onRestored={() => void loadPosts()}
+          />
+        ) : loading ? (
           <div className="surface rounded-xl p-4 text-sm text-[var(--text-secondary)]">{t('loading')}</div>
         ) : (
           <div className="posts-list">
@@ -932,7 +1048,7 @@ export default function PostsFeed({ mode, groupId = '' }: PostsFeedProps) {
               const relativeTime = formatRelativeTime(post.createdAt, locale, t('timeUnknown'));
               const scopeLabel = isGroupScope ? t('filters.teamFeed') : t('filters.globalFeed');
               const excerpt = getFormattedExcerpt(post.body, 150);
-              const pinned = Boolean(pinnedPostIds[post.id]);
+              const pinned = post.isPinned;
 
               const onCardKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
                 if (event.key === 'Enter' || event.key === ' ') {
@@ -942,14 +1058,19 @@ export default function PostsFeed({ mode, groupId = '' }: PostsFeedProps) {
               };
 
               return (
-                <article key={post.id} className="post-card">
+                <article key={post.uuid} className="post-card">
                   <div className="post-card-header">
                     <div className="post-card-author">
                       <Avatar.Root className="post-avatar">
                         <Avatar.Fallback className="post-avatar-fallback">{authorName.slice(0, 2).toUpperCase()}</Avatar.Fallback>
                       </Avatar.Root>
                       <div className="post-author-info">
-                        <span className="post-author-name">{authorName}</span>
+                        <span className="post-author-name inline-flex items-center gap-1.5">
+                          {authorName}
+                          {!post.isRead && (
+                            <span className="size-2 rounded-full bg-[var(--accent)]" title={t('unreadPost')} aria-label={t('unreadPost')} />
+                          )}
+                        </span>
                         <div className="post-meta-row">
                           <Clock size={12} />
                           <time className="post-time">{relativeTime}</time>
@@ -993,18 +1114,28 @@ export default function PostsFeed({ mode, groupId = '' }: PostsFeedProps) {
                               <Copy size={14} />
                               <span>{t('actions.copyLink')}</span>
                             </DropdownMenu.Item>
+                            {canPin && post.status === 'published' && (
+                              <DropdownMenu.Item
+                                className="posts-dropdown-item"
+                                disabled={pinBusyId === post.uuid}
+                                onClick={() => void togglePin(post)}
+                              >
+                                {post.isPinned ? <PinOff size={14} /> : <Pin size={14} />}
+                                <span>{post.isPinned ? t('actions.unpin') : t('actions.pin')}</span>
+                              </DropdownMenu.Item>
+                            )}
                             {/* ── Edit menu item (Silent Policy: hidden if no permission) ── */}
                             {(() => {
                               const currentUserId = user?.id || (user as any)?.user_id;
                               const canEdit = isGroupScope
                                 ? canModifyGroupPost(
                                     currentUserId,
-                                    post.author_id || '',
+                                    post.authorId,
                                     activeGroupPermissions || {}
                                   )
                                 : canModifyGlobalPost(
                                     currentUserId,
-                                    post.author_id || '',
+                                    post.authorId,
                                     systemPermissions
                                   );
                               if (!canEdit) return null;
@@ -1022,12 +1153,12 @@ export default function PostsFeed({ mode, groupId = '' }: PostsFeedProps) {
                               const canDelete = isGroupScope
                                 ? canDeleteGroupPost(
                                     currentUserId,
-                                    post.author_id || '',
+                                    post.authorId,
                                     activeGroupPermissions || {}
                                   )
                                 : canDeleteGlobalPost(
                                     currentUserId,
-                                    post.author_id || '',
+                                    post.authorId,
                                     systemPermissions
                                   );
                               if (!canDelete) return null;
@@ -1076,31 +1207,20 @@ export default function PostsFeed({ mode, groupId = '' }: PostsFeedProps) {
                           {categoryLabel}
                         </span>
                       )}
+                      {post.tags.map((tag) => (
+                        <button
+                          key={tag.id}
+                          type="button"
+                          className="post-category-badge"
+                          onClick={() => setTagFilterId(tag.id)}
+                        >
+                          <Hash size={11} />
+                          {tag.name}
+                        </button>
+                      ))}
                     </div>
 
                     <div className="post-card-stats">
-                      <Tooltip.Root>
-                        <Tooltip.Trigger asChild>
-                          <span className="post-stat">
-                            <ThumbsUp size={13} />0
-                          </span>
-                        </Tooltip.Trigger>
-                        <Tooltip.Content className="posts-tooltip-content" sideOffset={4}>
-                          {t('stats.likes', { count: 0 })}
-                        </Tooltip.Content>
-                      </Tooltip.Root>
-
-                      <Tooltip.Root>
-                        <Tooltip.Trigger asChild>
-                          <span className="post-stat">
-                            <MessageSquare size={13} />0
-                          </span>
-                        </Tooltip.Trigger>
-                        <Tooltip.Content className="posts-tooltip-content" sideOffset={4}>
-                          {t('stats.comments', { count: 0 })}
-                        </Tooltip.Content>
-                      </Tooltip.Root>
-
                       <span className="post-stat">
                         <Calendar size={13} />
                         {relativeTime}
@@ -1217,6 +1337,14 @@ export default function PostsFeed({ mode, groupId = '' }: PostsFeedProps) {
             )}
           </div>
         </Modal>
+
+        <PostTagManagerModal
+          open={tagModalOpen}
+          groupId={scopeGroup}
+          tags={tags}
+          onClose={() => setTagModalOpen(false)}
+          onChanged={() => void loadTags()}
+        />
 
         <ConfirmDialog
           open={Boolean(deletingCategoryId)}

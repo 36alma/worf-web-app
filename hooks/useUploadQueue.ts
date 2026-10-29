@@ -13,6 +13,10 @@ export interface UploadItem {
   errorMessage?: string;
   /** Set once the upload is `done` — the id of the created file. */
   fileId?: string;
+  /** Overrides the queue's default target folder (used by folder uploads). */
+  folderId?: string | null;
+  /** Label (top-level folder name) the progress panel groups folder-upload items under. */
+  group?: string;
 }
 
 export interface UseUploadQueueOptions {
@@ -26,13 +30,13 @@ export interface UseUploadQueueOptions {
 let idCounter = 0;
 const nextId = () => `upload-${++idCounter}`;
 
-async function uploadOne(file: File, options: UseUploadQueueOptions, onProgress: (percent: number) => void): Promise<string> {
+async function uploadOne(file: File, options: UseUploadQueueOptions, folderId: string | null | undefined, onProgress: (percent: number) => void): Promise<string> {
   const startResponse = await startUpload({
     filename: file.name,
     mime_type: file.type,
     scope: options.mode,
     group_id: options.mode === 'group' ? options.groupId : undefined,
-    folder_id: options.folderId,
+    folder_id: folderId,
   });
   const { upload_id, presigned_post_url, presigned_post_fields, file_id } = startResponse.data;
 
@@ -102,9 +106,9 @@ export function useUploadQueue(options: UseUploadQueueOptions) {
     });
   }, [concurrency]);
 
-  const runUpload = async (id: string, file: File) => {
+  const runUpload = async (id: string, file: File, folderId: string | null | undefined) => {
     try {
-      const fileId = await uploadOne(file, optionsRef.current, (percent) => updateItem(id, { progress: percent }));
+      const fileId = await uploadOne(file, optionsRef.current, folderId, (percent) => updateItem(id, { progress: percent }));
       updateItem(id, { status: 'done', progress: 100, fileId });
     } catch (error) {
       updateItem(id, { status: 'error', errorMessage: error instanceof Error ? error.message : 'upload_failed' });
@@ -134,15 +138,16 @@ export function useUploadQueue(options: UseUploadQueueOptions) {
     for (const item of items) {
       if (item.status === 'uploading' && !startedRef.current.has(item.id)) {
         startedRef.current.add(item.id);
-        void runUpload(item.id, item.file);
+        void runUpload(item.id, item.file, item.folderId);
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [items]);
 
   const enqueue = useCallback(
-    (files: File[]) => {
-      const newItems: UploadItem[] = files.map((file) => ({ id: nextId(), file, status: 'queued', progress: 0 }));
+    (files: File[], folderId?: string | null, group?: string) => {
+      const targetFolderId = folderId === undefined ? optionsRef.current.folderId : folderId;
+      const newItems: UploadItem[] = files.map((file) => ({ id: nextId(), file, status: 'queued', progress: 0, folderId: targetFolderId, group }));
       pendingCountRef.current += newItems.length;
       setItems((current) => [...current, ...newItems]);
       setTimeout(pump, 0);

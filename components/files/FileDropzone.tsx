@@ -1,20 +1,23 @@
 'use client';
 
 import { ChangeEvent, DragEvent, KeyboardEvent, ReactNode, useRef, useState } from 'react';
+import { UploadCloud } from 'lucide-react';
 import clsx from 'clsx';
 
 export interface FileDropzoneProps {
-  onFileSelect: (file: File) => void;
+  onFilesSelect: (files: File[]) => void;
   accept?: string;
+  /** Label shown while a drag is hovering over the zone (already translated by the caller). */
+  dragLabel?: string;
   /** Optional label/instructions rendered inside the dropzone (already translated by the caller). */
   children?: ReactNode;
 }
 
 /**
- * Simple drag & drop area with a hidden `<input type="file">` fallback. No file-reading or
- * validation logic lives here — the caller decides what to do with the selected `File`.
+ * Drag & drop area with a hidden multi-file `<input type="file">` for click-to-browse. No
+ * file-reading or validation logic lives here — the caller decides what to do with the files.
  */
-export default function FileDropzone({ onFileSelect, accept, children }: FileDropzoneProps) {
+export default function FileDropzone({ onFilesSelect, accept, dragLabel, children }: FileDropzoneProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [isDragOver, setIsDragOver] = useState(false);
 
@@ -27,20 +30,22 @@ export default function FileDropzone({ onFileSelect, accept, children }: FileDro
 
   const handleDragLeave = (event: DragEvent<HTMLDivElement>) => {
     event.preventDefault();
+    // dragleave also fires when the pointer moves onto a child element; only reset on a real exit.
+    if (event.currentTarget.contains(event.relatedTarget as Node | null)) return;
     setIsDragOver(false);
   };
 
   const handleDrop = (event: DragEvent<HTMLDivElement>) => {
     event.preventDefault();
     setIsDragOver(false);
-    const file = event.dataTransfer.files?.[0];
-    if (file) onFileSelect(file);
+    const files = Array.from(event.dataTransfer.files ?? []);
+    if (files.length > 0) onFilesSelect(files);
   };
 
   const handleInputChange = (event: ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) onFileSelect(file);
-    // Reset so selecting the same file again still fires a change event.
+    const files = Array.from(event.target.files ?? []);
+    if (files.length > 0) onFilesSelect(files);
+    // Reset so selecting the same file(s) again still fires a change event.
     event.target.value = '';
   };
 
@@ -61,14 +66,19 @@ export default function FileDropzone({ onFileSelect, accept, children }: FileDro
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
       className={clsx(
-        'flex cursor-pointer flex-col items-center justify-center gap-2 rounded-[var(--radius-lg)] border border-dashed px-4 py-8 text-center text-sm transition-colors duration-150',
+        'group flex cursor-pointer flex-col items-center justify-center gap-2 rounded-[var(--radius-lg)] border-2 border-dashed px-4 py-8 text-center text-sm transition-colors duration-150',
         isDragOver
           ? 'border-[var(--accent)] bg-[var(--bg-hover)] text-[var(--text-primary)]'
-          : 'border-[var(--border-subtle)] text-[var(--text-tertiary)] hover:bg-[var(--bg-hover)]'
+          : 'border-[var(--border-subtle)] text-[var(--text-tertiary)] hover:border-[var(--accent)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]'
       )}
     >
-      <input ref={inputRef} type="file" accept={accept} className="hidden" onChange={handleInputChange} />
-      {children}
+      <input ref={inputRef} type="file" multiple accept={accept} className="hidden" onChange={handleInputChange} />
+      <UploadCloud
+        size={32}
+        strokeWidth={1.5}
+        className={clsx('transition-transform duration-150', isDragOver ? '-translate-y-1 text-[var(--accent)]' : 'group-hover:-translate-y-0.5')}
+      />
+      {isDragOver && dragLabel ? <span>{dragLabel}</span> : children}
     </div>
   );
 }

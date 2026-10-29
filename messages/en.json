@@ -912,9 +912,27 @@
     "sharedWithMe": {
       "emptyText": "No one has shared any files or folders with you yet."
     },
+    "newMenu": {
+      "trigger": "New",
+      "newFolder": "New folder",
+      "uploadFile": "Upload file",
+      "uploadFolder": "Upload folder",
+      "folderUploadFailed": "Folder upload failed.",
+      "dropHint": "Drop to upload",
+      "previewTitle": "Confirm upload",
+      "previewMessage": "{files} files, {folders} folders, {size} in total.",
+      "previewQuota": " Free space: {free}.",
+      "previewOverQuota": " Not enough free space ({free} left), the upload will likely fail.",
+      "previewConfirm": "Upload",
+      "groupCount": "{done}/{total}",
+      "groupErrors": "{count} failed"
+    },
     "upload": {
       "title": "Upload file",
-      "dropzoneLabel": "Drag a file here, or click to browse",
+      "dropzoneLabel": "Drag files here, or click to browse",
+      "dropzoneHint": "You can select multiple files at once",
+      "dropActive": "Drop to upload",
+      "empty": "No files uploaded yet.",
       "selectFile": "Select file",
       "filenameLabel": "Filename",
       "uploading": "Uploading...",
@@ -1311,12 +1329,19 @@
       "teamFeed": "Team feed",
       "category": "Category",
       "allCategories": "All categories",
-      "manageCategories": "Categories"
+      "manageCategories": "Categories",
+      "status": "Status",
+      "allStatuses": "Default view",
+      "tag": "Tag",
+      "allTags": "All tags",
+      "manageTags": "Tags"
     },
     "status": {
       "published": "Published",
       "draft": "Draft",
-      "scheduled": "Scheduled"
+      "scheduled": "Scheduled",
+      "pending_review": "Pending review",
+      "archived": "Archived"
     },
     "actions": {
       "back": "Back",
@@ -1328,7 +1353,9 @@
       "unpin": "Unpin",
       "delete": "Delete",
       "deleteSuccess": "Post deleted",
-      "deleteError": "Failed to delete post"
+      "deleteError": "Failed to delete post",
+      "readers": "Who read it",
+      "revisions": "Version history"
     },
     "empty": {
       "title": "No posts yet",
@@ -1341,7 +1368,8 @@
     "stats": {
       "likes": "{count} likes",
       "comments": "{count} comments",
-      "postCount": "{count} posts"
+      "postCount": "{count} posts",
+      "unread": "{count} unread"
     },
     "contentHints": {
       "hasCode": "Contains code",
@@ -1375,11 +1403,16 @@
       "linkCopyError": "Failed to copy link",
       "noPostDeletePermission": "No permission to delete post",
       "postDeleted": "Post deleted",
-      "postDeleteError": "Failed to delete post"
+      "postDeleteError": "Failed to delete post",
+      "postTrashed": "Post moved to trash",
+      "pinned": "Post pinned",
+      "unpinned": "Post unpinned",
+      "pinLimit": "At most 3 posts can be pinned here. Unpin one first.",
+      "pinError": "Failed to change pin"
     },
     "pinned": "Pinned post",
     "deletePostTitle": "Delete post",
-    "deletePostMessage": "Are you sure you want to delete this post?",
+    "deletePostMessage": "The post goes to the trash, where it can be restored for 30 days.",
     "detail": {
       "title": "Post Details",
       "subtitle": "Read the full post content with formatting.",
@@ -1389,7 +1422,8 @@
       "updated": "Updated",
       "notFound": "Post not found",
       "loading": "Loading...",
-      "loadError": "Failed to load post"
+      "loadError": "Failed to load post",
+      "readPrivacyNote": "When you open a post, its author can see that you have read it."
     },
     "edit": {
       "pageTitle": "Edit post",
@@ -1401,16 +1435,23 @@
       "saveSuccess": "Post saved successfully",
       "saveError": "Failed to save",
       "preview": "Preview",
-      "saveDraft": "Save draft",
+      "saveDraft": "Save on this device",
       "draftSavedLocal": "Draft saved on this device",
       "draftRestored": "Local draft restored",
-      "draftNotice": "Save draft only stores the content locally on this device. Only Publish sends data to the WORF API.",
+      "draftNotice": "“Save on this device” keeps the content in this browser only. Use the main button to save to WORF — as a draft, scheduled or published.",
       "updatePost": "Update post",
       "publishPost": "Publish",
       "unsavedTitle": "Unsaved changes",
       "unsavedDescription": "You have unsaved changes. If you leave now, they will be lost.",
       "stayHere": "Stay here",
-      "leaveWithout": "Leave without saving"
+      "leaveWithout": "Leave without saving",
+      "saved_draft": "Draft saved",
+      "saved_scheduled": "Post scheduled",
+      "saved_published": "Post published",
+      "saved_archived": "Post archived",
+      "submit_draft": "Save as draft",
+      "submit_scheduled": "Schedule",
+      "submit_archived": "Save archived"
     },
     "form": {
       "basics": "Basics",
@@ -1463,7 +1504,174 @@
       "toast_group_created": "Group post created",
       "toast_global_created": "Global post created"
     },
-    "card_title": "Post"
+    "card_title": "Post",
+    "unreadPost": "Unread",
+    "views": {
+      "feed": "Posts",
+      "review": "Pending review",
+      "trash": "Trash"
+    },
+    "publish": {
+      "section": "Publishing",
+      "status": "Status",
+      "statusHint": {
+        "published": "Visible to everyone in this scope; notifications go out now.",
+        "draft": "Only you can see it.",
+        "scheduled": "Published automatically at the chosen time; notifications go out then.",
+        "archived": "Hidden from the default feed; available with the Archived filter."
+      },
+      "timeZone": "Time zone",
+      "publishAt": "Publish at",
+      "expiresAt": "Expires at",
+      "clear": "Clear",
+      "expiresHint": "Optional. When it expires, the post is archived.",
+      "commentsEnabled": "Allow comments",
+      "errors": {
+        "publishAtFuture": "Pick a publish time in the future.",
+        "expiresAtFuture": "The expiry must be in the future.",
+        "expiresAfterPublish": "The expiry must be after the publish time."
+      }
+    },
+    "review": {
+      "submit": "Submit for review",
+      "submitted": "Submitted for review",
+      "submitError": "Failed to submit for review",
+      "withdraw": "Withdraw",
+      "withdrawn": "Withdrawn — the post is a draft again",
+      "withdrawError": "Failed to withdraw",
+      "pendingLocked": "This post is waiting for review. Its title and content cannot be edited until a decision is made — withdraw it to edit.",
+      "pendingBanner": "Waiting for review.",
+      "rejectedBanner": "The reviewer sent this post back",
+      "requiredNotice": "Posts in this group need approval before they are published.",
+      "requiredTitle": "Approval required",
+      "requiredPrompt": "This group requires approval before publishing. Save it as a draft and submit it for review?",
+      "rejectTitle": "Reject post",
+      "rejectDescription": "Tell the author why “{title}” was sent back. They will see this message.",
+      "rejectPlaceholder": "Reason (required)",
+      "reject": "Reject",
+      "cancel": "Cancel",
+      "approve": "Approve",
+      "approved": "Post approved and published",
+      "rejected": "Post sent back to the author",
+      "ownPostForbidden": "You cannot review your own post.",
+      "decisionError": "Failed to save the decision",
+      "loadError": "Failed to load pending posts",
+      "queueNote": "{count} posts are waiting for review.",
+      "queueEmpty": "Nothing is waiting for review",
+      "submittedAt": "submitted {value}"
+    },
+    "tags": {
+      "label": "Tags",
+      "add": "Add tag",
+      "remove": "Remove tag",
+      "noneDefined": "No tags yet.",
+      "limit": "At most {max} tags per post.",
+      "modalTitle": "Post tags",
+      "namePlaceholder": "New tag name",
+      "create": "Add",
+      "created": "Tag created",
+      "duplicate": "A tag with this name already exists",
+      "saveError": "Failed to create tag",
+      "deleted": "Tag deleted",
+      "deleteError": "Failed to delete tag",
+      "delete": "Delete tag",
+      "empty": "No tags yet.",
+      "deleteTitle": "Delete tag",
+      "deleteMessage": "Delete the tag “{name}”? It is removed from every post."
+    },
+    "links": {
+      "section": "Related items",
+      "add": "Link item",
+      "remove": "Remove link",
+      "pickerTitle": "Link items",
+      "done": "Done",
+      "types": {
+        "task": "Task",
+        "sprint": "Sprint",
+        "minutes": "Minutes",
+        "file": "File"
+      },
+      "search": "Search…",
+      "limit": "At most {max} links per post.",
+      "loading": "Loading…",
+      "loadError": "Failed to load items",
+      "empty": "Nothing found"
+    },
+    "reactions": {
+      "like": "Like",
+      "love": "Love",
+      "laugh": "Haha",
+      "celebrate": "Celebrate",
+      "wow": "Wow",
+      "sad": "Sad",
+      "add": "Add reaction",
+      "error": "Failed to save reaction"
+    },
+    "comments": {
+      "title": "Comments ({count})",
+      "placeholder": "Write a comment…",
+      "replyPlaceholder": "Write a reply…",
+      "submit": "Comment",
+      "reply": "Reply",
+      "edit": "Edit",
+      "save": "Save",
+      "cancel": "Cancel",
+      "delete": "Delete",
+      "deleteTitle": "Delete comment",
+      "deleteMessage": "Are you sure you want to delete this comment?",
+      "deletedComment": "Deleted comment",
+      "deletedUser": "Deleted user",
+      "edited": "edited",
+      "loading": "Loading comments…",
+      "empty": "No comments yet.",
+      "loadMore": "Load more",
+      "loadError": "Failed to load comments",
+      "saveError": "Failed to save comment",
+      "deleteError": "Failed to delete comment",
+      "reactionError": "Failed to save reaction",
+      "forbidden": "You do not have permission for this.",
+      "disabled": "Comments are turned off for this post."
+    },
+    "readers": {
+      "title": "Who read it",
+      "privacyNote": "Read receipts are visible to the author and to moderators.",
+      "loadError": "Failed to load readers",
+      "empty": "Nobody has read it yet.",
+      "deletedUser": "Deleted user",
+      "loading": "Loading…",
+      "loadMore": "Load more"
+    },
+    "revisions": {
+      "title": "Version history",
+      "backToList": "Versions",
+      "restore": "Restore this version",
+      "diffLegend": "Changes from version {version} (red) to the current post (green).",
+      "loading": "Loading…",
+      "empty": "No earlier versions yet.",
+      "untitled": "Untitled",
+      "compare": "Compare",
+      "restoreTitle": "Restore version",
+      "restoreMessage": "Restore version {version}? The current content is kept as a new version.",
+      "restored": "Version {version} restored",
+      "restoreError": "Failed to restore version",
+      "loadError": "Failed to load versions"
+    },
+    "trash": {
+      "retentionNote": "Deleted posts are permanently removed after 30 days.",
+      "empty": "The trash is empty",
+      "deletedAt": "Deleted {value}",
+      "purgeSoon": "removed soon",
+      "daysLeft": "{count} days left",
+      "restore": "Restore",
+      "purge": "Delete forever",
+      "purgeTitle": "Delete forever",
+      "purgeMessage": "This post will be permanently deleted. This cannot be undone.",
+      "restored": "Post restored",
+      "restoreError": "Failed to restore post",
+      "purged": "Post permanently deleted",
+      "purgeError": "Failed to delete post",
+      "loadError": "Failed to load the trash"
+    }
   },
   "notifications": {
     "bell_aria_label": "Notifications",
@@ -1510,10 +1718,10 @@
     "action_error_generic": "The action failed.",
     "errors": {
       "api": {
+        "403": "You don't have permission for this action.",
         "404": "This notification is no longer available.",
         "409": "This action can no longer be taken — the item has been updated.",
-        "422": "This item has no such action.",
-        "403": "You don't have permission for this action."
+        "422": "This item has no such action."
       }
     },
     "preferences": {
@@ -1932,7 +2140,11 @@
       "delete_modal_deleting": "Deleting...",
       "delete_success": "Group deleted",
       "save_success": "Group data updated",
-      "error": "An error occurred during the operation"
+      "error": "An error occurred during the operation",
+      "post_review_title": "Post approval",
+      "post_review_description": "When on, members without reviewer rights can only submit posts for approval instead of publishing them directly.",
+      "post_review_saved": "Post approval setting saved",
+      "post_review_error": "Failed to save the post approval setting"
     },
     "members": {
       "tab_title": "Members",

@@ -27,6 +27,9 @@ export interface InboxPanelProps {
   onChanged: () => void;
 }
 
+/** Review-request notifications (sent to reviewers); decisions and comments go to the author and open the post. */
+const isPostReviewRequest = (notificationType: string) => /REVIEW/i.test(notificationType) && /(REQUEST|SUBMIT|PENDING)/i.test(notificationType);
+
 export default function InboxPanel({open, onClose, onChanged}: InboxPanelProps) {
   const t = useTranslations('notifications');
   const locale = useLocale();
@@ -67,8 +70,18 @@ export default function InboxPanel({open, onClose, onChanged}: InboxPanelProps) 
   }, [openTask]);
 
   const navigateToEntity = useCallback(
-    (target: {entity_type: string; entity_id: string; group_id: string | null} | null | undefined) => {
-      if (!target?.group_id) return;
+    (target: {entity_type: string; entity_id: string; group_id: string | null} | null | undefined, notificationType = '') => {
+      if (!target) return;
+      if (target.entity_type === 'post') {
+        onClose();
+        const base = target.group_id
+          ? `/${locale}/groups/${encodeURIComponent(normalizeGroupId(target.group_id))}/posts`
+          : `/${locale}/posts`;
+        // A pending post is visible to its author only, so reviewers land on the review queue instead.
+        router.push(isPostReviewRequest(notificationType) ? `${base}?view=review` : `${base}/${encodeURIComponent(target.entity_id)}`);
+        return;
+      }
+      if (!target.group_id) return;
       const groupPath = encodeURIComponent(normalizeGroupId(target.group_id));
       if (target.entity_type === 'task') {
         setOpenTask({group_id: normalizeGroupId(target.group_id), task_id: target.entity_id});
@@ -77,8 +90,6 @@ export default function InboxPanel({open, onClose, onChanged}: InboxPanelProps) 
       onClose();
       if (target.entity_type === 'minutes') {
         router.push(`/${locale}/groups/${groupPath}/minutes/${encodeURIComponent(target.entity_id)}`);
-      } else if (target.entity_type === 'post') {
-        router.push(`/${locale}/groups/${groupPath}/posts/${encodeURIComponent(target.entity_id)}`);
       } else if (target.entity_type === 'event') {
         // No deep-link to a single event yet — land on the group's calendar.
         router.push(`/${locale}/groups/${groupPath}/calendar`);
@@ -87,14 +98,19 @@ export default function InboxPanel({open, onClose, onChanged}: InboxPanelProps) 
     [locale, onClose, router]
   );
 
-  const handleOpen = async (notificationId: string, entity: {type: string; id: string} | null, groupId: string | null) => {
+  const handleOpen = async (
+    notificationId: string,
+    entity: {type: string; id: string} | null,
+    groupId: string | null,
+    notificationType: string
+  ) => {
     try {
       const response = await performAction(notificationId, 'OPEN');
       onChanged();
       if (response?.target) {
-        navigateToEntity(response.target);
+        navigateToEntity(response.target, notificationType);
       } else if (entity) {
-        navigateToEntity({entity_type: entity.type, entity_id: entity.id, group_id: groupId});
+        navigateToEntity({entity_type: entity.type, entity_id: entity.id, group_id: groupId}, notificationType);
       }
     } catch (error) {
       toast.error(translateNotificationApiError(t, error, 'action_error_generic'));
@@ -183,7 +199,7 @@ export default function InboxPanel({open, onClose, onChanged}: InboxPanelProps) 
                     key={inboxItemKey(item, index)}
                     item={item}
                     busy={busyId === item.notification_id}
-                    onOpen={() => handleOpen(item.notification_id, item.entity, item.group_id)}
+                    onOpen={() => handleOpen(item.notification_id, item.entity, item.group_id, item.notification_type)}
                     onAccept={() => handleAction(item.notification_id, 'ACCEPT')}
                     onDecline={() => handleAction(item.notification_id, 'DECLINE')}
                     onToggleRead={() => handleToggleRead(item.notification_id, item.read)}

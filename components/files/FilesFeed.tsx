@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, type ChangeEvent, type DragEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { useLocale, useTranslations } from 'next-intl';
 import toast from 'react-hot-toast';
@@ -14,25 +14,28 @@ import {
   type DragStartEvent,
   type DragEndEvent,
 } from '@dnd-kit/core';
-import { File, Folder, FolderPlus, Star } from 'lucide-react';
+import { File, Folder, FolderPlus, FolderUp, FileUp, Plus, Star } from 'lucide-react';
 import { LayoutGrid, List, Search } from 'lucide-react';
-import { listFiles, requestDownload, buildDownloadUrl, deleteFile, renameFile, starFile, unstarFile, moveFile, type FileListItem } from '@/lib/api/files';
+import { listFiles, getStorageUsage, requestDownload, buildDownloadUrl, deleteFile, renameFile, starFile, unstarFile, moveFile, type FileListItem } from '@/lib/api/files';
 import { listFolder, createFolder, deleteFolder, renameFolder, starFolder, unstarFolder, moveFolder } from '@/lib/api/folders';
 import { translateFileApiError } from '@/lib/i18n/files';
 import { translateFolderApiError } from '@/lib/i18n/folders';
-import { getFileCategory, type FileCategory } from '@/lib/utils/formatFiles';
+import { getFileCategory, formatFileSize, type FileCategory } from '@/lib/utils/formatFiles';
+import { fromDataTransfer, fromFileList, summarizePending, type PendingUpload, type PendingUploadSummary } from '@/lib/utils/uploadTree';
 import { markForbidden, isForbidden } from '@/lib/permissions/filesGuard';
 import { usePagedDualList } from '@/hooks/usePagedDualList';
 import { useUploadQueue } from '@/hooks/useUploadQueue';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import Button from '@/components/ui/Button';
+import { ContextMenu, ContextMenuTrigger, ContextMenuContent, ContextMenuItem } from '@/components/ui/ContextMenu';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/DropdownMenu';
 import ConfirmDialog from '@/components/ui/ConfirmDialog';
 import { Input } from '@/components/ui/Input';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/Tabs';
 import FileTable from '@/components/files/FileTable';
 import FileGrid from '@/components/files/FileGrid';
 import BulkActionBar from '@/components/files/BulkActionBar';
-import UploadDialog from '@/components/files/UploadDialog';
+import UploadDialog, { validateAndEnqueueFiles } from '@/components/files/UploadDialog';
 import UploadProgressPanel from '@/components/files/UploadProgressPanel';
 import FileDetailSheet from '@/components/files/FileDetailSheet';
 import FolderDetailSheet from '@/components/files/FolderDetailSheet';
@@ -69,6 +72,7 @@ const PAGE_SIZE = 20;
 export default function FilesFeed({ mode, groupId, folderId = null, basePath }: FilesFeedProps) {
   const t = useTranslations('files');
   const tf = useTranslations('folders');
+  const tv = useTranslations('validation');
   const locale = useLocale();
   const router = useRouter();
 
@@ -98,6 +102,9 @@ export default function FilesFeed({ mode, groupId, folderId = null, basePath }: 
   const [isBulkShareOpen, setIsBulkShareOpen] = useState(false);
   const [isBulkDeleteConfirmOpen, setIsBulkDeleteConfirmOpen] = useState(false);
   const [isBulkBusy, setIsBulkBusy] = useState(false);
+  const [isDraggingFiles, setIsDraggingFiles] = useState(false);
+  const [uploadPreview, setUploadPreview] = useState<{ pending: PendingUpload[]; summary: PendingUploadSummary; freeBytes: number | null } | null>(null);
+  const dragDepth = useRef(0);
 
   const dndSensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -292,6 +299,113 @@ export default function FilesFeed({ mode, groupId, folderId = null, basePath }: 
     }
   };
 
+  const folderInputRef = useRef<HTMLInputElement>(null);
+
+  // Recreates the directory tree of `pending` under the current folder, then
+  // queues each file into its matching folder. Folders are created parent-first
+  // and cached by relative path so shared ancestors are only created once.
+  const uploadPending = async (pending: PendingUpload[]) => {
+    const folderIds = new Map<string, string | null>([['', folderId]]);
+    try {
+      for (const { file, dir } of pending) {
+        let path = '';
+        for (const part of dir) {
+          const parentPath = path;
+          path = path ? `${path}/${part}` : part;
+          if (folderIds.has(path)) continue;
+          const created = await createFolder({ name: part, scope: mode, group_id: mode === 'group' ? groupId : undefined, parent_folder_id: folderIds.get(parentPath) });
+          folderIds.set(path, created.data.folder_id);
+        }
+        validateAndEnqueueFiles(
+          [file],
+          (files) => uploadQueue.enqueue(files, folderIds.get(path), dir[0]),
+          (suggestion) => toast(t('nameDialog.sanitizeSuggestion', { suggestion })),
+          (issueMessage) => toast.error(tv(issueMessage as never))
+        );
+      }
+    } catch (error) {
+      toast.error(translateFolderApiError(tf, error, 'errors.default'));
+    }
+    refetch();
+  };
+
+  // Folder uploads can be large, so they get a confirmation step showing
+  // what will be created and how it compares to the free storage.
+  const requestUpload = (pending: PendingUpload[]) => {
+    if (pending.length === 0) return;
+    if (!pending.some((item) => item.dir.length > 0)) {
+      void uploadPending(pending);
+      return;
+    }
+    setUploadPreview({ pending, summary: summarizePending(pending), freeBytes: null });
+    getStorageUsage(mode, mode === 'group' ? groupId : undefined)
+      .then((response) => {
+        const { used_bytes, limit_bytes } = response.data;
+        if (limit_bytes == null) return;
+        setUploadPreview((current) => (current ? { ...current, freeBytes: Math.max(limit_bytes - used_bytes, 0) } : current));
+      })
+      .catch(() => undefined);
+  };
+
+  const handleFolderPicked = (event: ChangeEvent<HTMLInputElement>) => {
+    const picked = Array.from(event.target.files ?? []);
+    event.target.value = '';
+    requestUpload(fromFileList(picked));
+  };
+
+  const hasFiles = (event: DragEvent) => Array.from(event.dataTransfer.types).includes('Files');
+
+  const handlePageDragEnter = (event: DragEvent) => {
+    if (!hasFiles(event)) return;
+    event.preventDefault();
+    dragDepth.current += 1;
+    setIsDraggingFiles(true);
+  };
+
+  const handlePageDragOver = (event: DragEvent) => {
+    if (hasFiles(event)) event.preventDefault();
+  };
+
+  const handlePageDragLeave = (event: DragEvent) => {
+    if (!hasFiles(event)) return;
+    dragDepth.current -= 1;
+    if (dragDepth.current <= 0) {
+      dragDepth.current = 0;
+      setIsDraggingFiles(false);
+    }
+  };
+
+  const handlePageDrop = (event: DragEvent) => {
+    if (!hasFiles(event)) return;
+    dragDepth.current = 0;
+    setIsDraggingFiles(false);
+    // The dropzone inside the upload dialog handles its own drops; its event
+    // bubbles here through the React tree, so don't enqueue those twice.
+    if (event.defaultPrevented) return;
+    event.preventDefault();
+    void fromDataTransfer(event.dataTransfer).then(requestUpload);
+  };
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.ctrlKey || event.metaKey || event.altKey) return;
+      const target = event.target as HTMLElement | null;
+      if (target && (target.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName))) return;
+      if (document.querySelector('[role="dialog"],[role="alertdialog"],[role="menu"]')) return;
+      const key = event.key.toLowerCase();
+      if (key === 'n' && event.shiftKey) {
+        event.preventDefault();
+        setIsNewFolderOpen(true);
+      } else if (key === 'u') {
+        event.preventDefault();
+        if (event.shiftKey) folderInputRef.current?.click();
+        else setIsUploadOpen(true);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   const handleCreateFolder = async (name: string) => {
     try {
       await createFolder({ name, scope: mode, group_id: mode === 'group' ? groupId : undefined, parent_folder_id: folderId });
@@ -324,7 +438,15 @@ export default function FilesFeed({ mode, groupId, folderId = null, basePath }: 
 
   return (
     <DndContext sensors={dndSensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
-    <section className="space-y-4">
+    <section className="space-y-4" onDragEnter={handlePageDragEnter} onDragOver={handlePageDragOver} onDragLeave={handlePageDragLeave} onDrop={handlePageDrop}>
+      {isDraggingFiles && (
+        <div className="pointer-events-none fixed inset-0 z-[55] flex items-center justify-center bg-black/40 p-6">
+          <div className="flex items-center gap-2 rounded-[var(--radius-lg)] border-2 border-dashed border-[var(--accent)] bg-[var(--bg-elevated)] px-8 py-10 text-[var(--text-primary)]">
+            <FileUp size={20} strokeWidth={1.75} />
+            {t('newMenu.dropHint')}
+          </div>
+        </div>
+      )}
       <div className="flex items-center justify-between">
         <div className="min-w-0">
           <h1 className="text-lg font-semibold text-[var(--text-primary)]">{title}</h1>
@@ -337,13 +459,40 @@ export default function FilesFeed({ mode, groupId, folderId = null, basePath }: 
               {t('subnav.starred')}
             </Button>
           )}
-          <Button type="button" variant="secondary" onClick={() => setIsNewFolderOpen(true)}>
-            <FolderPlus size={16} strokeWidth={1.75} className="mr-1.5" />
-            {tf('newFolder.trigger')}
-          </Button>
-          <Button type="button" variant="primary" onClick={() => setIsUploadOpen(true)}>
-            {t('upload.submit')}
-          </Button>
+          <input
+            ref={folderInputRef}
+            type="file"
+            multiple
+            // webkitdirectory isn't in React's typings; it makes the picker select a whole folder.
+            {...({ webkitdirectory: '' } as Record<string, string>)}
+            onChange={handleFolderPicked}
+            className="hidden"
+          />
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button type="button" variant="primary">
+                <Plus size={16} strokeWidth={1.75} className="mr-1.5" />
+                {t('newMenu.trigger')}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onSelect={() => setIsNewFolderOpen(true)}>
+                <FolderPlus size={16} strokeWidth={1.75} />
+                {t('newMenu.newFolder')}
+                <span className="ml-auto pl-6 text-xs text-[var(--text-tertiary)]">Shift+N</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => setIsUploadOpen(true)}>
+                <FileUp size={16} strokeWidth={1.75} />
+                {t('newMenu.uploadFile')}
+                <span className="ml-auto pl-6 text-xs text-[var(--text-tertiary)]">U</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => folderInputRef.current?.click()}>
+                <FolderUp size={16} strokeWidth={1.75} />
+                {t('newMenu.uploadFolder')}
+                <span className="ml-auto pl-6 text-xs text-[var(--text-tertiary)]">Shift+U</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
 
@@ -470,6 +619,44 @@ export default function FilesFeed({ mode, groupId, folderId = null, basePath }: 
         message={deleteTarget?.kind === 'folder' ? tf('confirmDelete.message') : t('detail.confirmDelete.message')}
         onCancel={() => setDeleteTarget(null)}
         onConfirm={() => void handleDeleteConfirm()}
+      />
+      <ContextMenu>
+        <ContextMenuTrigger asChild>
+          <div className="min-h-[12rem]" />
+        </ContextMenuTrigger>
+        <ContextMenuContent>
+          <ContextMenuItem onSelect={() => setIsNewFolderOpen(true)}>
+            <FolderPlus size={16} strokeWidth={1.75} />
+            {t('newMenu.newFolder')}
+          </ContextMenuItem>
+          <ContextMenuItem onSelect={() => setIsUploadOpen(true)}>
+            <FileUp size={16} strokeWidth={1.75} />
+            {t('newMenu.uploadFile')}
+          </ContextMenuItem>
+          <ContextMenuItem onSelect={() => folderInputRef.current?.click()}>
+            <FolderUp size={16} strokeWidth={1.75} />
+            {t('newMenu.uploadFolder')}
+          </ContextMenuItem>
+        </ContextMenuContent>
+      </ContextMenu>
+      <ConfirmDialog
+        open={uploadPreview !== null}
+        title={t('newMenu.previewTitle')}
+        message={
+          uploadPreview
+            ? t('newMenu.previewMessage', { files: uploadPreview.summary.fileCount, folders: uploadPreview.summary.folderCount, size: formatFileSize(uploadPreview.summary.totalBytes) }) +
+              (uploadPreview.freeBytes === null
+                ? ''
+                : t(uploadPreview.summary.totalBytes > uploadPreview.freeBytes ? 'newMenu.previewOverQuota' : 'newMenu.previewQuota', { free: formatFileSize(uploadPreview.freeBytes) }))
+            : ''
+        }
+        confirmLabel={t('newMenu.previewConfirm')}
+        onCancel={() => setUploadPreview(null)}
+        onConfirm={() => {
+          const pending = uploadPreview?.pending;
+          setUploadPreview(null);
+          if (pending) void uploadPending(pending);
+        }}
       />
       <UploadProgressPanel items={uploadQueue.items} onRetry={uploadQueue.retry} onRemove={uploadQueue.removeSettled} />
 
